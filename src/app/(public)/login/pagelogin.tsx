@@ -172,7 +172,7 @@ export default function Home() {
         </section>
 
         <section className="grid place-items-center px-5 py-8 sm:px-8">
-          <div className="w-full max-w-xl rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_30px_70px_rgba(11,19,39,0.18)] backdrop-blur-xl sm:p-9">
+          <div className="w-full max-w-xl rounded-4xl border border-white/70 bg-white/85 p-6 shadow-[0_30px_70px_rgba(11,19,39,0.18)] backdrop-blur-xl sm:p-9">
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
               <span className="h-1 rounded-full bg-slate-200" />
@@ -183,7 +183,7 @@ export default function Home() {
               <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">
                 User sign in
               </p>
-              <h2 className="mt-3 text-4xl leading-none font-semibold tracking-[-0.05em] text-slate-900 sm:text-[2.65rem]">
+              <h2 className="mt-3 text-4xl leading-none font-semibold tracking-tighter text-slate-900 sm:text-[2.65rem]">
                 Welcome back to MedDelivery
               </h2>
               <p className="mt-3 text-sm leading-7 text-slate-500 sm:text-base">
