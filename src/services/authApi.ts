@@ -12,7 +12,7 @@ type OtpPayload = {
   otp?: string;
 };
 
-const useMockAuth = true;
+const useMockAuth = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === "true";
 
 const otpStore = new Map<string, { code: string; expiresAt: number }>();
 
@@ -68,6 +68,7 @@ export const verifyLoginOtp = async ({ phone, otp }: OtpPayload) => {
     throw new Error("The OTP code is incorrect.");
   }
 
+  otpStore.delete(phone);
   return { success: true };
 };
 
