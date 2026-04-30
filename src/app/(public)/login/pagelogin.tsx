@@ -83,7 +83,6 @@ export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("patient");
   const [showPassword, setShowPassword] = useState(false);
   const [usernameEditable, setUsernameEditable] = useState(false);
   const [passwordEditable, setPasswordEditable] = useState(false);
@@ -123,10 +122,10 @@ export default function Home() {
       const response = await login({
         username: normalizedUsername,
         password,
-        role: selectedRole
+        role: "patient"
       });
 
-      const nextRoute = roleRoutes[response.user?.roleKey ?? selectedRole] ?? roleRoutes.patient;
+      const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
       router.push(nextRoute);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Sign in failed.");
@@ -301,21 +300,6 @@ export default function Home() {
                   placeholder="Phone number, email"
                   className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-sm font-bold text-slate-600">Role</span>
-                <select
-                  value={selectedRole}
-                  onChange={(event) => setSelectedRole(event.target.value)}
-                  disabled={isSigningIn}
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
-                >
-                  <option value="patient">Patient</option>
-                  <option value="pharmacist">Pharmacist</option>
-                  <option value="pharmacy">Pharmacy</option>
-                  <option value="super-admin">Super Admin</option>
-                </select>
               </label>
 
               <label className="grid gap-2">
