@@ -3,7 +3,7 @@ import { apiClient } from "./apiClient";
 type LoginCredentials = {
   username: string;
   password: string;
-  role: string;
+  role?: string;
 };
 
 type OtpPayload = {
@@ -83,8 +83,8 @@ export const login = async (credentials: LoginCredentials) => {
   return {
     token: "mock-jwt-token",
     user: {
-      role: roleNameMap[credentials.role] ?? "PATIENT",
-      roleKey: credentials.role
+      role: roleNameMap[credentials.role ?? "patient"] ?? "PATIENT",
+      roleKey: credentials.role ?? "patient"
     }
   };
 };

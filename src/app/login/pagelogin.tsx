@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { login } from "@/services/authApi";
@@ -84,8 +85,6 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [usernameEditable, setUsernameEditable] = useState(false);
-  const [passwordEditable, setPasswordEditable] = useState(false);
   const [error, setError] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -121,8 +120,7 @@ export default function Home() {
     try {
       const response = await login({
         username: normalizedUsername,
-        password,
-        role: "patient"
+        password
       });
 
       const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
@@ -292,8 +290,6 @@ export default function Home() {
                       setError("");
                     }
                   }}
-                  onFocus={() => setUsernameEditable(true)}
-                  readOnly={!usernameEditable}
                   autoComplete="username"
                   spellCheck={false}
                   disabled={isSigningIn}
@@ -315,8 +311,6 @@ export default function Home() {
                         setError("");
                       }
                     }}
-                    onFocus={() => setPasswordEditable(true)}
-                    readOnly={!passwordEditable}
                     autoComplete="current-password"
                     spellCheck={false}
                     disabled={isSigningIn}
@@ -412,9 +406,9 @@ export default function Home() {
 
             <p className="mt-5 text-center text-sm text-slate-500">
               If you don&apos;t have an account,{" "}
-              <a href="/signup" className="font-bold text-teal-700 transition hover:text-teal-900">
+              <Link href="/signup" className="font-bold text-teal-700 transition hover:text-teal-900">
                 sign up
-              </a>
+              </Link>
               .
             </p>
           </div>
