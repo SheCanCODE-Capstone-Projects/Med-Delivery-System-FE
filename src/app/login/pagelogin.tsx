@@ -76,10 +76,16 @@ const roleRoutes: Record<string, string> = {
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Normalizes the identifier entered into the login form before validation.
+ */
 function normalizeIdentifier(value: string) {
   return value.trim();
 }
 
+/**
+ * Renders the login experience and submits validated credentials.
+ */
 export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -90,6 +96,9 @@ export default function Home() {
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
+  /**
+   * Validates the current identifier and password fields before sign-in.
+   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
@@ -107,6 +116,9 @@ export default function Home() {
     return true;
   };
 
+  /**
+   * Handles login form submission and routes the user after a successful sign-in.
+   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");

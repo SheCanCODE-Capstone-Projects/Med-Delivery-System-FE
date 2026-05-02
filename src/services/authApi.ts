@@ -23,8 +23,14 @@ const roleNameMap: Record<string, string> = {
   "super-admin": "SUPER_ADMIN"
 };
 
+/**
+ * Generates a demo OTP code for mock authentication flows.
+ */
 const createDemoOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
 
+/**
+ * Requests a login OTP from the API or mock store for the provided phone number.
+ */
 export const requestLoginOtp = async ({ phone, role }: OtpPayload) => {
   if (!useMockAuth) {
     return apiClient("/auth/login/request-otp", {
@@ -45,6 +51,9 @@ export const requestLoginOtp = async ({ phone, role }: OtpPayload) => {
   };
 };
 
+/**
+ * Verifies a submitted OTP against the API or the in-memory mock store.
+ */
 export const verifyLoginOtp = async ({ phone, otp }: OtpPayload) => {
   if (!useMockAuth) {
     return apiClient("/auth/login/verify-otp", {
@@ -72,6 +81,9 @@ export const verifyLoginOtp = async ({ phone, otp }: OtpPayload) => {
   return { success: true };
 };
 
+/**
+ * Authenticates a user with the login API and falls back to mock auth when enabled.
+ */
 export const login = async (credentials: LoginCredentials) => {
   if (!useMockAuth) {
     return apiClient("/auth/login", {
@@ -89,10 +101,16 @@ export const login = async (credentials: LoginCredentials) => {
   };
 };
 
+/**
+ * Placeholder patient registration helper until the real API flow is connected.
+ */
 export const registerPatient = async (data) => {
   return { success: true };
 };
 
+/**
+ * Placeholder pharmacy registration helper until the real API flow is connected.
+ */
 export const registerPharmacy = async (data) => {
   return { success: true, pharmacyId: "PH-123" };
 };

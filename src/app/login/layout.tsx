@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   description: "Modern login experience for MedDelivery users."
 };
 
+/**
+ * Renders the standalone layout wrapper for the login route.
+ */
 export default function RootLayout({
   children
 }: Readonly<{
