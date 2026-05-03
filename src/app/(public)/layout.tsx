@@ -1,21 +1,7 @@
-import type { Metadata } from 'next';
-import '../globals.css';
-
-export const metadata: Metadata = {
-  title: 'MedDelivery',
-  description: 'MedDelivery application',
-};
-
-export default function RootLayout({
+export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>
-        {children}
-      </body>
-    </html>
-  );
+}): React.JSX.Element {
+  return <>{children}</>;
 }

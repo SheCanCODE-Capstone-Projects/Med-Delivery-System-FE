@@ -241,6 +241,7 @@ function Navbar(): React.JSX.Element {
         <button
           type="button"
           aria-label="Toggle menu"
+          aria-expanded={menuOpen}
           onClick={() => setMenuOpen(!menuOpen)}
           className="flex md:hidden flex-col gap-[5px] bg-transparent border-none cursor-pointer p-1"
         >
@@ -386,7 +387,7 @@ function Hero(): React.JSX.Element {
           </div>
 
           {/* Floating toast */}
-          <div className="absolute -bottom-5 -left-7 flex items-center gap-[10px] bg-[rgba(10,191,188,0.15)] border border-[rgba(10,191,188,0.35)] rounded-[10px] px-[13px] py-[10px] backdrop-blur-md shadow-[0_8px_32px_rgba(10,191,188,0.2)] min-w-[210px] z-20 animate-[floatToast_3s_ease-in-out_infinite]">
+          <div className="absolute -bottom-5 -left-7 flex items-center gap-[10px] bg-[rgba(10,191,188,0.15)] border border-[rgba(10,191,188,0.35)] rounded-[10px] px-[13px] py-[10px] backdrop-blur-md shadow-[0_8px_32px_rgba(10,191,188,0.2)] min-w-[210px] z-20 animate-[float-toast_3s_ease-in-out_infinite]">
             <div className="w-[22px] h-[22px] rounded-full bg-[#0ABFBC] flex items-center justify-center flex-shrink-0">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6L9 17l-5-5" />
@@ -575,25 +576,17 @@ function Footer(): React.JSX.Element {
 // ─── Main export ──────────────────────────────────────────
 export default function LandingPage(): React.JSX.Element {
   return (
-    <>
-      <style>{`
-        @keyframes floatToast {
-          0%, 100% { transform: translateY(0px);  }
-          50%       { transform: translateY(-8px); }
-        }
-      `}</style>
-      <div className="min-h-screen bg-[#040F1A] text-white overflow-x-hidden">
-        <Navbar />
-        <main>
-          <Hero />
-          <StatsStrip />
-          <Features />
-          <HowItWorks />
-          <Portals />
-          <CTA />
-        </main>
-        <Footer />
-      </div>
-    </>
+    <div className="min-h-screen bg-[#040F1A] text-white overflow-x-hidden">
+      <Navbar />
+      <main>
+        <Hero />
+        <StatsStrip />
+        <Features />
+        <HowItWorks />
+        <Portals />
+        <CTA />
+      </main>
+      <Footer />
+    </div>
   );
 }
