@@ -87,6 +87,8 @@ export default function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
+  // FIX (Major): Dynamic role selection instead of hardcoding "patient".
+  const [selectedRole, setSelectedRole] = useState("patient");
 
   // FIX (Major): Use a ref as a synchronous guard to prevent duplicate in-flight
   // login submissions. React state batching means isSigningIn alone cannot reliably
@@ -135,7 +137,8 @@ export default function Home() {
     try {
       const response = await login({
         username: normalizedUsername,
-        password
+        password,
+        role: selectedRole
       });
 
       const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
@@ -295,6 +298,21 @@ export default function Home() {
             ) : null}
 
             <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="off">
+              <label className="grid gap-2">
+                <span className="text-sm font-bold text-slate-600">Role</span>
+                <select
+                  value={selectedRole}
+                  onChange={(event) => setSelectedRole(event.target.value)}
+                  disabled={isSigningIn}
+                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                >
+                  <option value="patient">Patient</option>
+                  <option value="pharmacist">Pharmacist</option>
+                  <option value="pharmacy">Pharmacy</option>
+                  <option value="super-admin">Super Admin</option>
+                </select>
+              </label>
+
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
