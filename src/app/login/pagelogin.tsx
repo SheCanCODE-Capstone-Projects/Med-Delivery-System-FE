@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 import { login } from "@/services/authApi";
 
 const trustPoints = [
@@ -88,6 +88,11 @@ export default function Home() {
   const [error, setError] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
 
+  // FIX (Major): Use a ref as a synchronous guard to prevent duplicate in-flight
+  // login submissions. React state batching means isSigningIn alone cannot reliably
+  // block a second handleSubmit call before the first render cycle completes.
+  const isSigningInRef = useRef(false);
+
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
   const validateCredentials = () => {
@@ -110,7 +115,10 @@ export default function Home() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (isSigningIn) {
+    // FIX (Major): Check the ref synchronously before any async work.
+    // This prevents a second submission from slipping through while the first
+    // is still awaiting the login response and isSigningIn state hasn't re-rendered yet.
+    if (isSigningInRef.current) {
       return;
     }
 
@@ -120,6 +128,8 @@ export default function Home() {
       return;
     }
 
+    // Lock both the ref (sync) and the state (for UI) together.
+    isSigningInRef.current = true;
     setIsSigningIn(true);
 
     try {
@@ -133,6 +143,8 @@ export default function Home() {
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Sign in failed.");
     } finally {
+      // Always release both locks so the form is usable again on error.
+      isSigningInRef.current = false;
       setIsSigningIn(false);
     }
   };
@@ -295,11 +307,13 @@ export default function Home() {
                       setError("");
                     }
                   }}
-                  autoComplete="off"
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   spellCheck={false}
                   disabled={isSigningIn}
-                  placeholder="Phone number or email"
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                  placeholder="Enter phone number or email"
+                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 [&:-webkit-autofill]:![box-shadow:0_0_0px_1000px_white_inset] [&:-webkit-autofill]:![-webkit-text-fill-color:#0f172a]"
                 />
               </label>
 
@@ -316,11 +330,13 @@ export default function Home() {
                         setError("");
                       }
                     }}
-                    autoComplete="off"
+                    autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
                     spellCheck={false}
                     disabled={isSigningIn}
-                    placeholder="........"
-                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                    placeholder="••••••••"
+                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 [&:-webkit-autofill]:![box-shadow:0_0_0px_1000px_white_inset] [&:-webkit-autofill]:![-webkit-text-fill-color:#0f172a]"
                   />
                   <button
                     type="button"
@@ -396,19 +412,22 @@ export default function Home() {
               <span className="h-px bg-slate-200" aria-hidden="true" />
             </div>
 
+            {/* FIX (Minor): Replaced <button> elements with <div> so social sign-in
+                options are fully removed from the tab order and cannot be activated
+                via keyboard or click. Using border-dashed + opacity + cursor-not-allowed
+                clearly communicates "coming soon" without a deceptive interactive button. */}
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {socialProviders.map((provider) => (
-                <button
+                <div
                   key={provider.name}
-                  type="button"
-                  disabled
-                  aria-disabled="true"
+                  role="img"
+                  aria-label={`${provider.name} sign-in — coming soon`}
                   title={`${provider.name} sign-in coming soon`}
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-12 cursor-not-allowed select-none items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 font-semibold text-slate-400 opacity-60"
                 >
                   {provider.icon}
                   <span>{provider.name}</span>
-                </button>
+                </div>
               ))}
             </div>
 
