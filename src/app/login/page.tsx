@@ -1,8 +1,10 @@
-import PageLogin from "./pagelogin";
+import React from 'react';
 
 /**
- * Serves the dedicated `/login` route without the shared public chrome.
+ * Renders the landing page placeholder for the public route.
  */
-export default function LoginPage() {
-  return <PageLogin />;
+export default function LandingPage() {
+  return (
+    <div> Landing page </div>
+  );
 }

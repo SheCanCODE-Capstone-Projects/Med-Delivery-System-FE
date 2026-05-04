@@ -4,7 +4,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/** @type {import('next').NextConfig} */
+/**
+ * Next.js configuration.
+ * Enables strict mode for highlighting potential issues during development.
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = {
   reactStrictMode: true,
 };
