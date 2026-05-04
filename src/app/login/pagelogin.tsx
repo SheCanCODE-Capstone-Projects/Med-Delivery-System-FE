@@ -76,16 +76,10 @@ const roleRoutes: Record<string, string> = {
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Normalizes the identifier entered into the login form before validation.
- */
 function normalizeIdentifier(value: string) {
   return value.trim();
 }
 
-/**
- * Renders the login experience and submits validated credentials.
- */
 export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -96,9 +90,6 @@ export default function Home() {
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
-  /**
-   * Validates the current identifier and password fields before sign-in.
-   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
@@ -116,11 +107,13 @@ export default function Home() {
     return true;
   };
 
-  /**
-   * Handles login form submission and routes the user after a successful sign-in.
-   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isSigningIn) {
+      return;
+    }
+
     setError("");
 
     if (!validateCredentials()) {
@@ -289,7 +282,7 @@ export default function Home() {
               </p>
             ) : null}
 
-            <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="on">
+            <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="off">
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
@@ -302,10 +295,10 @@ export default function Home() {
                       setError("");
                     }
                   }}
-                  autoComplete="username"
+                  autoComplete="off"
                   spellCheck={false}
                   disabled={isSigningIn}
-                  placeholder="Phone number, email"
+                  placeholder="Phone number or email"
                   className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
               </label>
@@ -323,7 +316,7 @@ export default function Home() {
                         setError("");
                       }
                     }}
-                    autoComplete="current-password"
+                    autoComplete="off"
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="........"
@@ -391,7 +384,7 @@ export default function Home() {
                 disabled={isSigningIn}
                 className="min-h-14 rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSigningIn ? "Signing in..." : "Sign in "}
+                {isSigningIn ? "Signing in..." : "Sign in"}
               </button>
             </form>
 
@@ -408,7 +401,10 @@ export default function Home() {
                 <button
                   key={provider.name}
                   type="button"
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-900 transition hover:-translate-y-0.5"
+                  disabled
+                  aria-disabled="true"
+                  title={`${provider.name} sign-in coming soon`}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {provider.icon}
                   <span>{provider.name}</span>
