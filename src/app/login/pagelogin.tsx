@@ -76,10 +76,21 @@ const roleRoutes: Record<string, string> = {
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Normalizes a username identifier by trimming leading and trailing whitespace.
+ * @param value - The raw username string entered by the user.
+ * @returns The trimmed username string.
+ */
 function normalizeIdentifier(value: string) {
   return value.trim();
 }
 
+/**
+ * Login page for MedDelivery.
+ * Renders a split-panel layout with branding on the left and a sign-in form on the right.
+ * Supports role-based authentication for patients, pharmacists, pharmacies, and super admins.
+ * Prevents duplicate in-flight submissions using a synchronous ref guard alongside React state.
+ */
 export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -97,6 +108,12 @@ export default function Home() {
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
+  /**
+   * Validates the username and password fields before form submission.
+   * Accepts either a valid email address or a phone number for the username.
+   * Sets an inline error message and returns false if validation fails.
+   * @returns {boolean} True if all fields are valid, false otherwise.
+   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
@@ -114,6 +131,14 @@ export default function Home() {
     return true;
   };
 
+  /**
+   * Handles login form submission.
+   * Uses a ref guard to prevent duplicate in-flight requests before React state re-renders.
+   * Validates credentials, calls the login API with the selected role,
+   * and redirects the user to the appropriate dashboard on success.
+   * Resets the signing-in lock in a finally block to handle both success and error cases.
+   * @param event - The form submission event.
+   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
