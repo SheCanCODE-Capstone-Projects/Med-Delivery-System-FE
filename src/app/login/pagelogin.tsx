@@ -313,7 +313,7 @@ export default function Home() {
                   spellCheck={false}
                   disabled={isSigningIn}
                   placeholder="Enter phone number or email"
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 [&:-webkit-autofill]:![box-shadow:0_0_0px_1000px_white_inset] [&:-webkit-autofill]:![-webkit-text-fill-color:#0f172a]"
+                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
               </label>
 
@@ -336,7 +336,7 @@ export default function Home() {
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
-                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 [&:-webkit-autofill]:![box-shadow:0_0_0px_1000px_white_inset] [&:-webkit-autofill]:![-webkit-text-fill-color:#0f172a]"
+                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                   />
                   <button
                     type="button"
