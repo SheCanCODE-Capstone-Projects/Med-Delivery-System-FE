@@ -23,22 +23,10 @@ const socialProviders = [
     name: "Google",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-        <path
-          fill="#4285F4"
-          d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z"
-        />
-        <path
-          fill="#34A853"
-          d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.24-2.5c-.9.6-2.06.96-3.37.96-2.59 0-4.79-1.75-5.57-4.1H3.08v2.58A9.99 9.99 0 0 0 12 22Z"
-        />
-        <path
-          fill="#FBBC05"
-          d="M6.43 13.93A5.98 5.98 0 0 1 6.12 12c0-.67.11-1.31.31-1.93V7.49H3.08A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.08 4.51l3.35-2.58Z"
-        />
-        <path
-          fill="#EA4335"
-          d="M12 5.97c1.47 0 2.8.5 3.84 1.49l2.88-2.88C16.95 2.94 14.69 2 12 2a9.99 9.99 0 0 0-8.92 5.49l3.35 2.58c.78-2.35 2.98-4.1 5.57-4.1Z"
-        />
+        <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
+        <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.24-2.5c-.9.6-2.06.96-3.37.96-2.59 0-4.79-1.75-5.57-4.1H3.08v2.58A9.99 9.99 0 0 0 12 22Z" />
+        <path fill="#FBBC05" d="M6.43 13.93A5.98 5.98 0 0 1 6.12 12c0-.67.11-1.31.31-1.93V7.49H3.08A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.08 4.51l3.35-2.58Z" />
+        <path fill="#EA4335" d="M12 5.97c1.47 0 2.8.5 3.84 1.49l2.88-2.88C16.95 2.94 14.69 2 12 2a9.99 9.99 0 0 0-8.92 5.49l3.35 2.58c.78-2.35 2.98-4.1 5.57-4.1Z" />
       </svg>
     )
   },
@@ -57,10 +45,7 @@ const socialProviders = [
     name: "Yahoo",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-        <path
-          fill="#6001D2"
-          d="M16.8 3h3.42l-4.12 9.17L17.95 21h-3.3l-1.24-6.14L9.87 21H6.52l5.03-8.95L8.1 3h3.37l2.04 5.64L16.8 3Zm.27 18h2.75l.57-3.22h-2.75L17.07 21Z"
-        />
+        <path fill="#6001D2" d="M16.8 3h3.42l-4.12 9.17L17.95 21h-3.3l-1.24-6.14L9.87 21H6.52l5.03-8.95L8.1 3h3.37l2.04 5.64L16.8 3Zm.27 18h2.75l.57-3.22h-2.75L17.07 21Z" />
       </svg>
     )
   }
@@ -76,44 +61,21 @@ const roleRoutes: Record<string, string> = {
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Normalizes a username identifier by trimming leading and trailing whitespace.
- * @param value - The raw username string entered by the user.
- * @returns The trimmed username string.
- */
 function normalizeIdentifier(value: string) {
   return value.trim();
 }
 
-/**
- * Login page for MedDelivery.
- * Renders a split-panel layout with branding on the left and a sign-in form on the right.
- * Supports role-based authentication for patients, pharmacists, pharmacies, and super admins.
- * Prevents duplicate in-flight submissions using a synchronous ref guard alongside React state.
- */
-export default function Home() {
+export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
-  // FIX (Major): Dynamic role selection instead of hardcoding "patient".
-  const [selectedRole, setSelectedRole] = useState("patient");
-
-  // FIX (Major): Use a ref as a synchronous guard to prevent duplicate in-flight
-  // login submissions. React state batching means isSigningIn alone cannot reliably
-  // block a second handleSubmit call before the first render cycle completes.
   const isSigningInRef = useRef(false);
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
-  /**
-   * Validates the username and password fields before form submission.
-   * Accepts either a valid email address or a phone number for the username.
-   * Sets an inline error message and returns false if validation fails.
-   * @returns {boolean} True if all fields are valid, false otherwise.
-   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
@@ -131,39 +93,22 @@ export default function Home() {
     return true;
   };
 
-  /**
-   * Handles login form submission.
-   * Uses a ref guard to prevent duplicate in-flight requests before React state re-renders.
-   * Validates credentials, calls the login API with the selected role,
-   * and redirects the user to the appropriate dashboard on success.
-   * Resets the signing-in lock in a finally block to handle both success and error cases.
-   * @param event - The form submission event.
-   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // FIX (Major): Check the ref synchronously before any async work.
-    // This prevents a second submission from slipping through while the first
-    // is still awaiting the login response and isSigningIn state hasn't re-rendered yet.
-    if (isSigningInRef.current) {
-      return;
-    }
+    if (isSigningInRef.current) return;
 
     setError("");
 
-    if (!validateCredentials()) {
-      return;
-    }
+    if (!validateCredentials()) return;
 
-    // Lock both the ref (sync) and the state (for UI) together.
     isSigningInRef.current = true;
     setIsSigningIn(true);
 
     try {
       const response = await login({
         username: normalizedUsername,
-        password,
-        role: selectedRole
+        password
       });
 
       const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
@@ -171,7 +116,6 @@ export default function Home() {
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Sign in failed.");
     } finally {
-      // Always release both locks so the form is usable again on error.
       isSigningInRef.current = false;
       setIsSigningIn(false);
     }
@@ -189,52 +133,16 @@ export default function Home() {
               <div className="grid h-16 w-16 place-items-center rounded-[1.35rem] border border-white/10 bg-[#121a2f] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] sm:h-18 sm:w-18">
                 <svg viewBox="0 0 48 48" className="h-10 w-10 sm:h-11 sm:w-11" aria-hidden="true">
                   <rect x="6" y="17" width="21" height="11" rx="3.5" fill="white" opacity="0.96" />
-                  <path
-                    d="M27 20h7.2c1.4 0 2.74.63 3.66 1.72L41 25.6V31h-4.2"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12.5 12h5v3.4h3.5v5h-3.5v3.4h-5v-3.4H9v-5h3.5V12Z"
-                    fill="#0f766e"
-                  />
-                  <path
-                    d="M10 22.5h13"
-                    fill="none"
-                    stroke="#0f766e"
-                    strokeWidth="2.3"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M31 20v7.2h9.2"
-                    fill="none"
-                    stroke="#0f766e"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M6.5 31h2.7M38.8 31H41"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                  />
+                  <path d="M27 20h7.2c1.4 0 2.74.63 3.66 1.72L41 25.6V31h-4.2" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12.5 12h5v3.4h3.5v5h-3.5v3.4h-5v-3.4H9v-5h3.5V12Z" fill="#0f766e" />
+                  <path d="M10 22.5h13" fill="none" stroke="#0f766e" strokeWidth="2.3" strokeLinecap="round" />
+                  <path d="M31 20v7.2h9.2" fill="none" stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6.5 31h2.7M38.8 31H41" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" />
                   <circle cx="14" cy="31.5" r="4.2" fill="#0f172a" />
                   <circle cx="34" cy="31.5" r="4.2" fill="#0f172a" />
                   <circle cx="14" cy="31.5" r="1.7" fill="white" opacity="0.9" />
                   <circle cx="34" cy="31.5" r="1.7" fill="white" opacity="0.9" />
-                  <path
-                    d="M4.8 18.5c2-.2 3.55-1.08 4.64-2.64M4.2 22.6c2.6-.13 4.55-1.12 5.86-2.98"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    opacity="0.82"
-                  />
+                  <path d="M4.8 18.5c2-.2 3.55-1.08 4.64-2.64M4.2 22.6c2.6-.13 4.55-1.12 5.86-2.98" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" opacity="0.82" />
                 </svg>
               </div>
 
@@ -253,13 +161,11 @@ export default function Home() {
               <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-[11px] text-white/75 sm:text-xs">
                 Care network for patients, pharmacies and pharmacists
               </span>
-
               <h1 className="mt-3 text-[2.05rem] leading-[0.98] font-semibold tracking-tighter sm:text-[2.45rem] lg:text-[2.9rem] xl:text-[3.1rem]">
                 Smarter medicine access,
                 <br />
                 <span className="text-teal-400">designed for trust.</span>
               </h1>
-
               <p className="mt-2 max-w-md text-xs leading-5 text-white/70 sm:text-sm">
                 Secure medicine delivery with prescription validation and nearby pharmacy support.
               </p>
@@ -276,10 +182,7 @@ export default function Home() {
 
             <div className="relative z-10 mt-5 grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
               {accessCards.map((card) => (
-                <article
-                  key={card.title}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm"
-                >
+                <article key={card.title} className="rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
                   <p className="text-sm font-bold">{card.title}</p>
                   <span className="mt-1.5 block text-xs leading-5 text-white/70">{card.detail}</span>
                 </article>
@@ -313,31 +216,12 @@ export default function Home() {
             </div>
 
             {error ? (
-              <p
-                role="alert"
-                aria-live="polite"
-                className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-              >
+              <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {error}
               </p>
             ) : null}
 
             <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="off">
-              <label className="grid gap-2">
-                <span className="text-sm font-bold text-slate-600">Role</span>
-                <select
-                  value={selectedRole}
-                  onChange={(event) => setSelectedRole(event.target.value)}
-                  disabled={isSigningIn}
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
-                >
-                  <option value="patient">Patient</option>
-                  <option value="pharmacist">Pharmacist</option>
-                  <option value="pharmacy">Pharmacy</option>
-                  <option value="super-admin">Super Admin</option>
-                </select>
-              </label>
-
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
@@ -346,9 +230,7 @@ export default function Home() {
                   value={username}
                   onChange={(event) => {
                     setUsername(event.target.value);
-                    if (error) {
-                      setError("");
-                    }
+                    if (error) setError("");
                   }}
                   autoComplete="new-password"
                   autoCorrect="off"
@@ -369,9 +251,7 @@ export default function Home() {
                     value={password}
                     onChange={(event) => {
                       setPassword(event.target.value);
-                      if (error) {
-                        setError("");
-                      }
+                      if (error) setError("");
                     }}
                     autoComplete="new-password"
                     autoCorrect="off"
@@ -383,55 +263,21 @@ export default function Home() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((value) => !value)}
+                    onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={isSigningIn}
                     className="grid min-h-14 place-items-center rounded-2xl border border-slate-200 px-5 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
                   >
                     {showPassword ? (
                       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                        <path
-                          d="M3 3l18 18"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M10.58 10.58A2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M9.88 5.09A9.77 9.77 0 0 1 12 4c5 0 9 8 9 8a15.1 15.1 0 0 1-2.16 2.94M6.71 6.7C4.03 8.18 3 12 3 12s4 8 9 8a9.8 9.8 0 0 0 5.29-1.53"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                        <path d="M3 3l18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M10.58 10.58A2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M9.88 5.09A9.77 9.77 0 0 1 12 4c5 0 9 8 9 8a15.1 15.1 0 0 1-2.16 2.94M6.71 6.7C4.03 8.18 3 12 3 12s4 8 9 8a9.8 9.8 0 0 0 5.29-1.53" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     ) : (
                       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                        <path
-                          d="M2 12s3.64-7 10-7 10 7 10 7-3.64 7-10 7-10-7-10-7Z"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="3"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
+                        <path d="M2 12s3.64-7 10-7 10 7 10 7-3.64 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
                       </svg>
                     )}
                   </button>
@@ -449,16 +295,10 @@ export default function Home() {
 
             <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <span className="h-px bg-slate-200" aria-hidden="true" />
-              <p className="text-center text-sm font-semibold text-slate-500">
-                Continue with
-              </p>
+              <p className="text-center text-sm font-semibold text-slate-500">Continue with</p>
               <span className="h-px bg-slate-200" aria-hidden="true" />
             </div>
 
-            {/* FIX (Minor): Replaced <button> elements with <div> so social sign-in
-                options are fully removed from the tab order and cannot be activated
-                via keyboard or click. Using border-dashed + opacity + cursor-not-allowed
-                clearly communicates "coming soon" without a deceptive interactive button. */}
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {socialProviders.map((provider) => (
                 <div
