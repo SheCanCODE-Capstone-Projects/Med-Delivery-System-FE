@@ -226,20 +226,18 @@ export default function LoginPage() {
               </p>
             ) : null}
 
-            <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="off">
+            <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="on">
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
                   type="text"
-                  name="username_login"
+                  name="username"
                   value={username}
                   onChange={(event) => {
                     setUsername(event.target.value);
                     if (error) setError("");
                   }}
-                  autoComplete="new-password"
-                  autoCorrect="off"
-                  autoCapitalize="off"
+                  autoComplete="username"
                   spellCheck={false}
                   disabled={isSigningIn}
                   placeholder="Enter phone number or email"
@@ -252,15 +250,13 @@ export default function LoginPage() {
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                   <input
                     type={showPassword ? "text" : "password"}
-                    name="secure_login_passcode"
+                    name="password"
                     value={password}
                     onChange={(event) => {
                       setPassword(event.target.value);
                       if (error) setError("");
                     }}
-                    autoComplete="new-password"
-                    autoCorrect="off"
-                    autoCapitalize="off"
+                    autoComplete="current-password"
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
