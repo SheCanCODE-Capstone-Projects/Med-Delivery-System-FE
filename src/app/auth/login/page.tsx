@@ -111,6 +111,11 @@ export default function LoginPage() {
         password
       });
 
+      // FIX: Persist token so subsequent API calls are authenticated.
+      if (response.token) {
+        localStorage.setItem("auth_token", response.token);
+      }
+
       const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
       router.push(nextRoute);
     } catch (loginError) {
@@ -238,7 +243,7 @@ export default function LoginPage() {
                   spellCheck={false}
                   disabled={isSigningIn}
                   placeholder="Enter phone number or email"
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
               </label>
 
@@ -259,7 +264,7 @@ export default function LoginPage() {
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
-                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                   />
                   <button
                     type="button"
