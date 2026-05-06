@@ -111,10 +111,13 @@ export default function LoginPage() {
         password
       });
 
-      // FIX: Persist token so subsequent API calls are authenticated.
-      if (response.token) {
-        localStorage.setItem("auth_token", response.token);
+      if (!response?.token) {
+        setError("Sign in failed. Please try again.");
+        return;
       }
+      // NOTE: localStorage is a temporary placeholder.
+      // HttpOnly cookie-based auth will be implemented once the backend API is available.
+      localStorage.setItem("auth_token", response.token);
 
       const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
       router.push(nextRoute);
