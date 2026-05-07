@@ -88,7 +88,10 @@ export const login = async (credentials: LoginCredentials) => {
   if (!useMockAuth) {
     return apiClient("/auth/login", {
       method: "POST",
-      body: JSON.stringify(credentials)
+      body: JSON.stringify({
+        email: credentials.username,
+        password: credentials.password
+      })
     });
   }
 

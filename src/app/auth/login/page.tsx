@@ -21,6 +21,7 @@ const accessCards = [
 const socialProviders = [
   {
     name: "Google",
+    providerId: "google",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
         <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
@@ -32,6 +33,7 @@ const socialProviders = [
   },
   {
     name: "Microsoft",
+    providerId: "microsoft",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
         <path fill="#F25022" d="M3 3h8.5v8.5H3z" />
@@ -43,6 +45,7 @@ const socialProviders = [
   },
   {
     name: "Yahoo",
+    providerId: "yahoo",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
         <path fill="#6001D2" d="M16.8 3h3.42l-4.12 9.17L17.95 21h-3.3l-1.24-6.14L9.87 21H6.52l5.03-8.95L8.1 3h3.37l2.04 5.64L16.8 3Zm.27 18h2.75l.57-3.22h-2.75L17.07 21Z" />
@@ -60,9 +63,15 @@ const roleRoutes: Record<string, string> = {
 
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api";
+const oauthBaseUrl = process.env.NEXT_PUBLIC_OAUTH_BASE_URL ?? apiBaseUrl.replace(/\/api\/?$/, "");
 
 function normalizeIdentifier(value: string) {
   return value.trim();
+}
+
+function getOAuthUrl(providerId: string) {
+  return `${oauthBaseUrl}/oauth2/authorization/${providerId}`;
 }
 
 export default function LoginPage() {
@@ -305,16 +314,19 @@ export default function LoginPage() {
 
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {socialProviders.map((provider) => (
-                <div
+                <button
                   key={provider.name}
-                  role="img"
-                  aria-label={`${provider.name} sign-in — coming soon`}
-                  title={`${provider.name} sign-in coming soon`}
-                  className="flex min-h-12 cursor-not-allowed select-none items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 font-semibold text-slate-400 opacity-60"
+                  aria-label={`Continue with ${provider.name}`}
+                  type="button"
+                  onClick={() => {
+                    window.location.href = getOAuthUrl(provider.providerId);
+                  }}
+                  disabled={isSigningIn}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {provider.icon}
                   <span>{provider.name}</span>
-                </div>
+                </button>
               ))}
             </div>
 

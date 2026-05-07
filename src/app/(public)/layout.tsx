@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import MainLayout from "@/components/layout/MainLayout";
 
 /**
@@ -8,5 +11,14 @@ export default function PublicLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isPatientAppRoute = ["/patient-dashboard", "/order", "/tracking"].some((route) =>
+    pathname?.startsWith(route)
+  );
+
+  if (isPatientAppRoute) {
+    return <>{children}</>;
+  }
+
   return <MainLayout>{children}</MainLayout>;
 }

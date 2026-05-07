@@ -1,21 +1,32 @@
-// Abstract API Client for handling base URLs, interceptors, etc.
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api";
 
-const BASE_URL = 'https://api.meddelivery.com/v1'; // Replace with real URL
+type ApiClientOptions = RequestInit & {
+  isMultipart?: boolean;
+};
 
-export const apiClient = async (endpoint, options: any = {}) => {
+export const apiClient = async (endpoint: string, options: ApiClientOptions = {}) => {
   const url = `${BASE_URL}${endpoint}`;
-  
-  // You would typically attach JWT tokens here
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = new Headers(options.headers);
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
-  const response = await fetch(url, { ...options, headers });
-  
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+  if (!options.isMultipart && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
   }
 
-  return response.json();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(payload?.message ?? `API Error: ${response.status}`);
+  }
+
+  return payload;
 };
