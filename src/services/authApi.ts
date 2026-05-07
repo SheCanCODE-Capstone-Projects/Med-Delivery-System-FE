@@ -12,6 +12,21 @@ type OtpPayload = {
   otp?: string;
 };
 
+export type PatientRegistrationData = Record<string, unknown>;
+export type PharmacyRegistrationData = Record<string, unknown>;
+
+type LoginResponse = {
+  token?: string;
+  refreshToken?: string;
+  user?: {
+    id?: number;
+    fullName?: string;
+    email?: string;
+    role?: string;
+    roleKey?: string;
+  };
+};
+
 const useMockAuth = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === "true";
 
 const otpStore = new Map<string, { code: string; expiresAt: number }>();
@@ -21,6 +36,14 @@ const roleNameMap: Record<string, string> = {
   pharmacist: "PHARMACIST",
   pharmacy: "PHARMACY_ADMIN",
   "super-admin": "SUPER_ADMIN"
+};
+
+const roleKeyMap: Record<string, string> = {
+  PATIENT: "patient",
+  PHARMACIST: "pharmacist",
+  MANAGER: "pharmacy",
+  PHARMACY_ADMIN: "pharmacy",
+  SUPER_ADMIN: "super-admin"
 };
 
 /**
@@ -86,13 +109,23 @@ export const verifyLoginOtp = async ({ phone, otp }: OtpPayload) => {
  */
 export const login = async (credentials: LoginCredentials) => {
   if (!useMockAuth) {
-    return apiClient("/auth/login", {
+    const response = await apiClient("/auth/login", {
       method: "POST",
       body: JSON.stringify({
         email: credentials.username,
         password: credentials.password
       })
-    });
+    }) as LoginResponse;
+
+    return {
+      ...response,
+      user: response.user
+        ? {
+            ...response.user,
+            roleKey: roleKeyMap[response.user.role ?? ""] ?? "patient"
+          }
+        : undefined
+    };
   }
 
   return {
@@ -107,13 +140,13 @@ export const login = async (credentials: LoginCredentials) => {
 /**
  * Placeholder patient registration helper until the real API flow is connected.
  */
-export const registerPatient = async (data) => {
+export const registerPatient = async (data: PatientRegistrationData) => {
   return { success: true };
 };
 
 /**
  * Placeholder pharmacy registration helper until the real API flow is connected.
  */
-export const registerPharmacy = async (data) => {
+export const registerPharmacy = async (data: PharmacyRegistrationData) => {
   return { success: true, pharmacyId: "PH-123" };
 };

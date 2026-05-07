@@ -94,7 +94,7 @@ export default function LoginPage() {
       return false;
     }
 
-    if (password.trim().length < 8) {
+    if (password.length < 8) {
       setError("Password must be at least 8 characters.");
       return false;
     }
@@ -233,7 +233,7 @@ export default function LoginPage() {
             </div>
 
             {error ? (
-              <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {error}
               </p>
             ) : null}

@@ -24,6 +24,11 @@ const navItems = [
 export default function PatientAppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
 
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    window.location.href = "/auth/login";
+  };
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.11),transparent_28%),linear-gradient(135deg,#f6fbfc_0%,#f8fafc_48%,#eef7f8_100%)] text-slate-950">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
@@ -64,7 +69,8 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         <aside className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.16)] backdrop-blur-xl lg:sticky lg:top-16 lg:left-0 lg:bottom-auto lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:flex-col lg:justify-center lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none">
           <nav className="flex items-center gap-2 lg:flex-col">
             {navItems.map((item) => {
-              const active = item.href === pathname || (item.href === "/tracking" && pathname?.startsWith("/tracking"));
+              const hrefPath = item.href.split("#")[0];
+              const active = hrefPath === pathname || (hrefPath === "/tracking" && pathname?.startsWith("/tracking"));
 
               return (
                 <Link
@@ -84,7 +90,13 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
             })}
           </nav>
           <span className="hidden h-px w-9 bg-slate-200 lg:block" />
-          <button title="Logout" aria-label="Logout" className="grid h-12 w-12 place-items-center rounded-2xl text-slate-500 transition hover:bg-white hover:text-rose-600 hover:shadow-sm">
+          <button
+            title="Logout"
+            aria-label="Logout"
+            type="button"
+            onClick={handleLogout}
+            className="grid h-12 w-12 place-items-center rounded-2xl text-slate-500 transition hover:bg-white hover:text-rose-600 hover:shadow-sm"
+          >
             <LogOut className="h-5 w-5" aria-hidden="true" />
           </button>
         </aside>

@@ -1,20 +1,28 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Camera, CheckCircle2, FileUp, MapPin, Minus, Pill, Plus, Search, ShieldCheck, Truck, UploadCloud, X } from "lucide-react";
+import { CheckCircle2, FileUp, MapPin, Minus, Pill, Plus, Search, ShieldCheck, Truck, UploadCloud, X } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
+
+type MedicineItem = {
+  id: string;
+  medicine: string;
+  quantity: number;
+};
 
 export default function OrderingForm() {
   const [requestType, setRequestType] = useState<"private" | "prescription">("prescription");
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");
-  const [items, setItems] = useState([{ medicine: "Paracetamol 500mg", quantity: 1 }]);
+  const [items, setItems] = useState<MedicineItem[]>([{ id: "item-1", medicine: "Paracetamol 500mg", quantity: 1 }]);
   const [symptoms, setSymptoms] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
   const [requestId, setRequestId] = useState("");
   const [formError, setFormError] = useState("");
+  const nextItemIdRef = useRef(2);
+  const prepareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const canSubmit = useMemo(() => {
     const hasMedicine = items.some((item) => item.medicine.trim().length > 0);
@@ -22,6 +30,14 @@ export default function OrderingForm() {
   }, [items, prescriptionFile, requestType, symptoms]);
 
   const fileSize = prescriptionFile ? `${(prescriptionFile.size / 1024 / 1024).toFixed(2)} MB` : "";
+
+  useEffect(() => {
+    return () => {
+      if (prepareTimerRef.current) {
+        clearTimeout(prepareTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,17 +52,22 @@ export default function OrderingForm() {
       return;
     }
 
+    if (prepareTimerRef.current) {
+      clearTimeout(prepareTimerRef.current);
+    }
+
     setIsPreparing(true);
-    window.setTimeout(() => {
+    prepareTimerRef.current = setTimeout(() => {
       setRequestId(`ORD-${Math.floor(2800 + Math.random() * 300)}`);
       setSubmitted(true);
       setIsPreparing(false);
+      prepareTimerRef.current = null;
     }, 650);
   };
 
-  const updateItem = (index: number, key: "medicine" | "quantity", value: string | number) => {
+  const updateItem = (id: string, key: "medicine" | "quantity", value: string | number) => {
     setItems((current) =>
-      current.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item))
+      current.map((item) => (item.id === id ? { ...item, [key]: value } : item))
     );
   };
 
@@ -212,7 +233,12 @@ export default function OrderingForm() {
               <h3 className="text-lg font-bold text-slate-900">Medicines</h3>
               <button
                 type="button"
-                onClick={() => setItems((current) => [...current, { medicine: "", quantity: 1 }])}
+                onClick={() =>
+                  setItems((current) => [
+                    ...current,
+                    { id: `item-${nextItemIdRef.current++}`, medicine: "", quantity: 1 }
+                  ])
+                }
                 className="inline-flex min-h-10 items-center gap-2 rounded-2xl border border-teal-200 bg-teal-50 px-4 text-sm font-bold text-teal-700"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
@@ -221,15 +247,15 @@ export default function OrderingForm() {
             </div>
 
             <div className="mt-3 grid gap-3">
-              {items.map((item, index) => (
-                <div key={index} className="grid gap-3 rounded-3xl border border-slate-100 bg-white p-3 sm:grid-cols-[1fr_8rem_auto]">
+              {items.map((item) => (
+                <div key={item.id} className="grid gap-3 rounded-3xl border border-slate-100 bg-white p-3 sm:grid-cols-[1fr_8rem_auto]">
                   <label className="grid gap-2">
                     <span className="text-xs font-bold text-slate-500">Medicine name</span>
                     <div className="relative">
                       <Pill className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" aria-hidden="true" />
                       <input
                         value={item.medicine}
-                        onChange={(event) => updateItem(index, "medicine", event.target.value)}
+                        onChange={(event) => updateItem(item.id, "medicine", event.target.value)}
                         placeholder="Search medicine"
                         className="min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                       />
@@ -241,14 +267,14 @@ export default function OrderingForm() {
                       type="number"
                       min={1}
                       value={item.quantity}
-                      onChange={(event) => updateItem(index, "quantity", Number(event.target.value))}
+                      onChange={(event) => updateItem(item.id, "quantity", Number(event.target.value))}
                       className="min-h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                     />
                   </label>
                   <button
                     type="button"
                     aria-label="Remove medicine"
-                    onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                    onClick={() => setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))}
                     className="grid min-h-12 place-items-center rounded-2xl border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:text-rose-600 sm:self-end"
                   >
                     <Minus className="h-4 w-4" aria-hidden="true" />
@@ -324,7 +350,7 @@ export default function OrderingForm() {
               disabled={isPreparing}
               className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Camera className="h-5 w-5" aria-hidden="true" />
+              <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
               {isPreparing ? "Preparing request..." : "Prepare request"}
             </button>
           </div>

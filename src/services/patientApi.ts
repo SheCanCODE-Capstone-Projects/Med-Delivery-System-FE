@@ -78,8 +78,9 @@ export const patientApi = {
       method: "PUT"
     }),
   rejectSubstitution: (substitutionId: number, reason: string) =>
-    patientRequest(`/substitutions/${substitutionId}/reject?reason=${encodeURIComponent(reason)}`, {
-      method: "PUT"
+    patientRequest(`/substitutions/${substitutionId}/reject`, {
+      method: "PUT",
+      body: JSON.stringify({ reason })
     }),
   askChatbot: (message: string, conversationId?: string) =>
     patientRequest("/chatbot/ask", {

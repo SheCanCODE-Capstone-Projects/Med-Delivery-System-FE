@@ -1,15 +1,15 @@
 import { AlertCircle, CheckCircle2, Clock3, CreditCard, MessageSquare, PackageCheck, Pill, Truck } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
 
-export default function TrackingPage() {
-  const timeline = [
-    { label: "Uploaded", detail: "Prescription and order request received.", complete: true },
-    { label: "Matching", detail: "Checking nearby pharmacies for availability.", complete: true },
-    { label: "Assigned", detail: "Central Pharmacy accepted the order.", complete: true },
-    { label: "In progress", detail: "Pharmacist is validating stock and prescription.", complete: false },
-    { label: "Ready", detail: "Pickup or delivery handoff will appear here.", complete: false }
-  ];
+const timeline = [
+  { label: "Uploaded", detail: "Prescription and order request received.", complete: true },
+  { label: "Matching", detail: "Checking nearby pharmacies for availability.", complete: true },
+  { label: "Assigned", detail: "Central Pharmacy accepted the order.", complete: true },
+  { label: "In progress", detail: "Pharmacist is validating stock and prescription.", complete: false },
+  { label: "Ready", detail: "Pickup or delivery handoff will appear here.", complete: false }
+];
 
+export default function TrackingPage() {
   return (
     <PatientAppShell>
       <section className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -29,7 +29,7 @@ export default function TrackingPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">Current order</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">#MD-2048</h1>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">#MD-2048</h2>
               <p className="mt-2 text-sm leading-6 text-slate-500">Prescription request assigned to Central Pharmacy.</p>
             </div>
             <span className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-teal-50 px-4 text-sm font-bold text-teal-700">
