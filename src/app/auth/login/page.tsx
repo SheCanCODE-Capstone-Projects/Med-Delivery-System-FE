@@ -63,7 +63,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Normalizes user identifier input by stripping leading and trailing whitespace.
- * 
+ *
  * @param value - The raw identifier string (email or phone).
  * @returns The trimmed string.
  */
@@ -75,7 +75,7 @@ function normalizeIdentifier(value: string) {
  * LoginPage serves as the primary authentication portal for all user roles.
  * It handles credentials validation, mock and real API authentication flows,
  * and dynamic routing based on the authenticated user's role.
- * 
+ *
  * @returns The login page component.
  */
 export default function LoginPage() {
