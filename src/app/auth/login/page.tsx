@@ -11,13 +11,6 @@ const trustPoints = [
   "Prescription-safe delivery workflow"
 ];
 
-const accessCards = [
-  { title: "Patients", detail: "Track medicine requests, insurance, and delivery." },
-  { title: "Pharmacists", detail: "Validate prescriptions and confirm dispensing." },
-  { title: "Pharmacies", detail: "Coordinate stock, approvals, and fulfillment." },
-  { title: "Super Admin", detail: "Review pharmacy onboarding and activate the network." }
-];
-
 const socialProviders = [
   {
     name: "Google",
@@ -63,7 +56,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Normalizes user identifier input by stripping leading and trailing whitespace.
- *
+ * 
  * @param value - The raw identifier string (email or phone).
  * @returns The trimmed string.
  */
@@ -75,7 +68,7 @@ function normalizeIdentifier(value: string) {
  * LoginPage serves as the primary authentication portal for all user roles.
  * It handles credentials validation, mock and real API authentication flows,
  * and dynamic routing based on the authenticated user's role.
- *
+ * 
  * @returns The login page component.
  */
 export default function LoginPage() {
@@ -142,10 +135,14 @@ export default function LoginPage() {
     }
   };
 
+  const handleSocialSignIn = (providerName: string) => {
+    setError(`${providerName} sign-in is not connected yet.`);
+  };
+
   return (
-    <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
-      <div className="grid h-full lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="relative hidden overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] px-5 py-5 text-white sm:px-7 lg:flex lg:h-full lg:flex-col lg:justify-between lg:px-8 xl:px-10">
+    <main className="fixed inset-0 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+      <div className="grid h-full min-h-0 lg:grid-cols-[minmax(420px,0.8fr)_minmax(560px,1fr)]">
+        <section className="relative hidden min-h-0 overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
           <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
@@ -201,14 +198,6 @@ export default function LoginPage() {
               ))}
             </ul>
 
-            <div className="relative z-10 mt-5 grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-              {accessCards.map((card) => (
-                <article key={card.title} className="rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
-                  <p className="text-sm font-bold">{card.title}</p>
-                  <span className="mt-1.5 block text-xs leading-5 text-white/70">{card.detail}</span>
-                </article>
-              ))}
-            </div>
           </div>
 
           <p className="relative z-10 mt-4 text-xs text-white/40 sm:text-sm lg:mt-5">
@@ -216,8 +205,8 @@ export default function LoginPage() {
           </p>
         </section>
 
-        <section className="grid h-full overflow-y-auto place-items-center px-5 py-5 sm:px-8">
-          <div className="my-auto w-full max-w-2xl rounded-4xl border border-white/70 bg-white/85 p-6 shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl sm:p-8">
+        <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
+          <div className="my-auto w-full max-w-[42rem] rounded-4xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
               <span className="h-1 rounded-full bg-slate-200" />
@@ -242,7 +231,7 @@ export default function LoginPage() {
               </p>
             ) : null}
 
-            <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="on">
+            <form className="mt-[clamp(0.85rem,2.4vh,1.25rem)] grid gap-[clamp(0.7rem,1.8vh,0.9rem)]" onSubmit={handleSubmit} autoComplete="on">
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
@@ -257,13 +246,13 @@ export default function LoginPage() {
                   spellCheck={false}
                   disabled={isSigningIn}
                   placeholder="Enter phone number or email"
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                  className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
               </label>
 
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Password</span>
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -276,14 +265,14 @@ export default function LoginPage() {
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
-                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                    className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={isSigningIn}
-                    className="grid min-h-14 place-items-center rounded-2xl border border-slate-200 px-5 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
+                    className="grid min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-16 place-items-center rounded-2xl border border-slate-200 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
                   >
                     {showPassword ? (
                       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -304,34 +293,36 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSigningIn}
-                className="min-h-14 rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                className="min-h-[clamp(2.95rem,7vh,3.65rem)] rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSigningIn ? "Signing in..." : "Sign in"}
               </button>
             </form>
 
-            <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div className="mt-[clamp(0.9rem,2.6vh,1.5rem)] grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <span className="h-px bg-slate-200" aria-hidden="true" />
               <p className="text-center text-sm font-semibold text-slate-500">Continue with</p>
               <span className="h-px bg-slate-200" aria-hidden="true" />
             </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="mt-[clamp(0.65rem,1.6vh,1rem)] grid grid-cols-3 gap-3">
               {socialProviders.map((provider) => (
-                <div
+                <button
+                  type="button"
                   key={provider.name}
-                  role="img"
-                  aria-label={`${provider.name} sign-in — coming soon`}
-                  title={`${provider.name} sign-in coming soon`}
-                  className="flex min-h-12 cursor-not-allowed select-none items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 font-semibold text-slate-400 opacity-60"
+                  onClick={() => handleSocialSignIn(provider.name)}
+                  disabled={isSigningIn}
+                  aria-label={`Sign in with ${provider.name}`}
+                  title={`Sign in with ${provider.name}`}
+                  className="flex min-h-[clamp(2.4rem,5.6vh,3rem)] select-none items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:text-slate-900 hover:shadow-md focus:outline-hidden focus:ring-4 focus:ring-teal-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {provider.icon}
                   <span>{provider.name}</span>
-                </div>
+                </button>
               ))}
             </div>
 
-            <p className="mt-5 text-center text-sm text-slate-500">
+            <p className="mt-[clamp(0.75rem,2vh,1rem)] text-center text-sm text-slate-500">
               If you don&apos;t have an account,{" "}
               <Link href="/signup" className="font-bold text-teal-700 transition hover:text-teal-900">
                 sign up
