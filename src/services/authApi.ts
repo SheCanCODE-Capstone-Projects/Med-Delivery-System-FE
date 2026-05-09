@@ -17,6 +17,8 @@ export type PharmacyRegistrationData = Record<string, unknown>;
 
 type LoginResponse = {
   token?: string;
+  accessToken?: string;
+  jwt?: string;
   refreshToken?: string;
   user?: {
     id?: number;
@@ -109,16 +111,22 @@ export const verifyLoginOtp = async ({ phone, otp }: OtpPayload) => {
  */
 export const login = async (credentials: LoginCredentials) => {
   if (!useMockAuth) {
+    const identifier = credentials.username.trim();
+    const isEmail = identifier.includes("@");
     const response = await apiClient("/auth/login", {
       method: "POST",
       body: JSON.stringify({
-        email: credentials.username,
+        username: identifier,
+        email: isEmail ? identifier : undefined,
+        phoneNumber: isEmail ? undefined : identifier,
         password: credentials.password
       })
     }) as LoginResponse;
+    const token = response.token ?? response.accessToken ?? response.jwt;
 
     return {
       ...response,
+      token,
       user: response.user
         ? {
             ...response.user,
@@ -140,13 +148,13 @@ export const login = async (credentials: LoginCredentials) => {
 /**
  * Placeholder patient registration helper until the real API flow is connected.
  */
-export const registerPatient = async (data: PatientRegistrationData) => {
+export const registerPatient = async (_data: PatientRegistrationData) => {
   return { success: true };
 };
 
 /**
  * Placeholder pharmacy registration helper until the real API flow is connected.
  */
-export const registerPharmacy = async (data: PharmacyRegistrationData) => {
+export const registerPharmacy = async (_data: PharmacyRegistrationData) => {
   return { success: true, pharmacyId: "PH-123" };
 };

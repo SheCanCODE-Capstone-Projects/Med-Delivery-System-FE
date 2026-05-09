@@ -56,10 +56,10 @@ export const apiClient = async (endpoint: string, options: ApiClientOptions = {}
     });
   } catch (error) {
     if (didTimeout) {
-      throw new Error("Request timed out. Please try again.");
+      throw new Error("Request timed out. Please try again.", { cause: error });
     }
 
-    throw error;
+    throw new Error("Unable to reach the server. Check that the API is running.", { cause: error });
   } finally {
     if (timeoutId) {
       clearTimeout(timeoutId);

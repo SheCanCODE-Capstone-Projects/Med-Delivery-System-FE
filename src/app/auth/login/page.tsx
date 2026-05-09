@@ -11,13 +11,6 @@ const trustPoints = [
   "Prescription-safe delivery workflow"
 ];
 
-const accessCards = [
-  { title: "Patients", detail: "Track medicine requests, insurance, and delivery." },
-  { title: "Pharmacists", detail: "Validate prescriptions and confirm dispensing." },
-  { title: "Pharmacies", detail: "Coordinate stock, approvals, and fulfillment." },
-  { title: "Super Admin", detail: "Review pharmacy onboarding and activate the network." }
-];
-
 const socialProviders = [
   {
     name: "Google",
@@ -139,9 +132,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
-      <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="relative flex overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] px-5 py-5 text-white sm:px-7 lg:min-h-screen lg:flex-col lg:justify-between lg:px-8 xl:px-10">
+    <main className="h-dvh overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+      <div className="grid h-full lg:grid-cols-[0.9fr_1.1fr]">
+        <section className="relative hidden h-full overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] px-8 py-8 text-white lg:flex lg:flex-col lg:justify-between xl:px-10">
           <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
@@ -174,7 +167,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="relative z-10 mt-6 max-w-xl lg:mt-8">
+            <div className="relative z-10 mt-8 max-w-xl xl:mt-12">
               <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-[11px] text-white/75 sm:text-xs">
                 Care network for patients, pharmacies and pharmacists
               </span>
@@ -197,34 +190,26 @@ export default function LoginPage() {
               ))}
             </ul>
 
-            <div className="relative z-10 mt-5 grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-              {accessCards.map((card) => (
-                <article key={card.title} className="rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
-                  <p className="text-sm font-bold">{card.title}</p>
-                  <span className="mt-1.5 block text-xs leading-5 text-white/70">{card.detail}</span>
-                </article>
-              ))}
-            </div>
           </div>
 
-          <p className="relative z-10 mt-4 text-xs text-white/40 sm:text-sm lg:mt-5">
+          <p className="relative z-10 text-xs text-white/40 sm:text-sm">
             {new Date().getFullYear()} MedDelivery. Safe delivery, verified every step.
           </p>
         </section>
 
-        <section className="grid place-items-center px-5 py-5 sm:px-8">
-          <div className="w-full max-w-2xl rounded-4xl border border-white/70 bg-white/85 p-6 shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl sm:p-8">
+        <section className="grid h-full place-items-center px-4 py-4 sm:px-6 lg:px-8">
+          <div className="w-full max-w-xl rounded-4xl border border-white/70 bg-white/85 p-5 shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl sm:p-6 xl:p-7">
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
               <span className="h-1 rounded-full bg-slate-200" />
               <span className="h-1 rounded-full bg-slate-200" />
             </div>
 
-            <div className="mt-5">
+            <div className="mt-4">
               <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">
                 User sign in
               </p>
-              <h2 className="mt-2 text-[2.05rem] leading-none font-semibold tracking-tighter text-slate-900 sm:text-[2.25rem]">
+              <h2 className="mt-2 text-[1.85rem] leading-none font-semibold tracking-tighter text-slate-900 sm:text-[2.15rem]">
                 Welcome back to MedDelivery
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-500 sm:text-base">
@@ -233,12 +218,12 @@ export default function LoginPage() {
             </div>
 
             {error ? (
-              <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <p role="alert" className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {error}
               </p>
             ) : null}
 
-            <form className="mt-5 grid gap-3.5" onSubmit={handleSubmit} autoComplete="on">
+            <form className="mt-4 grid gap-3" onSubmit={handleSubmit} autoComplete="on">
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
@@ -253,13 +238,13 @@ export default function LoginPage() {
                   spellCheck={false}
                   disabled={isSigningIn}
                   placeholder="Enter phone number or email"
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                  className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
               </label>
 
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Password</span>
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="grid grid-cols-[1fr_auto] gap-3">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -272,14 +257,14 @@ export default function LoginPage() {
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
-                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                    className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={isSigningIn}
-                    className="grid min-h-14 place-items-center rounded-2xl border border-slate-200 px-5 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
+                    className="grid min-h-12 place-items-center rounded-2xl border border-slate-200 px-5 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
                   >
                     {showPassword ? (
                       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -300,19 +285,19 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSigningIn}
-                className="min-h-14 rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                className="min-h-12 rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSigningIn ? "Signing in..." : "Sign in"}
               </button>
             </form>
 
-            <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <span className="h-px bg-slate-200" aria-hidden="true" />
               <p className="text-center text-sm font-semibold text-slate-500">Continue with</p>
               <span className="h-px bg-slate-200" aria-hidden="true" />
             </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
               {socialProviders.map((provider) => (
                 <button
                   key={provider.name}
@@ -322,15 +307,15 @@ export default function LoginPage() {
                     window.location.href = getOAuthUrl(provider.providerId);
                   }}
                   disabled={isSigningIn}
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
                 >
                   {provider.icon}
-                  <span>{provider.name}</span>
+                  <span className="hidden sm:inline">{provider.name}</span>
                 </button>
               ))}
             </div>
 
-            <p className="mt-5 text-center text-sm text-slate-500">
+            <p className="mt-4 text-center text-sm text-slate-500">
               If you don&apos;t have an account,{" "}
               <Link href="/signup" className="font-bold text-teal-700 transition hover:text-teal-900">
                 sign up

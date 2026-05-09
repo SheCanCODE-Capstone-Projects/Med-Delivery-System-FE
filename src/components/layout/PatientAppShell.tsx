@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Bell,
+  ChevronRight,
   ClipboardList,
   LayoutGrid,
   LogOut,
@@ -22,6 +24,67 @@ const navItems = [
   { icon: Settings, label: "Settings", href: "/patient-dashboard#settings" }
 ];
 
+type TrailItem = {
+  key: string;
+  label: string;
+  href: string;
+};
+
+const patientTrailStorageKey = "meddelivery.patient.navigationTrail";
+
+function getPathFromHref(href: string) {
+  return href.split("#")[0];
+}
+
+function toTrailItem(item: (typeof navItems)[number]): TrailItem {
+  return {
+    key: item.href,
+    label: item.label,
+    href: item.href
+  };
+}
+
+function getTrailFromStorage() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(patientTrailStorageKey) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((item): item is TrailItem =>
+      typeof item?.key === "string" &&
+      typeof item?.label === "string" &&
+      typeof item?.href === "string" &&
+      navItems.some((navItem) => navItem.href === item.href)
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveTrailToStorage(items: TrailItem[]) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(patientTrailStorageKey, JSON.stringify(items));
+}
+
+function findCurrentNavItem(pathname: string | null, hash: string) {
+  if (!pathname) return navItems[0];
+
+  const exactHashItem = hash
+    ? navItems.find((item) => item.href === `${pathname}${hash}`)
+    : undefined;
+
+  return (
+    exactHashItem ??
+    navItems.find((item) => item.href === pathname) ??
+    navItems.find((item) => {
+      const itemPath = getPathFromHref(item.href);
+      return itemPath !== "/patient-dashboard" && pathname.startsWith(itemPath);
+    }) ??
+    navItems[0]
+  );
+}
+
 /**
  * PatientAppShell provides the global layout wrapper for all patient-facing pages.
  * It includes the top navigation bar, search functionality, user profile menu,
@@ -30,9 +93,64 @@ const navItems = [
  * @param children - The page content to be rendered within the shell.
  * @returns The layout component wrapping the patient application.
  */
-export default function PatientAppShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function PatientAppShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
+  const [activeHash, setActiveHash] = useState("");
+  const [pageTrail, setPageTrail] = useState<TrailItem[]>([]);
+
+  const currentNavItem = useMemo(
+    () => findCurrentNavItem(pathname, activeHash),
+    [activeHash, pathname]
+  );
+
+  useEffect(() => {
+    const updateHash = () => setActiveHash(window.location.hash);
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, [pathname]);
+
+  useEffect(() => {
+    const currentItem = toTrailItem(currentNavItem);
+    const frameId = window.requestAnimationFrame(() => {
+      setPageTrail((currentTrail) => {
+        const existingTrail = currentTrail.length > 0 ? currentTrail : getTrailFromStorage();
+        const currentIndex = existingTrail.findIndex((item) => item.key === currentItem.key);
+        const nextTrail = currentIndex >= 0
+          ? existingTrail.slice(0, currentIndex + 1)
+          : [...existingTrail, currentItem];
+
+        saveTrailToStorage(nextTrail);
+        return nextTrail;
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [currentNavItem]);
+
+  const handleTrailClick = (item: TrailItem, index: number) => {
+    const nextTrail = pageTrail.slice(0, index + 1);
+    saveTrailToStorage(nextTrail);
+    setPageTrail(nextTrail);
+    router.push(item.href);
+  };
+
+  const handleTrailBack = () => {
+    if (pageTrail.length > 1) {
+      const nextTrail = pageTrail.slice(0, -1);
+      const previousItem = nextTrail[nextTrail.length - 1];
+
+      saveTrailToStorage(nextTrail);
+      setPageTrail(nextTrail);
+      router.push(previousItem.href);
+      return;
+    }
+
+    router.back();
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("auth_token");
@@ -79,8 +197,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         <aside className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.16)] backdrop-blur-xl lg:sticky lg:top-16 lg:left-0 lg:bottom-auto lg:h-[calc(100vh-4rem)] lg:w-full lg:translate-x-0 lg:flex-col lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:shadow-none">
           <nav className="flex items-center gap-2 lg:w-full lg:flex-col lg:gap-3">
             {navItems.map((item) => {
-              const hrefPath = item.href.split("#")[0];
-              const active = hrefPath === pathname || (hrefPath === "/tracking" && pathname?.startsWith("/tracking"));
+              const active = currentNavItem.href === item.href;
 
               return (
                 <Link
@@ -114,18 +231,38 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         </aside>
 
         <main className="mx-auto w-full max-w-[92rem] px-5 pb-28 pt-7 sm:px-8 lg:pb-10">
-          <div className="mb-6 flex items-center gap-4 rounded-3xl border border-slate-200/80 bg-white/60 p-2 pr-5 shadow-sm backdrop-blur-md">
+          <div className="mb-6 flex items-center gap-3 rounded-3xl border border-slate-200/80 bg-white/60 p-2 pr-4 shadow-sm backdrop-blur-md">
             <button 
-              onClick={() => router.back()} 
+              onClick={handleTrailBack}
               className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-slate-500 shadow-sm transition hover:text-teal-700 hover:shadow-md"
               title="Go back"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <div className="flex flex-1 items-center justify-between">
-              <span className="text-sm font-bold text-slate-700">
-                {navItems.find((item) => pathname?.startsWith(item.href.split("#")[0]))?.label || "Page"}
-              </span>
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              {pageTrail.map((item, index) => {
+                const isCurrent = index === pageTrail.length - 1;
+
+                return (
+                  <span key={item.key} className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleTrailClick(item, index)}
+                      aria-current={isCurrent ? "page" : undefined}
+                      className={`min-h-9 rounded-2xl px-4 text-sm font-bold transition ${
+                        isCurrent
+                          ? "bg-teal-50 text-teal-700 shadow-sm"
+                          : "bg-white text-slate-600 hover:bg-slate-50 hover:text-teal-700"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                    {index < pageTrail.length - 1 ? (
+                      <ChevronRight className="h-4 w-4 text-slate-300" aria-hidden="true" />
+                    ) : null}
+                  </span>
+                );
+              })}
             </div>
           </div>
           <label className="mb-5 flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white px-4 shadow-sm lg:hidden">
