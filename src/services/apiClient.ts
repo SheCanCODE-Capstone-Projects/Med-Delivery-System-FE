@@ -6,6 +6,14 @@ type ApiClientOptions = RequestInit & {
   timeoutMs?: number;
 };
 
+/**
+ * A wrapper around the native fetch API that automatically handles base URL prepending,
+ * JSON content-type headers, timeout aborting, and authorization token injection.
+ * 
+ * @param endpoint - The API endpoint to call (appended to BASE_URL).
+ * @param options - Fetch options including custom headers, body, timeout, and multipart flags.
+ * @returns A promise resolving to the JSON parsed response payload.
+ */
 export const apiClient = async (endpoint: string, options: ApiClientOptions = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   const headers = new Headers(options.headers);

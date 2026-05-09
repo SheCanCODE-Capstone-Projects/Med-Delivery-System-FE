@@ -38,6 +38,11 @@ export type CreateOrderPayload = {
   items: OrderItemPayload[];
 };
 
+/**
+ * A collection of API methods for patient-specific operations such as
+ * fetching profiles, insurance cards, prescriptions, managing orders,
+ * and interacting with the AI chatbot.
+ */
 export const patientApi = {
   getProfile: () => patientRequest("/patient/profile"),
   updateProfile: (profile: PatientProfilePayload) =>
