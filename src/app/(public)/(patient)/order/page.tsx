@@ -11,6 +11,13 @@ type MedicineItem = {
   quantity: number;
 };
 
+/**
+ * OrderingForm is the main form interface for patients to submit new prescription or private orders.
+ * It handles file uploads, symptom descriptions, medicine item management,
+ * and dynamically calculates the payment summary based on the selected request type.
+ * 
+ * @returns The order creation page component.
+ */
 export default function OrderingForm() {
   const [requestType, setRequestType] = useState<"private" | "prescription">("prescription");
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">("delivery");

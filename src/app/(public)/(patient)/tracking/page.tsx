@@ -9,6 +9,13 @@ const timeline = [
   { label: "Ready", detail: "Pickup or delivery handoff will appear here.", complete: false }
 ];
 
+/**
+ * TrackingPage provides a detailed view of a patient's active order status.
+ * It displays a visual timeline of the order's progress, fulfillment details,
+ * payment split, and a substitution approval/rejection interface.
+ * 
+ * @returns The order tracking page component.
+ */
 export default function TrackingPage() {
   return (
     <PatientAppShell>

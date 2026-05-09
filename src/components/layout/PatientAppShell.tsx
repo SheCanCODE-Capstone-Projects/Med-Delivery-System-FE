@@ -22,6 +22,14 @@ const navItems = [
   { icon: Settings, label: "Settings", href: "/patient-dashboard#settings" }
 ];
 
+/**
+ * PatientAppShell provides the global layout wrapper for all patient-facing pages.
+ * It includes the top navigation bar, search functionality, user profile menu,
+ * and the main sidebar navigation with active state tracking.
+ * 
+ * @param children - The page content to be rendered within the shell.
+ * @returns The layout component wrapping the patient application.
+ */
 export default function PatientAppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();

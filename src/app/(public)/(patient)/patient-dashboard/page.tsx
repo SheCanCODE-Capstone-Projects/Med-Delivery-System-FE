@@ -30,6 +30,13 @@ const pharmacies = [
   { name: "QuickMed Pharmacy", distance: "2.1 km" }
 ];
 
+/**
+ * PatientDashboard serves as the primary landing page for authenticated patients.
+ * It provides an overview of active orders, quick actions (ordering, tracking),
+ * and dynamic summary metrics for their healthcare journey.
+ * 
+ * @returns The main dashboard view component.
+ */
 export default function PatientDashboard() {
   return (
     <PatientAppShell>
