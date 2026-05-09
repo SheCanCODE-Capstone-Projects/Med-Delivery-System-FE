@@ -285,14 +285,18 @@ export default function OrderingForm() {
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <label className="grid gap-2">
-              <span className="text-sm font-bold text-slate-700">Insurance card</span>
-              <select className="min-h-12 rounded-2xl border border-slate-200 bg-white px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15">
-                <option>BlueCross - verified 80%</option>
-                <option>No insurance</option>
-                <option>Pending insurance card</option>
-              </select>
-            </label>
+            {requestType === "prescription" ? (
+              <label className="grid gap-2">
+                <span className="text-sm font-bold text-slate-700">Insurance card</span>
+                <select className="min-h-12 rounded-2xl border border-slate-200 bg-white px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15">
+                  <option>BlueCross - verified 80%</option>
+                  <option>No insurance</option>
+                  <option>Pending insurance card</option>
+                </select>
+              </label>
+            ) : (
+              <div /> /* Empty div to preserve grid layout if needed, or we can just let it span */
+            )}
             <div className="grid gap-2">
               <span className="text-sm font-bold text-slate-700">Fulfillment</span>
               <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
@@ -332,11 +336,11 @@ export default function OrderingForm() {
           <div className="mt-6 grid gap-3 rounded-3xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-3">
             <div>
               <p className="text-xs font-bold text-slate-500">Pharmacy match</p>
-              <p className="mt-1 font-bold text-slate-900">Distance + coverage</p>
+              <p className="mt-1 font-bold text-slate-900">{requestType === "private" ? "Distance only" : "Distance + coverage"}</p>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">Payment split</p>
-              <p className="mt-1 font-bold text-slate-900">$10 patient / $40 insurance</p>
+              <p className="mt-1 font-bold text-slate-900">{requestType === "private" ? "100% Patient" : "$10 patient / $40 insurance"}</p>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">Substitutions</p>

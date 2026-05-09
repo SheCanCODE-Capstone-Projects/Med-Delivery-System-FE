@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   ClipboardList,
@@ -10,7 +10,8 @@ import {
   Pill,
   Search,
   Settings,
-  ShieldCheck
+  ShieldCheck,
+  ChevronLeft
 } from "lucide-react";
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
 
 export default function PatientAppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = () => {
     localStorage.removeItem("auth_token");
@@ -65,9 +67,9 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-[7rem_1fr]">
-        <aside className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.16)] backdrop-blur-xl lg:sticky lg:top-16 lg:left-0 lg:bottom-auto lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:flex-col lg:justify-center lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none">
-          <nav className="flex items-center gap-2 lg:flex-col">
+      <div className="grid lg:grid-cols-[14rem_1fr]">
+        <aside className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.16)] backdrop-blur-xl lg:sticky lg:top-16 lg:left-0 lg:bottom-auto lg:h-[calc(100vh-4rem)] lg:w-full lg:translate-x-0 lg:flex-col lg:justify-start lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:shadow-none">
+          <nav className="flex items-center gap-2 lg:w-full lg:flex-col lg:gap-3">
             {navItems.map((item) => {
               const hrefPath = item.href.split("#")[0];
               const active = hrefPath === pathname || (hrefPath === "/tracking" && pathname?.startsWith("/tracking"));
@@ -78,30 +80,46 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
                   href={item.href}
                   title={item.label}
                   aria-label={item.label}
-                  className={`grid h-12 w-12 place-items-center rounded-2xl transition ${
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl transition lg:w-full lg:justify-start lg:gap-3 lg:px-4 ${
                     active
                       ? "bg-linear-to-br from-teal-500 to-blue-600 text-white shadow-[0_14px_28px_rgba(14,165,160,0.28)]"
                       : "text-slate-500 hover:bg-white hover:text-teal-700 hover:shadow-sm"
                   }`}
                 >
-                  <item.icon className="h-5 w-5" aria-hidden="true" />
+                  <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <span className="hidden font-bold lg:block">{item.label}</span>
                 </Link>
               );
             })}
           </nav>
-          <span className="hidden h-px w-9 bg-slate-200 lg:block" />
+          <span className="hidden h-px w-full bg-slate-200 lg:block lg:my-2" />
           <button
             title="Logout"
             aria-label="Logout"
             type="button"
             onClick={handleLogout}
-            className="grid h-12 w-12 place-items-center rounded-2xl text-slate-500 transition hover:bg-white hover:text-rose-600 hover:shadow-sm"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl text-slate-500 transition hover:bg-white hover:text-rose-600 hover:shadow-sm lg:w-full lg:justify-start lg:gap-3 lg:px-4"
           >
-            <LogOut className="h-5 w-5" aria-hidden="true" />
+            <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span className="hidden font-bold lg:block">Logout</span>
           </button>
         </aside>
 
         <main className="mx-auto w-full max-w-[92rem] px-5 pb-28 pt-7 sm:px-8 lg:pb-10">
+          <div className="mb-6 flex items-center gap-4 rounded-3xl border border-slate-200/80 bg-white/60 p-2 pr-5 shadow-sm backdrop-blur-md">
+            <button 
+              onClick={() => router.back()} 
+              className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-slate-500 shadow-sm transition hover:text-teal-700 hover:shadow-md"
+              title="Go back"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <div className="flex flex-1 items-center justify-between">
+              <span className="text-sm font-bold text-slate-700">
+                {navItems.find((item) => pathname?.startsWith(item.href.split("#")[0]))?.label || "Page"}
+              </span>
+            </div>
+          </div>
           <label className="mb-5 flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white px-4 shadow-sm lg:hidden">
             <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
             <input
