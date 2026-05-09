@@ -130,9 +130,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
-      <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="relative flex overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] px-5 py-5 text-white sm:px-7 lg:min-h-screen lg:flex-col lg:justify-between lg:px-8 xl:px-10">
+    <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+      <div className="grid h-full lg:grid-cols-[0.9fr_1.1fr]">
+        <section className="relative hidden overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] px-5 py-5 text-white sm:px-7 lg:flex lg:h-full lg:flex-col lg:justify-between lg:px-8 xl:px-10">
           <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
@@ -203,8 +203,8 @@ export default function LoginPage() {
           </p>
         </section>
 
-        <section className="grid place-items-center px-5 py-5 sm:px-8">
-          <div className="w-full max-w-2xl rounded-4xl border border-white/70 bg-white/85 p-6 shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl sm:p-8">
+        <section className="grid h-full overflow-y-auto place-items-center px-5 py-5 sm:px-8">
+          <div className="my-auto w-full max-w-2xl rounded-4xl border border-white/70 bg-white/85 p-6 shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl sm:p-8">
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
               <span className="h-1 rounded-full bg-slate-200" />
