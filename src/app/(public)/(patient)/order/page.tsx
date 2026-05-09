@@ -30,6 +30,7 @@ export default function OrderingForm() {
   const [formError, setFormError] = useState("");
   const nextItemIdRef = useRef(2);
   const prepareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prescriptionInputRef = useRef<HTMLInputElement | null>(null);
 
   const canSubmit = useMemo(() => {
     const hasMedicine = items.some((item) => item.medicine.trim().length > 0);
@@ -180,6 +181,7 @@ export default function OrderingForm() {
                     </span>
                   )}
                   <input
+                    ref={prescriptionInputRef}
                     type="file"
                     accept=".pdf,.jpg,.jpeg,image/jpeg,application/pdf"
                     className="sr-only"
@@ -196,6 +198,9 @@ export default function OrderingForm() {
                   type="button"
                   onClick={() => {
                     setPrescriptionFile(null);
+                    if (prescriptionInputRef.current) {
+                      prescriptionInputRef.current.value = "";
+                    }
                     setSubmitted(false);
                     setFormError("");
                   }}
@@ -274,7 +279,10 @@ export default function OrderingForm() {
                       type="number"
                       min={1}
                       value={item.quantity}
-                      onChange={(event) => updateItem(item.id, "quantity", Number(event.target.value))}
+                      onChange={(event) => {
+                        const parsed = Number.parseInt(event.target.value, 10);
+                        updateItem(item.id, "quantity", Number.isFinite(parsed) && parsed > 0 ? parsed : 1);
+                      }}
                       className="min-h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                     />
                   </label>

@@ -15,7 +15,9 @@ type ApiClientOptions = RequestInit & {
  * @returns A promise resolving to the JSON parsed response payload.
  */
 export const apiClient = async (endpoint: string, options: ApiClientOptions = {}) => {
-  const url = `${BASE_URL}${endpoint}`;
+  const normalizedBase = BASE_URL.replace(/\/+$/, "");
+  const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const url = `${normalizedBase}${normalizedEndpoint}`;
   const headers = new Headers(options.headers);
   const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
   const { timeoutMs = DEFAULT_TIMEOUT_MS, isMultipart, ...fetchOptions } = options;
@@ -28,14 +30,21 @@ export const apiClient = async (endpoint: string, options: ApiClientOptions = {}
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const controller = options.signal ? null : new AbortController();
+  const controller = new AbortController();
+  const externalSignal = options.signal;
   let didTimeout = false;
-  const timeoutId = controller
-    ? setTimeout(() => {
-        didTimeout = true;
-        controller.abort();
-      }, timeoutMs)
-    : null;
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort(externalSignal.reason);
+    } else {
+      externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
+    }
+  }
+
+  const timeoutId = setTimeout(() => {
+    didTimeout = true;
+    controller.abort();
+  }, timeoutMs);
 
   let response: Response;
 
@@ -43,7 +52,7 @@ export const apiClient = async (endpoint: string, options: ApiClientOptions = {}
     response = await fetch(url, {
       ...fetchOptions,
       headers,
-      signal: options.signal ?? controller?.signal
+      signal: controller.signal
     });
   } catch (error) {
     if (didTimeout) {

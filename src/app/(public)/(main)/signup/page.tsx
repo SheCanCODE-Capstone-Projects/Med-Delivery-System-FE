@@ -1,5 +1,10 @@
 import React from 'react';
 
+/**
+ * SignUpPage serves as the registration portal for new patients.
+ * 
+ * @returns The signup page component.
+ */
 export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

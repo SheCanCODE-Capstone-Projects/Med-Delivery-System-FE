@@ -125,7 +125,8 @@ export default function TrackingPage() {
             </div>
             <p className="mt-2 text-sm leading-5 text-slate-500">Ask about order progress, medication usage, or platform steps.</p>
             <div className="mt-4 flex gap-2">
-              <input placeholder="Ask a question" className="min-h-11 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+              <label htmlFor="care-chat-input" className="sr-only">Ask a question</label>
+              <input id="care-chat-input" placeholder="Ask a question" className="min-h-11 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
               <button className="min-h-11 rounded-2xl bg-teal-600 px-4 text-sm font-bold text-white">Send</button>
             </div>
           </section>
