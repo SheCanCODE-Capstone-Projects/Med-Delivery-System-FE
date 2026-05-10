@@ -1,16 +1,116 @@
-import { apiClient } from './apiClient';
+import { apiClient } from "./apiClient";
 
-// Mock implementations for now until API is ready
-
-export const login = async (credentials) => {
-  // return apiClient('/auth/login', { method: 'POST', body: JSON.stringify(credentials) });
-  return { token: 'mock-jwt-token', user: { role: 'PATIENT' } };
+type LoginCredentials = {
+  username: string;
+  password: string;
+  role?: string;
 };
 
+type OtpPayload = {
+  phone: string;
+  role?: string;
+  otp?: string;
+};
+
+const useMockAuth = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === "true";
+
+const otpStore = new Map<string, { code: string; expiresAt: number }>();
+
+const roleNameMap: Record<string, string> = {
+  patient: "PATIENT",
+  pharmacist: "PHARMACIST",
+  pharmacy: "PHARMACY_ADMIN",
+  "super-admin": "SUPER_ADMIN"
+};
+
+/**
+ * Generates a demo OTP code for mock authentication flows.
+ */
+const createDemoOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
+
+/**
+ * Requests a login OTP from the API or mock store for the provided phone number.
+ */
+export const requestLoginOtp = async ({ phone, role }: OtpPayload) => {
+  if (!useMockAuth) {
+    return apiClient("/auth/login/request-otp", {
+      method: "POST",
+      body: JSON.stringify({ phone, role })
+    });
+  }
+
+  const code = createDemoOtp();
+  otpStore.set(phone, {
+    code,
+    expiresAt: Date.now() + 5 * 60 * 1000
+  });
+
+  return {
+    success: true,
+    demoOtp: code
+  };
+};
+
+/**
+ * Verifies a submitted OTP against the API or the in-memory mock store.
+ */
+export const verifyLoginOtp = async ({ phone, otp }: OtpPayload) => {
+  if (!useMockAuth) {
+    return apiClient("/auth/login/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ phone, otp })
+    });
+  }
+
+  const record = otpStore.get(phone);
+
+  if (!record) {
+    throw new Error("No active OTP was found for this phone number.");
+  }
+
+  if (Date.now() > record.expiresAt) {
+    otpStore.delete(phone);
+    throw new Error("This OTP has expired. Request a new code.");
+  }
+
+  if (record.code !== otp) {
+    throw new Error("The OTP code is incorrect.");
+  }
+
+  otpStore.delete(phone);
+  return { success: true };
+};
+
+/**
+ * Authenticates a user with the login API and falls back to mock auth when enabled.
+ */
+export const login = async (credentials: LoginCredentials) => {
+  if (!useMockAuth) {
+    return apiClient("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials)
+    });
+  }
+
+  return {
+    token: "mock-jwt-token",
+    user: {
+      role: roleNameMap[credentials.role ?? "patient"] ?? "PATIENT",
+      roleKey: credentials.role ?? "patient"
+    }
+  };
+};
+
+/**
+ * Placeholder patient registration helper until the real API flow is connected.
+ */
 export const registerPatient = async (data) => {
   return { success: true };
 };
 
+/**
+ * Placeholder pharmacy registration helper until the real API flow is connected.
+ */
 export const registerPharmacy = async (data) => {
-  return { success: true, pharmacyId: 'PH-123' };
+  return { success: true, pharmacyId: "PH-123" };
 };
