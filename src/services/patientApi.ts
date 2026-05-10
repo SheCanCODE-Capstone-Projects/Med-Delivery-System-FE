@@ -69,8 +69,7 @@ export const patientApi = {
   uploadPrescription: (formData: FormData) =>
     patientRequest("/patient/prescriptions", {
       method: "POST",
-      body: formData,
-      isMultipart: true
+      body: formData
     }),
   searchMedicines: (query: string, limit = 10) =>
     patientRequest(`/medicines/search?q=${encodeURIComponent(query)}&limit=${limit}`),
