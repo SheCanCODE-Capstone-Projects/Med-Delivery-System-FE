@@ -1,7 +1,18 @@
 // src/services/api.js
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Utility function to introduce a delay, simulating network latency for mock API calls.
+ * 
+ * @param ms - The number of milliseconds to delay
+ * @returns A Promise that resolves after the specified duration
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+/**
+ * Fetches admin dashboard metrics including order counts, pharmacy statistics, and patient data.
+ * 
+ * @returns Promise resolving to admin metrics object with overallOrders, ordersToReview, pharmaciesInKigali, and patients
+ */
 export const getAdminMetrics = async () => {
   // Simulate API call
   await delay(500);
@@ -13,6 +24,11 @@ export const getAdminMetrics = async () => {
   };
 };
 
+/**
+ * Fetches a list of pharmacies with their recent order activity and review status.
+ * 
+ * @returns Promise resolving to an array of pharmacy objects with id, name, time, status, and action fields
+ */
 export const getWorkingPharmacies = async () => {
   await delay(600);
   return [
@@ -47,6 +63,11 @@ export const getWorkingPharmacies = async () => {
   ];
 };
 
+/**
+ * Fetches pharmacist dashboard metrics including new orders, pending prescriptions, and inventory alerts.
+ * 
+ * @returns Promise resolving to pharmacist metrics object with newOrders, pendingPrescriptions, readyToShip, and lowStockItems
+ */
 export const getPharmacistMetrics = async () => {
   await delay(500);
   return {
@@ -57,6 +78,11 @@ export const getPharmacistMetrics = async () => {
   };
 };
 
+/**
+ * Fetches a list of orders for the pharmacist to process, including patient details and medication information.
+ * 
+ * @returns Promise resolving to an array of order objects with id, patient, medication, time, status, and action fields
+ */
 export const getPharmacistOrders = async () => {
   await delay(600);
   return [

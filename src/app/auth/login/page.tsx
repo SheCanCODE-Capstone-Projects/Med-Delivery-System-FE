@@ -82,6 +82,13 @@ export default function LoginPage() {
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
+  /**
+   * Validates user credentials before submission.
+   * Checks that the username is a valid email or phone number,
+   * and that the password meets minimum length requirements.
+   * 
+   * @returns true if credentials are valid, false otherwise
+   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
@@ -99,6 +106,13 @@ export default function LoginPage() {
     return true;
   };
 
+  /**
+   * Handles form submission for user authentication.
+   * Prevents duplicate submissions, validates credentials, calls the login API,
+   * stores the auth token, and redirects the user based on their role.
+   * 
+   * @param event - The form submit event
+   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -135,6 +149,11 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * Handles social sign-in button clicks (placeholder until OAuth is connected).
+   * 
+   * @param providerName - The name of the OAuth provider (Google, Microsoft, Yahoo)
+   */
   const handleSocialSignIn = (providerName: string) => {
     setError(`${providerName} sign-in is not connected yet.`);
   };
