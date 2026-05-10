@@ -128,4 +128,13 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+@keyframes float-toast {
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-8px); }
+}
+
+body {
+  background-color: #040F1A;
+  color: #E8F4F4;
+  overflow-x: hidden;
 }
