@@ -1,3 +1,5 @@
+import PersonnelManagement from "@/components/pharmacy-admin/PersonnelManagement";
+
 export default function Employees() {
-  return <div>Employees Page</div>;
+  return <PersonnelManagement />;
 }
