@@ -1,5 +1,14 @@
 import { apiClient } from "./apiClient";
 
+/**
+ * Helper function to make typed API requests to patient-specific endpoints.
+ * Wraps the generic apiClient with TypeScript type inference for response data.
+ * 
+ * @template T - The expected response data type
+ * @param endpoint - The API endpoint path
+ * @param options - Optional fetch options including method, headers, and body
+ * @returns A Promise resolving to the typed response data
+ */
 function patientRequest<T>(endpoint: string, options: Parameters<typeof apiClient>[1] = {}) {
   return apiClient(endpoint, options) as Promise<T>;
 }
