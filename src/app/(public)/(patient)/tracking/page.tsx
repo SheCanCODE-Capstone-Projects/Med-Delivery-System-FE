@@ -64,25 +64,25 @@ export default function TrackingPage() {
         </section>
 
         <aside className="grid gap-5">
-          <section className="rounded-[2rem] bg-[linear-gradient(180deg,#11192f_0%,#0b1326_100%)] p-6 text-white shadow-[0_24px_60px_rgba(11,19,39,0.22)]">
+          <section className="rounded-[2rem] border border-teal-100 bg-teal-50 p-6 text-teal-950 shadow-[0_24px_60px_rgba(15,118,110,0.12)]">
             <div className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-400/15 text-teal-300">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-100 text-teal-700">
                 <Truck className="h-6 w-6" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm text-white/60">Fulfillment</p>
+                <p className="text-sm text-teal-700">Fulfillment</p>
                 <h2 className="text-xl font-bold">Delivery</h2>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-white/70">123 Main St, City, State 12345</p>
+            <p className="mt-4 text-sm leading-6 text-teal-800">123 Main St, City, State 12345</p>
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs font-bold text-white/50">Patient pays</p>
-                <p className="mt-1 text-2xl font-bold text-teal-300">$10.00</p>
+              <div className="rounded-3xl border border-teal-100 bg-white/70 p-4 shadow-sm">
+                <p className="text-xs font-bold text-teal-700">Patient pays</p>
+                <p className="mt-1 text-2xl font-bold text-teal-700">$10.00</p>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs font-bold text-white/50">Insurance pays</p>
-                <p className="mt-1 text-2xl font-bold text-teal-300">$40.00</p>
+              <div className="rounded-3xl border border-teal-100 bg-white/70 p-4 shadow-sm">
+                <p className="text-xs font-bold text-teal-700">Insurance pays</p>
+                <p className="mt-1 text-2xl font-bold text-teal-700">$40.00</p>
               </div>
             </div>
           </section>

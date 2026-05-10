@@ -82,12 +82,12 @@ export default function OrderingForm() {
   return (
     <PatientAppShell>
       <div className="grid gap-6 xl:grid-cols-[0.58fr_1.42fr]">
-        <aside className="rounded-3xl bg-[linear-gradient(180deg,#11192f_0%,#0b1326_100%)] p-6 text-white shadow-[0_24px_60px_rgba(11,19,39,0.18)]">
-          <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-semibold text-teal-100">
+        <aside className="rounded-3xl border border-teal-100 bg-teal-50 p-6 text-teal-950 shadow-[0_24px_60px_rgba(15,118,110,0.12)]">
+          <span className="inline-flex min-h-8 items-center rounded-full border border-teal-200 bg-white/70 px-4 text-xs font-semibold text-teal-700">
             Medicine request
           </span>
           <h1 className="mt-5 text-[2.35rem] leading-none font-semibold tracking-tight">Start an order safely.</h1>
-          <p className="mt-4 text-sm leading-6 text-white/70">
+          <p className="mt-4 text-sm leading-6 text-teal-800">
             Choose private purchase or prescription flow. The system matches nearby pharmacies by distance, coverage, and medicine availability.
           </p>
 
@@ -98,13 +98,13 @@ export default function OrderingForm() {
               { icon: ShieldCheck, title: "Validate", text: "Insurance and prescription checks stay visible." },
               { icon: Truck, title: "Fulfill", text: "Choose delivery or pickup before payment." }
             ].map((step) => (
-              <div key={step.title} className="grid grid-cols-[auto_1fr] gap-3 rounded-3xl border border-white/10 bg-white/5 p-4">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-400/15 text-teal-300">
+              <div key={step.title} className="grid grid-cols-[auto_1fr] gap-3 rounded-3xl border border-teal-100 bg-white/70 p-4 shadow-sm">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-100 text-teal-700">
                   <step.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span>
                   <span className="block font-bold">{step.title}</span>
-                  <span className="mt-1 block text-sm leading-5 text-white/60">{step.text}</span>
+                  <span className="mt-1 block text-sm leading-5 text-teal-700">{step.text}</span>
                 </span>
               </div>
             ))}
