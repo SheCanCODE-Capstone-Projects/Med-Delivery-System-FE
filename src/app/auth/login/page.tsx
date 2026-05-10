@@ -139,7 +139,8 @@ export default function LoginPage() {
       // HttpOnly cookie-based auth will be implemented once the backend API is available.
       localStorage.setItem("auth_token", response.token);
 
-      const nextRoute = roleRoutes[response.user?.roleKey ?? "patient"] ?? roleRoutes.patient;
+      const userRole = response.user?.role?.toLowerCase().replace(/_/g, "-") ?? "patient";
+      const nextRoute = roleRoutes[userRole] ?? roleRoutes.patient;
       router.push(nextRoute);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Sign in failed.");
