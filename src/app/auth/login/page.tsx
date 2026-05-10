@@ -14,7 +14,6 @@ const trustPoints = [
 const socialProviders = [
   {
     name: "Google",
-    providerId: "google",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
         <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
@@ -26,7 +25,6 @@ const socialProviders = [
   },
   {
     name: "Microsoft",
-    providerId: "microsoft",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
         <path fill="#F25022" d="M3 3h8.5v8.5H3z" />
@@ -38,10 +36,9 @@ const socialProviders = [
   },
   {
     name: "Yahoo",
-    providerId: "yahoo",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-        <path fill="#6001D2" d="M16.8 3h3.42l-4.12 9.17L17.95 21h-3.3l-1.24-6.14L9.87 21H6.52l5.03-8.95L8.1 3h3.37l2.04 5.64L16.8 3Zm0.27 18h2.75l.57-3.22h-2.75L17.07 21Z" />
+        <path fill="#6001D2" d="M16.8 3h3.42l-4.12 9.17L17.95 21h-3.3l-1.24-6.14L9.87 21H6.52l5.03-8.95L8.1 3h3.37l2.04 5.64L16.8 3Zm.27 18h2.75l.57-3.22h-2.75L17.07 21Z" />
       </svg>
     )
   }
@@ -56,17 +53,24 @@ const roleRoutes: Record<string, string> = {
 
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api";
-const oauthBaseUrl = process.env.NEXT_PUBLIC_OAUTH_BASE_URL ?? apiBaseUrl.replace(/\/api\/?$/, "");
 
+/**
+ * Normalizes user identifier input by stripping leading and trailing whitespace.
+ * 
+ * @param value - The raw identifier string (email or phone).
+ * @returns The trimmed string.
+ */
 function normalizeIdentifier(value: string) {
   return value.trim();
 }
 
-function getOAuthUrl(providerId: string) {
-  return `${oauthBaseUrl}/oauth2/authorization/${providerId}`;
-}
-
+/**
+ * LoginPage serves as the primary authentication portal for all user roles.
+ * It handles credentials validation, mock and real API authentication flows,
+ * and dynamic routing based on the authenticated user's role.
+ * 
+ * @returns The login page component.
+ */
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -78,6 +82,13 @@ export default function LoginPage() {
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
+  /**
+   * Validates user credentials before submission.
+   * Checks that the username is a valid email or phone number,
+   * and that the password meets minimum length requirements.
+   * 
+   * @returns true if credentials are valid, false otherwise
+   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
@@ -87,7 +98,7 @@ export default function LoginPage() {
       return false;
     }
 
-    if (password.length < 8) {
+    if (password.trim().length < 8) {
       setError("Password must be at least 8 characters.");
       return false;
     }
@@ -95,6 +106,13 @@ export default function LoginPage() {
     return true;
   };
 
+  /**
+   * Handles form submission for user authentication.
+   * Prevents duplicate submissions, validates credentials, calls the login API,
+   * stores the auth token, and redirects the user based on their role.
+   * 
+   * @param event - The form submit event
+   */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -121,7 +139,7 @@ export default function LoginPage() {
       // HttpOnly cookie-based auth will be implemented once the backend API is available.
       localStorage.setItem("auth_token", response.token);
 
-      const userRole = response.user?.role?.toLowerCase().replace(/_/g, '-') ?? "patient";
+      const userRole = response.user?.role?.toLowerCase().replace(/_/g, "-") ?? "patient";
       const nextRoute = roleRoutes[userRole] ?? roleRoutes.patient;
       router.push(nextRoute);
     } catch (loginError) {
@@ -132,10 +150,19 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * Handles social sign-in button clicks (placeholder until OAuth is connected).
+   * 
+   * @param providerName - The name of the OAuth provider (Google, Microsoft, Yahoo)
+   */
+  const handleSocialSignIn = (providerName: string) => {
+    setError(`${providerName} sign-in is not connected yet.`);
+  };
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
-      <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="relative flex overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] px-5 py-5 text-white sm:px-7 lg:min-h-screen lg:flex-col lg:justify-between lg:px-8 xl:px-10">
+    <main className="fixed inset-0 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+      <div className="grid h-full min-h-0 lg:grid-cols-[minmax(420px,0.8fr)_minmax(560px,1fr)]">
+        <section className="relative hidden min-h-0 overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
           <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
@@ -182,48 +209,49 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <ul className="relative z-10 mt-4 grid gap-1.5">
+            <ul className="relative z-10 mt-5 grid gap-2">
               {trustPoints.map((item) => (
-                <li key={item} className="flex items-center gap-2 text-xs text-white/85 sm:text-sm">
-                  <span className="h-3 w-3 rounded-full border border-teal-300/80 shadow-[inset_0_0_0_3px_rgba(26,196,189,0.18)]" />
+                <li key={item} className="flex items-center gap-3 text-xs text-white/85 sm:text-sm">
+                  <span className="h-4 w-4 rounded-full border border-teal-300/80 shadow-[inset_0_0_0_4px_rgba(26,196,189,0.18)]" />
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
+
           </div>
 
-          <p className="relative z-10 mt-3 text-xs text-white/40 sm:text-sm lg:mt-4">
+          <p className="relative z-10 mt-4 text-xs text-white/40 sm:text-sm lg:mt-5">
             {new Date().getFullYear()} MedDelivery. Safe delivery, verified every step.
           </p>
         </section>
 
-        <section className="grid place-items-center px-5 py-5 sm:px-8">
-          <div className="w-full max-w-2xl rounded-4xl border border-white/70 bg-white/85 p-6 shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl sm:p-8">
+        <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
+          <div className="my-auto w-full max-w-[42rem] rounded-4xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
               <span className="h-1 rounded-full bg-slate-200" />
               <span className="h-1 rounded-full bg-slate-200" />
             </div>
 
-            <div className="mt-4">
+            <div className="mt-5">
               <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">
                 User sign in
               </p>
-              <h2 className="mt-1.5 text-[1.75rem] leading-none font-semibold tracking-tighter text-slate-900 sm:text-[2rem]">
+              <h2 className="mt-2 text-[2.05rem] leading-none font-semibold tracking-tighter text-slate-900 sm:text-[2.25rem]">
                 Welcome back to MedDelivery
               </h2>
-              <p className="mt-1.5 text-sm leading-5 text-slate-500 sm:text-base">
+              <p className="mt-2 text-sm leading-6 text-slate-500 sm:text-base">
                 Sign in with your phone number and password.
               </p>
             </div>
 
             {error ? (
-              <p role="alert" className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
+              <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {error}
               </p>
             ) : null}
 
-            <form className="mt-4 grid gap-3" onSubmit={handleSubmit} autoComplete="on">
+            <form className="mt-[clamp(0.85rem,2.4vh,1.25rem)] grid gap-[clamp(0.7rem,1.8vh,0.9rem)]" onSubmit={handleSubmit} autoComplete="on">
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
@@ -238,13 +266,13 @@ export default function LoginPage() {
                   spellCheck={false}
                   disabled={isSigningIn}
                   placeholder="Enter phone number or email"
-                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                  className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
               </label>
 
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-600">Password</span>
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -257,19 +285,19 @@ export default function LoginPage() {
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
-                    className="min-h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                    className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={isSigningIn}
-                    className="grid min-h-14 place-items-center rounded-2xl border border-slate-200 px-5 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
+                    className="grid min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-16 place-items-center rounded-2xl border border-slate-200 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
                   >
                     {showPassword ? (
                       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
                         <path d="M3 3l18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M10.58 10.58A2 2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M10.58 10.58A2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         <path d="M9.88 5.09A9.77 9.77 0 0 1 12 4c5 0 9 8 9 8a15.1 15.1 0 0 1-2.16 2.94M6.71 6.7C4.03 8.18 3 12 3 12s4 8 9 8a9.8 9.8 0 0 0 5.29-1.53" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     ) : (
@@ -285,29 +313,28 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSigningIn}
-                className="min-h-12 rounded-xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_12px_24px_rgba(14,165,160,0.18)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                className="min-h-[clamp(2.95rem,7vh,3.65rem)] rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSigningIn ? "Signing in..." : "Sign in"}
               </button>
             </form>
 
-            <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div className="mt-[clamp(0.9rem,2.6vh,1.5rem)] grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <span className="h-px bg-slate-200" aria-hidden="true" />
-              <p className="text-center text-xs font-semibold text-slate-500">Continue with</p>
+              <p className="text-center text-sm font-semibold text-slate-500">Continue with</p>
               <span className="h-px bg-slate-200" aria-hidden="true" />
             </div>
 
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <div className="mt-[clamp(0.65rem,1.6vh,1rem)] grid grid-cols-3 gap-3">
               {socialProviders.map((provider) => (
                 <button
-                  key={provider.name}
-                  aria-label={`Continue with ${provider.name}`}
                   type="button"
-                  onClick={() => {
-                    window.location.href = getOAuthUrl(provider.providerId);
-                  }}
+                  key={provider.name}
+                  onClick={() => handleSocialSignIn(provider.name)}
                   disabled={isSigningIn}
-                  className="flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label={`Sign in with ${provider.name}`}
+                  title={`Sign in with ${provider.name}`}
+                  className="flex min-h-[clamp(2.4rem,5.6vh,3rem)] select-none items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:text-slate-900 hover:shadow-md focus:outline-hidden focus:ring-4 focus:ring-teal-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {provider.icon}
                   <span>{provider.name}</span>
@@ -315,8 +342,8 @@ export default function LoginPage() {
               ))}
             </div>
 
-            <p className="mt-4 text-center text-sm text-slate-500">
-              If you don't have an account,{" "}
+            <p className="mt-[clamp(0.75rem,2vh,1rem)] text-center text-sm text-slate-500">
+              If you don&apos;t have an account,{" "}
               <Link href="/signup" className="font-bold text-teal-700 transition hover:text-teal-900">
                 sign up
               </Link>
