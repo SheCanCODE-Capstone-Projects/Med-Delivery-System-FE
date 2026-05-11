@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 // ─── Types ────────────────────────────────────────────────
 interface NavLink {
@@ -205,7 +206,7 @@ function Navbar(): React.JSX.Element {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[6%] h-[72px] bg-[rgba(4,15,26,0.90)] backdrop-blur-xl border-b border-[rgba(10,191,188,0.10)]">
 
-        <a href="#" className="flex items-center gap-3 no-underline group">
+        <Link href="/" className="flex items-center gap-3 no-underline group">
           <div className="w-10 h-10 flex-shrink-0 bg-[#0F172A] rounded-[9px] border border-[rgba(10,191,188,0.28)] shadow-[0_0_14px_rgba(10,191,188,0.15)] flex items-center justify-center transition-shadow group-hover:shadow-[0_0_22px_rgba(10,191,188,0.40)]">
             <LogoIcon />
           </div>
@@ -217,7 +218,7 @@ function Navbar(): React.JSX.Element {
               Your Pharmacy, Delivered to Your Door
             </span>
           </div>
-        </a>
+        </Link>
 
         <ul className="hidden md:flex flex-row items-center gap-8 list-none p-0 m-0">
           {navLinks.map((link) => (
@@ -230,12 +231,18 @@ function Navbar(): React.JSX.Element {
         </ul>
 
         <div className="hidden md:flex items-center gap-3">
-          <a href="#signin" className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline transition-all hover:border-[#0ABFBC] hover:text-white hover:bg-[rgba(10,191,188,0.07)]">
+          <Link
+            href="/login"
+            className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline transition-all hover:border-[#0ABFBC] hover:text-white hover:bg-[rgba(10,191,188,0.07)]"
+          >
             Sign in
-          </a>
-          <a href="#signup" className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_22px_rgba(10,191,188,0.45)]">
+          </Link>
+          <Link
+            href="/signup"
+            className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_22px_rgba(10,191,188,0.45)]"
+          >
             Get started →
-          </a>
+          </Link>
         </div>
 
         <button
@@ -260,12 +267,20 @@ function Navbar(): React.JSX.Element {
             </a>
           ))}
           <div className="flex gap-3 mt-5">
-            <a href="#signin" onClick={closeMenu} className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline hover:border-[#0ABFBC] hover:text-white">
+            <Link
+              href="/login"
+              onClick={closeMenu}
+              className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline hover:border-[#0ABFBC] hover:text-white"
+            >
               Sign in
-            </a>
-            <a href="#signup" onClick={closeMenu} className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline hover:bg-[#5EDEDD]">
+            </Link>
+            <Link
+              href="/signup"
+              onClick={closeMenu}
+              className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline hover:bg-[#5EDEDD]"
+            >
               Get started →
-            </a>
+            </Link>
           </div>
         </div>
       )}
@@ -300,9 +315,12 @@ function Hero(): React.JSX.Element {
         </p>
 
         <div className="flex gap-4 flex-wrap">
-          <a href="#signup" className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_32px_rgba(10,191,188,0.5)] hover:-translate-y-[2px]">
+          <Link
+            href="/signup"
+            className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_32px_rgba(10,191,188,0.5)] hover:-translate-y-[2px]"
+          >
             Order medicine →
-          </a>
+          </Link>
           <a href="#pharmacies" className="bg-transparent border border-[rgba(10,191,188,0.35)] text-white font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.07)] hover:-translate-y-[2px]">
             Register a pharmacy
           </a>
@@ -519,12 +537,18 @@ function CTA(): React.JSX.Element {
         Join 48 partner pharmacies already serving thousands of patients on MedDelivery.
       </p>
       <div className="flex gap-4 justify-center flex-wrap">
-        <a href="#signup" className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#089A97] hover:shadow-[0_0_28px_rgba(10,191,188,0.4)] hover:-translate-y-[2px]">
+        <Link
+          href="/signup"
+          className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#089A97] hover:shadow-[0_0_28px_rgba(10,191,188,0.4)] hover:-translate-y-[2px]"
+        >
           Sign up free →
-        </a>
-        <a href="#signin" className="bg-transparent border border-[rgba(8,154,151,0.5)] text-[#0F172A] font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.10)] hover:-translate-y-[2px]">
+        </Link>
+        <Link
+          href="/login"
+          className="bg-transparent border border-[rgba(8,154,151,0.5)] text-[#0F172A] font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.10)] hover:-translate-y-[2px]"
+        >
           Log in
-        </a>
+        </Link>
       </div>
     </section>
   );
@@ -536,7 +560,7 @@ function Footer(): React.JSX.Element {
     <footer className="bg-[#050E1A] border-t border-[rgba(10,191,188,0.10)] px-[6%] pt-16 pb-8">
       <div className="flex flex-wrap justify-between gap-12 mb-14">
         <div className="max-w-[270px]">
-          <a href="#" className="flex items-center gap-3 no-underline mb-4">
+          <Link href="/" className="flex items-center gap-3 no-underline mb-4">
             <div className="w-10 h-10 bg-[#0F172A] rounded-[9px] border border-[rgba(10,191,188,0.28)] flex items-center justify-center">
               <LogoIcon />
             </div>
@@ -544,7 +568,7 @@ function Footer(): React.JSX.Element {
               <span className="font-bold text-base text-white block leading-tight">MedDelivery</span>
               <span className="text-[0.6rem] text-[#7AABB0]">Your Pharmacy, Delivered to Your Door</span>
             </div>
-          </a>
+          </Link>
           <p className="text-[0.875rem] text-[#7AABB0] leading-[1.7]">
             Healthcare delivery, reimagined for everyone. Safe, fast, and insurance-ready.
           </p>
