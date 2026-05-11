@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 
-// ─── Types ────────────────────────────────────────────────
 interface NavLink {
   label: string;
   href: string;
@@ -49,7 +48,6 @@ interface FooterColumn {
   links: { label: string; href: string }[];
 }
 
-// ─── Data ─────────────────────────────────────────────────
 const navLinks: NavLink[] = [
   { label: 'Features',       href: '#features'   },
   { label: 'Portals',        href: '#portals'    },
@@ -171,7 +169,6 @@ const footerColumns: FooterColumn[] = [
   },
 ];
 
-// ─── Shared: Logo Icon ────────────────────────────────────
 function LogoIcon(): React.JSX.Element {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
@@ -188,7 +185,6 @@ function LogoIcon(): React.JSX.Element {
   );
 }
 
-// ─── Shared: Section Tag ──────────────────────────────────
 function SectionTag({ label }: { label: string }): React.JSX.Element {
   return (
     <span className="inline-block bg-[rgba(10,191,188,0.12)] border border-[rgba(10,191,188,0.28)] rounded-full px-4 py-1 text-[0.72rem] font-semibold uppercase tracking-widest text-[#089A97] mb-5">
@@ -197,7 +193,6 @@ function SectionTag({ label }: { label: string }): React.JSX.Element {
   );
 }
 
-// ─── Navbar ───────────────────────────────────────────────
 function Navbar(): React.JSX.Element {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const closeMenu = (): void => setMenuOpen(false);
@@ -205,18 +200,13 @@ function Navbar(): React.JSX.Element {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[6%] h-[72px] bg-[rgba(4,15,26,0.90)] backdrop-blur-xl border-b border-[rgba(10,191,188,0.10)]">
-
         <Link href="/" className="flex items-center gap-3 no-underline group">
           <div className="w-10 h-10 flex-shrink-0 bg-[#0F172A] rounded-[9px] border border-[rgba(10,191,188,0.28)] shadow-[0_0_14px_rgba(10,191,188,0.15)] flex items-center justify-center transition-shadow group-hover:shadow-[0_0_22px_rgba(10,191,188,0.40)]">
             <LogoIcon />
           </div>
           <div className="flex flex-col gap-0">
-            <span className="font-bold text-base text-white leading-tight tracking-tight">
-              MedDelivery
-            </span>
-            <span className="text-[0.6rem] text-[#7AABB0] leading-none whitespace-nowrap">
-              Your Pharmacy, Delivered to Your Door
-            </span>
+            <span className="font-bold text-base text-white leading-tight tracking-tight">MedDelivery</span>
+            <span className="text-[0.6rem] text-[#7AABB0] leading-none whitespace-nowrap">Your Pharmacy, Delivered to Your Door</span>
           </div>
         </Link>
 
@@ -231,16 +221,10 @@ function Navbar(): React.JSX.Element {
         </ul>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/login"
-            className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline transition-all hover:border-[#0ABFBC] hover:text-white hover:bg-[rgba(10,191,188,0.07)]"
-          >
+          <Link href="/auth/login" className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline transition-all hover:border-[#0ABFBC] hover:text-white hover:bg-[rgba(10,191,188,0.07)]">
             Sign in
           </Link>
-          <Link
-            href="/signup"
-            className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_22px_rgba(10,191,188,0.45)]"
-          >
+          <Link href="/signup" className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_22px_rgba(10,191,188,0.45)]">
             Get started →
           </Link>
         </div>
@@ -267,18 +251,10 @@ function Navbar(): React.JSX.Element {
             </a>
           ))}
           <div className="flex gap-3 mt-5">
-            <Link
-              href="/login"
-              onClick={closeMenu}
-              className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline hover:border-[#0ABFBC] hover:text-white"
-            >
+            <Link href="/auth/login" onClick={closeMenu} className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline hover:border-[#0ABFBC] hover:text-white">
               Sign in
             </Link>
-            <Link
-              href="/signup"
-              onClick={closeMenu}
-              className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline hover:bg-[#5EDEDD]"
-            >
+            <Link href="/signup" onClick={closeMenu} className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline hover:bg-[#5EDEDD]">
               Get started →
             </Link>
           </div>
@@ -288,14 +264,11 @@ function Navbar(): React.JSX.Element {
   );
 }
 
-// ─── Hero ─────────────────────────────────────────────────
 function Hero(): React.JSX.Element {
   return (
     <section className="relative min-h-screen flex flex-col md:flex-row items-center px-[6%] pt-[120px] pb-[80px] gap-[5%] bg-[#040F1A]">
-
       <div className="absolute -left-[8%] top-[10%] w-[680px] h-[680px] rounded-full bg-[radial-gradient(ellipse,rgba(10,191,188,0.13)_0%,transparent_68%)] pointer-events-none z-0" />
 
-      {/* LEFT */}
       <div className="flex-1 max-w-[560px] relative z-10">
         <div className="inline-flex items-center gap-2 bg-[rgba(10,191,188,0.10)] border border-[rgba(10,191,188,0.25)] rounded-full px-4 py-[6px] mb-7 text-[0.8rem] text-[#5EDEDD]">
           <span className="w-[6px] h-[6px] rounded-full bg-[#0ABFBC] animate-pulse" />
@@ -315,10 +288,7 @@ function Hero(): React.JSX.Element {
         </p>
 
         <div className="flex gap-4 flex-wrap">
-          <Link
-            href="/signup"
-            className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_32px_rgba(10,191,188,0.5)] hover:-translate-y-[2px]"
-          >
+          <Link href="/signup" className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_32px_rgba(10,191,188,0.5)] hover:-translate-y-[2px]">
             Order medicine →
           </Link>
           <a href="#pharmacies" className="bg-transparent border border-[rgba(10,191,188,0.35)] text-white font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.07)] hover:-translate-y-[2px]">
@@ -344,20 +314,16 @@ function Hero(): React.JSX.Element {
         </div>
       </div>
 
-      {/* RIGHT — Mockup */}
       <div className="flex-[1.1] max-w-[560px] relative z-10 flex items-center justify-end pb-9 mt-12 md:mt-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] rounded-full bg-[radial-gradient(ellipse,rgba(10,191,188,0.18)_0%,rgba(10,191,188,0.06)_45%,transparent_72%)] pointer-events-none z-0" />
 
         <div className="relative z-10 w-full">
           <div className="bg-[#0C2233] border border-[rgba(10,191,188,0.22)] rounded-[18px] overflow-hidden shadow-[0_0_0_1px_rgba(10,191,188,0.10),0_8px_32px_rgba(10,191,188,0.12),0_32px_80px_rgba(0,0,0,0.6)]">
-
             <div className="bg-[rgba(4,15,26,0.9)] px-4 py-3 flex items-center gap-2 border-b border-[rgba(10,191,188,0.08)]">
               <span className="w-[10px] h-[10px] rounded-full bg-[#FF5F57]" />
               <span className="w-[10px] h-[10px] rounded-full bg-[#FEBC2E]" />
               <span className="w-[10px] h-[10px] rounded-full bg-[#28C840]" />
-              <span className="flex-1 text-center text-[0.7rem] text-[#3A6670]">
-                app.meddelivery.io/pharmacy
-              </span>
+              <span className="flex-1 text-center text-[0.7rem] text-[#3A6670]">app.meddelivery.io/pharmacy</span>
             </div>
 
             <div className="p-[18px]">
@@ -404,7 +370,6 @@ function Hero(): React.JSX.Element {
             </div>
           </div>
 
-          {/* Floating toast */}
           <div className="absolute -bottom-5 -left-7 flex items-center gap-[10px] bg-[rgba(10,191,188,0.15)] border border-[rgba(10,191,188,0.35)] rounded-[10px] px-[13px] py-[10px] backdrop-blur-md shadow-[0_8px_32px_rgba(10,191,188,0.2)] min-w-[210px] z-20 animate-[float-toast_3s_ease-in-out_infinite]">
             <div className="w-[22px] h-[22px] rounded-full bg-[#0ABFBC] flex items-center justify-center flex-shrink-0">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -422,25 +387,19 @@ function Hero(): React.JSX.Element {
   );
 }
 
-// ─── Stats Strip ──────────────────────────────────────────
 function StatsStrip(): React.JSX.Element {
   return (
     <div className="bg-[#071828] border-t border-b border-[rgba(10,191,188,0.09)] px-[6%] py-11 grid grid-cols-2 md:grid-cols-4 gap-8">
       {stats.map((stat) => (
         <div key={stat.label}>
-          <div className="font-bold text-[2.4rem] text-[#0ABFBC] leading-none tracking-tight">
-            {stat.value}
-          </div>
-          <div className="text-[0.72rem] text-[#7AABB0] mt-[6px] uppercase tracking-widest font-medium">
-            {stat.label}
-          </div>
+          <div className="font-bold text-[2.4rem] text-[#0ABFBC] leading-none tracking-tight">{stat.value}</div>
+          <div className="text-[0.72rem] text-[#7AABB0] mt-[6px] uppercase tracking-widest font-medium">{stat.label}</div>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── Features ─────────────────────────────────────────────
 function Features(): React.JSX.Element {
   return (
     <section id="features" className="bg-[#F6FAFA] px-[6%] py-[100px] border-t border-[#DFF0F0]">
@@ -469,7 +428,6 @@ function Features(): React.JSX.Element {
   );
 }
 
-// ─── How It Works ─────────────────────────────────────────
 function HowItWorks(): React.JSX.Element {
   return (
     <section id="how" className="bg-[#EFF9F9] px-[6%] py-[100px] border-t border-[#D5ECEC]">
@@ -484,9 +442,7 @@ function HowItWorks(): React.JSX.Element {
             <div className="w-14 h-14 rounded-full bg-white border-2 border-[#0ABFBC] flex items-center justify-center font-bold text-base text-[#0ABFBC] mx-auto mb-5 shadow-[0_0_22px_rgba(10,191,188,0.18)] transition-all duration-300 group-hover:bg-[#0ABFBC] group-hover:text-white group-hover:shadow-[0_0_32px_rgba(10,191,188,0.4)] group-hover:scale-110">
               0{step.number}
             </div>
-            <h3 className="text-[0.9rem] font-bold text-[#0F172A] mb-2 transition-colors group-hover:text-[#0ABFBC]">
-              {step.title}
-            </h3>
+            <h3 className="text-[0.9rem] font-bold text-[#0F172A] mb-2 transition-colors group-hover:text-[#0ABFBC]">{step.title}</h3>
             <p className="text-[0.8rem] text-[#4A7A80] leading-[1.65]">{step.description}</p>
           </div>
         ))}
@@ -495,7 +451,6 @@ function HowItWorks(): React.JSX.Element {
   );
 }
 
-// ─── Portals ──────────────────────────────────────────────
 function Portals(): React.JSX.Element {
   return (
     <section id="portals" className="bg-white px-[6%] py-[100px] border-t border-[#DFF0F0]">
@@ -507,8 +462,7 @@ function Portals(): React.JSX.Element {
           </h2>
         </div>
         <p className="text-base text-[#4A7A80] leading-[1.75] max-w-[340px] md:text-right">
-          Pick the portal that matches how you&#39;ll use MedDelivery.
-          Each one is tailored end-to-end.
+          Pick the portal that matches how you&#39;ll use MedDelivery. Each one is tailored end-to-end.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -525,7 +479,6 @@ function Portals(): React.JSX.Element {
   );
 }
 
-// ─── CTA ──────────────────────────────────────────────────
 function CTA(): React.JSX.Element {
   return (
     <section id="pharmacies" className="bg-[#E4F8F8] border-t border-[#C8E8E8] px-[6%] py-[110px] text-center">
@@ -537,16 +490,10 @@ function CTA(): React.JSX.Element {
         Join 48 partner pharmacies already serving thousands of patients on MedDelivery.
       </p>
       <div className="flex gap-4 justify-center flex-wrap">
-        <Link
-          href="/signup"
-          className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#089A97] hover:shadow-[0_0_28px_rgba(10,191,188,0.4)] hover:-translate-y-[2px]"
-        >
+        <Link href="/signup" className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#089A97] hover:shadow-[0_0_28px_rgba(10,191,188,0.4)] hover:-translate-y-[2px]">
           Sign up free →
         </Link>
-        <Link
-          href="/login"
-          className="bg-transparent border border-[rgba(8,154,151,0.5)] text-[#0F172A] font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.10)] hover:-translate-y-[2px]"
-        >
+        <Link href="/auth/login" className="bg-transparent border border-[rgba(8,154,151,0.5)] text-[#0F172A] font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.10)] hover:-translate-y-[2px]">
           Log in
         </Link>
       </div>
@@ -554,7 +501,6 @@ function CTA(): React.JSX.Element {
   );
 }
 
-// ─── Footer ───────────────────────────────────────────────
 function Footer(): React.JSX.Element {
   return (
     <footer className="bg-[#050E1A] border-t border-[rgba(10,191,188,0.10)] px-[6%] pt-16 pb-8">
@@ -576,9 +522,7 @@ function Footer(): React.JSX.Element {
 
         {footerColumns.map((col) => (
           <div key={col.heading}>
-            <h4 className="text-[0.8rem] font-bold text-white uppercase tracking-widest mb-4">
-              {col.heading}
-            </h4>
+            <h4 className="text-[0.8rem] font-bold text-white uppercase tracking-widest mb-4">{col.heading}</h4>
             {col.links.map((link) => (
               <a key={link.label} href={link.href}
                 className="block text-[0.84rem] text-[#7AABB0] no-underline mb-3 transition-all hover:text-[#5EDEDD] hover:pl-[5px]">
@@ -597,13 +541,6 @@ function Footer(): React.JSX.Element {
   );
 }
 
-// ─── Main export ──────────────────────────────────────────
-/**
- * LandingPage is the main public-facing marketing page.
- * It provides an overview of the platform's features for patients, pharmacies, and partners.
- * 
- * @returns The landing page component.
- */
 export default function LandingPage(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-[#040F1A] text-white overflow-x-hidden">
