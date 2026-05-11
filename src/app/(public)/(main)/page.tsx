@@ -598,6 +598,12 @@ function Footer(): React.JSX.Element {
 }
 
 // ─── Main export ──────────────────────────────────────────
+/**
+ * LandingPage is the main public-facing marketing page.
+ * It provides an overview of the platform's features for patients, pharmacies, and partners.
+ * 
+ * @returns The landing page component.
+ */
 export default function LandingPage(): React.JSX.Element {
   return (
     <div className="min-h-screen bg-[#040F1A] text-white overflow-x-hidden">
