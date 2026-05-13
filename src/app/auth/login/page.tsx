@@ -169,7 +169,7 @@ export default function LoginPage() {
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
           <div className="relative z-10">
-            <MedDeliveryLogo href="/" theme="dark" size="lg" />
+            <MedDeliveryLogo href="/" theme="dark" size="sm" />
 
             <div className="relative z-10 mt-6 max-w-xl lg:mt-8">
               <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-[11px] text-white/75 sm:text-xs">
@@ -203,7 +203,7 @@ export default function LoginPage() {
 
         <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
           <div className="my-auto w-full max-w-[42rem] rounded-4xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
-            <MedDeliveryLogo href="/" theme="light" size="md" className="mb-5 lg:hidden" />
+            <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
 
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
