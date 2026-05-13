@@ -19,15 +19,15 @@ const sizeClasses = {
     tagline: "text-[0.6rem]"
   },
   md: {
-    mark: "h-20 w-20 rounded-[22px]",
-    icon: "h-12 w-12",
-    word: "text-[1.75rem]",
-    tagline: "text-xs"
+    mark: "h-14 w-14 rounded-[16px]",
+    icon: "h-9 w-9",
+    word: "text-[1.35rem]",
+    tagline: "text-[0.72rem]"
   },
   lg: {
-    mark: "h-40 w-40 rounded-[34px]",
-    icon: "h-20 w-20",
-    word: "text-[2.25rem]",
+    mark: "h-16 w-16 rounded-[18px]",
+    icon: "h-10 w-10",
+    word: "text-[1.7rem]",
     tagline: "text-sm"
   }
 };
