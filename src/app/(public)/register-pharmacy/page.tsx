@@ -250,18 +250,6 @@ export default function PharmacyRegistration() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    // TODO: await fetch('/api/pharmacies/register', {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     name: pharmacy.name,
-    //     pharmacyCode: pharmacy.pharmacyCode,
-    //     licenseNumber: pharmacy.licenseNumber,
-    //     contactInfo: pharmacy.contactInfo,
-    //     address: pharmacy.address,
-    //     latitude: parseFloat(pharmacy.latitude),
-    //     longitude: parseFloat(pharmacy.longitude),
-    //   })
-    // })
     await new Promise((r) => setTimeout(r, 1500));
     setLoading(false);
     setSubmitted(true);
