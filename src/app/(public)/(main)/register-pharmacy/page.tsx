@@ -44,6 +44,16 @@ function StepIndicator({ current }: { current: Step }) {
   const order: Step[] = ["pharmacy", "manager", "review"];
   const currentIdx = order.indexOf(current);
 
+<<<<<<< HEAD:src/app/(public)/register-pharmacy/page.tsx
+=======
+/**
+ * PharmacyRegistration provides the public interface for new pharmacies to apply
+ * for platform integration and partnership.
+ * 
+ * @returns The pharmacy registration component.
+ */
+export default function PharmacyRegistration() {
+>>>>>>> d8a3c875263c944213290ceb1061580d98f7652c:src/app/(public)/(main)/register-pharmacy/page.tsx
   return (
     <div className="flex items-center mb-8">
       {steps.map((s, i) => {
