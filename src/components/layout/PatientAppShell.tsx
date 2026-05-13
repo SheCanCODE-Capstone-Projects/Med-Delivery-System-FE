@@ -162,7 +162,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.11),transparent_28%),linear-gradient(135deg,#f6fbfc_0%,#f8fafc_48%,#eef7f8_100%)] text-slate-950">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
         <div className="grid min-h-16 grid-cols-[auto_1fr_auto] items-center gap-4 px-5 sm:px-8">
-          <MedDeliveryLogo href="/" theme="light" size="sm" label="Patient portal" />
+          <MedDeliveryLogo href="/" theme="light" size="sm" />
 
           <label className="mx-auto hidden w-full max-w-xl items-center gap-3 rounded-full border border-slate-200 bg-white px-4 shadow-sm lg:flex">
             <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
