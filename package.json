@@ -12,6 +12,16 @@
     "@base-ui/react": "^1.4.1",
     "@radix-ui/react-icons": "^1.3.2",
     "@tailwindcss/postcss": "^4.2.4",
+<<<<<<< HEAD
+    "@tailwindcss/vite": "^4.2.4",
+    "lucide-react": "^1.14.0",
+    "next": "^16.2.4",
+    "postcss": "^8.5.12",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.2",
+    "tailwindcss": "^4.2.4"
+=======
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
@@ -24,6 +34,7 @@
     "tailwind-merge": "^3.2.0",
     "tailwindcss": "^4.1.6",
     "tw-animate-css": "^1.2.9"
+>>>>>>> d8a3c875263c944213290ceb1061580d98f7652c
   },
   "devDependencies": {
 <<<<<<< HEAD
