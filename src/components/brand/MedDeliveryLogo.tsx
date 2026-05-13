@@ -13,20 +13,20 @@ type MedDeliveryLogoProps = {
 
 const sizeClasses = {
   sm: {
-    mark: "h-10 w-10 rounded-[10px]",
+    mark: "h-12 w-12 rounded-[14px]",
     icon: "h-8 w-8",
     word: "text-base",
     tagline: "text-[0.6rem]"
   },
   md: {
-    mark: "h-14 w-14 rounded-[14px]",
-    icon: "h-11 w-11",
+    mark: "h-20 w-20 rounded-[22px]",
+    icon: "h-12 w-12",
     word: "text-[1.75rem]",
     tagline: "text-xs"
   },
   lg: {
-    mark: "h-[4.5rem] w-[4.5rem] rounded-[18px]",
-    icon: "h-14 w-14",
+    mark: "h-40 w-40 rounded-[34px]",
+    icon: "h-20 w-20",
     word: "text-[2.25rem]",
     tagline: "text-sm"
   }
@@ -40,14 +40,13 @@ const sizeClasses = {
  */
 function LogoMark({ className }: Pick<ComponentPropsWithoutRef<"svg">, "className">) {
   return (
-    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="MedDelivery ambulance logo">
-      <rect x="6" y="17" width="21" height="11" rx="3.5" fill="white" opacity="0.96" />
-      <path d="M27 20h7.2c1.4 0 2.74.63 3.66 1.72L41 25.6V31h-4.2" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12.5 12h5v3.4h3.5v5h-3.5v3.4h-5v-3.4H9v-5h3.5V12Z" fill="#0ABFBC" />
-      <path d="M10 22.5h13" fill="none" stroke="#0ABFBC" strokeWidth="2.3" strokeLinecap="round" />
-      <path d="M31 20v7.2h9.2" fill="none" stroke="#0ABFBC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="14" cy="31.5" r="4.2" fill="#0ABFBC" />
-      <circle cx="34" cy="31.5" r="4.2" fill="#0ABFBC" />
+    <svg viewBox="0 0 64 64" className={className} role="img" aria-label="MedDelivery ambulance logo">
+      <rect x="11" y="24" width="26" height="17" rx="3.8" fill="none" stroke="#f8fafc" strokeWidth="4" />
+      <path d="M37 29h9.2l7.1 8.3V41H37V29Z" fill="none" stroke="#f8fafc" strokeWidth="4" strokeLinejoin="round" />
+      <path d="M23.5 28.5h7M27 25v7" stroke="#0ABFBC" strokeWidth="4.4" strokeLinecap="round" />
+      <path d="M14 41h34" stroke="#f8fafc" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="20" cy="43" r="4.5" fill="#0ABFBC" />
+      <circle cx="46" cy="43" r="4.5" fill="#0ABFBC" />
     </svg>
   );
 }
@@ -72,7 +71,7 @@ export default function MedDeliveryLogo({
   const taglineText = theme === "dark" ? "text-[#7AABB0]" : "text-slate-500";
   const content = (
     <>
-      <span className={`${sizes.mark} grid shrink-0 place-items-center bg-[#0f172a] shadow-[0_0_0_1px_rgba(94,222,221,0.42),0_12px_26px_rgba(15,23,42,0.24)]`}>
+      <span className={`${sizes.mark} grid shrink-0 place-items-center border-[3px] border-[#0e5a65] bg-[#10182c] shadow-[0_0_0_1px_rgba(7,25,34,0.55),0_18px_36px_rgba(2,13,22,0.28)]`}>
         <LogoMark className={sizes.icon} />
       </span>
       {showText ? (
