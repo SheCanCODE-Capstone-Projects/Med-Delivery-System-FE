@@ -142,6 +142,12 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * PharmacyRegistration provides the public interface for new pharmacies to apply
+ * for platform integration and partnership.
+ * 
+ * @returns The pharmacy registration component.
+ */
 export default function PharmacyRegistration() {
   const [step, setStep] = useState<Step>("pharmacy");
   const [loading, setLoading] = useState(false);
