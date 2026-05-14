@@ -179,8 +179,8 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
               <Bell className="h-5 w-5" aria-hidden="true" />
               <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500" />
             </button>
-            <button className="flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 pr-4 text-sm font-bold text-slate-700 shadow-sm">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-linear-to-br from-teal-500 to-blue-600 text-xs text-white">SJ</span>
+            <button className="flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 pr-4 text-sm font-bold text-slate-700 shadow-sm transition-all hover:border-[#0ABFBC]/30">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#0ABFBC] text-[10px] font-bold text-[#040F1A]">SJ</span>
               Sarah
             </button>
           </div>
@@ -201,8 +201,8 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
                   aria-label={item.label}
                   className={`flex h-12 w-12 items-center justify-center rounded-2xl transition lg:w-full lg:justify-start lg:gap-3 lg:px-4 ${
                     active
-                      ? "bg-linear-to-br from-teal-500 to-blue-600 text-white shadow-[0_14px_28px_rgba(14,165,160,0.28)]"
-                      : "text-slate-500 hover:bg-white hover:text-teal-700 hover:shadow-sm"
+                      ? "bg-[#0ABFBC] text-white shadow-[0_14px_28px_rgba(10,191,188,0.28)]"
+                      : "text-slate-500 hover:bg-white hover:text-[#0ABFBC] hover:shadow-sm"
                   }`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -245,8 +245,8 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
                       aria-current={isCurrent ? "page" : undefined}
                       className={`min-h-9 rounded-2xl px-4 text-sm font-bold transition ${
                         isCurrent
-                          ? "bg-teal-50 text-teal-700 shadow-sm"
-                          : "bg-white text-slate-600 hover:bg-slate-50 hover:text-teal-700"
+                          ? "bg-[rgba(10,191,188,0.10)] text-[#089A97] shadow-sm border border-[rgba(10,191,188,0.20)]"
+                          : "bg-white text-slate-600 hover:bg-slate-50 hover:text-[#0ABFBC]"
                       }`}
                     >
                       {item.label}

@@ -87,7 +87,7 @@ const PartnerRow = ({ partner }: any) => (
     </td>
     <td className="py-5">
       <div className="flex items-center gap-2 text-slate-700">
-        <Building2 size={14} className="text-teal-500" />
+        <Building2 size={14} className="text-[#0ABFBC]" />
         <p className="font-bold text-sm tracking-tight">{partner.code}</p>
       </div>
     </td>
@@ -112,7 +112,7 @@ const PartnerRow = ({ partner }: any) => (
         <button className="p-2 h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-all">
           <Edit2 size={16} />
         </button>
-        <button className="p-2 h-9 w-9 flex items-center justify-center rounded-lg text-teal-600 hover:bg-teal-50 transition-all">
+        <button className="p-2 h-9 w-9 flex items-center justify-center rounded-lg text-[#0ABFBC] hover:bg-[rgba(10,191,188,0.05)] transition-all">
           <ExternalLink size={16} />
         </button>
       </div>
@@ -131,7 +131,7 @@ export default function PharmacyPartnersPage() {
           <h1 className="text-3xl font-extrabold text-[#004d4d] tracking-tight">Pharmacy Partners</h1>
           <p className="text-slate-500 font-medium">Manage and monitor all pharmacy partnerships on the platform.</p>
         </div>
-        <button className="flex items-center gap-2 bg-[#004d4d] text-white px-5 py-3 rounded-xl font-bold text-sm hover:bg-[#003d3d] transition-all shadow-lg shadow-teal-900/10">
+        <button className="flex items-center gap-2 bg-[#0ABFBC] text-[#040F1A] px-5 py-3 rounded-xl font-bold text-sm hover:bg-[#5EDEDD] transition-all shadow-lg shadow-teal-900/10">
           <Plus size={18} />
           <span>Invite New Partner</span>
         </button>
@@ -143,7 +143,7 @@ export default function PharmacyPartnersPage() {
           icon={Handshake} 
           label="Total Partners" 
           value="42" 
-          colorClass="bg-teal-50 text-teal-600"
+          colorClass="bg-[rgba(10,191,188,0.05)] text-[#0ABFBC]"
         />
         <SummaryCard 
           icon={CheckCircle2} 
@@ -173,7 +173,7 @@ export default function PharmacyPartnersPage() {
               placeholder="Search by name, code or city..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:border-teal-500 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:border-[#0ABFBC] transition-all"
             />
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { MapPin, Navigation, Calendar, Check } from "lucide-react";
+import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
 
 type Step = "personal" | "location" | "security";
 
@@ -26,12 +27,11 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-start justify-center px-4 py-10 font-sans text-gray-900">
-      <div className="w-full max-w-xl">
+    <div className="min-h-screen bg-[#F6FAFA] flex items-center justify-center px-4 py-12 font-sans text-gray-900">
+      <div className="w-full max-w-xl bg-white p-8 sm:p-10 rounded-[2rem] shadow-[0_8px_40px_rgba(10,191,188,0.08)] border border-[rgba(10,191,188,0.15)]">
 
-        <div className="flex items-center gap-2 mb-8 text-emerald-700 font-bold text-2xl">
-          <div aria-hidden="true" className="bg-emerald-700 text-white p-1 rounded-lg text-xl flex items-center justify-center w-8 h-8">+</div>
-          MedDelivery
+        <div className="mb-10 flex justify-center sm:justify-start">
+          <MedDeliveryLogo href="/" theme="light" size="md" />
         </div>
 
         <Stepper current={step} />
@@ -56,7 +56,7 @@ export default function Signup() {
                 <InputField label="Contact phone" required value={formData.emergencyPhone} onChange={(v: string) => updateData({ emergencyPhone: v })} />
               </div>
 
-              <button type="button" onClick={() => setStep("location")} className="w-full bg-emerald-700 text-white font-bold py-4 rounded-2xl hover:bg-emerald-800 transition-colors shadow-md shadow-emerald-100">
+              <button type="button" onClick={() => setStep("location")} className="w-full bg-[#0ABFBC] text-[#040F1A] font-bold py-4 rounded-2xl hover:bg-[#089A97] transition-colors shadow-[0_8px_20px_rgba(10,191,188,0.2)]">
                 Continue
               </button>
             </div>
@@ -85,7 +85,7 @@ export default function Signup() {
 
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={() => setStep("personal")} className="flex-1 border border-gray-200 py-4 rounded-2xl font-bold text-gray-600 hover:bg-gray-50 transition-colors">Back</button>
-                <button type="button" onClick={() => setStep("security")} className="flex-1 bg-emerald-700 text-white py-4 rounded-2xl font-bold shadow-md shadow-emerald-100">Continue</button>
+                <button type="button" onClick={() => setStep("security")} className="flex-1 bg-[#0ABFBC] text-[#040F1A] py-4 rounded-2xl font-bold shadow-[0_8px_20px_rgba(10,191,188,0.2)] hover:bg-[#089A97] transition-colors">Continue</button>
               </div>
             </div>
           )}
@@ -99,7 +99,7 @@ export default function Signup() {
 
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={() => setStep("location")} className="flex-1 border border-gray-200 py-4 rounded-2xl font-bold text-gray-600 hover:bg-gray-50 transition-colors">Back</button>
-                <button type="button" className="flex-1 bg-emerald-700 text-white py-4 rounded-2xl font-bold shadow-md shadow-emerald-100">Send code</button>
+                <button type="button" className="flex-1 bg-[#0ABFBC] text-[#040F1A] py-4 rounded-2xl font-bold shadow-[0_8px_20px_rgba(10,191,188,0.2)] hover:bg-[#089A97] transition-colors">Send code</button>
               </div>
             </div>
           )}
@@ -127,19 +127,19 @@ function Stepper({ current }: { current: Step }) {
                   aria-current={isActive ? "step" : undefined}
                   aria-label={`Step ${i + 1}: ${s}${isCompleted ? " – completed" : isActive ? " – current" : ""}`}
                   className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                    isActive ? "bg-emerald-700 border-emerald-700 text-white shadow-lg shadow-emerald-100" :
-                    isCompleted ? "border-emerald-700 text-emerald-700 bg-white" :
+                    isActive ? "bg-[#0ABFBC] border-[#0ABFBC] text-white shadow-[0_8px_20px_rgba(10,191,188,0.2)]" :
+                    isCompleted ? "border-[#0ABFBC] text-[#089A97] bg-white" :
                     "border-gray-100 bg-white text-gray-300"
                   }`}
                 >
                   {isCompleted ? <Check size={20} strokeWidth={3} aria-hidden="true" /> : <span aria-hidden="true" className="font-bold text-sm">{i + 1}</span>}
                 </div>
-                <span className={`text-[11px] mt-3 font-bold absolute -bottom-6 uppercase tracking-wider ${isActive ? "text-emerald-700" : "text-gray-400"}`}>
+                <span className={`text-[11px] mt-3 font-bold absolute -bottom-6 uppercase tracking-wider ${isActive ? "text-[#089A97]" : "text-gray-400"}`}>
                   {s}
                 </span>
               </div>
               {i < steps.length - 1 && (
-                <div aria-hidden="true" className={`flex-1 h-[2px] mx-4 transition-colors duration-500 ${currentIdx > i ? "bg-emerald-700" : "bg-gray-100"}`} />
+                <div aria-hidden="true" className={`flex-1 h-[2px] mx-4 transition-colors duration-500 ${currentIdx > i ? "bg-[#0ABFBC]" : "bg-gray-100"}`} />
               )}
             </li>
           );
@@ -174,7 +174,7 @@ function InputField({ label, required, value, onChange, className = "" }: {
         required={required}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full p-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-emerald-500 focus:bg-white outline-none transition-all"
+        className="w-full p-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:border-[#0ABFBC] focus:bg-white outline-none transition-all"
       />
     </div>
   );
@@ -195,7 +195,7 @@ function DobField({ value, onChange }: { value: string; onChange: (v: string) =>
           id={id}
           type="date"
           required
-          className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+          className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#0ABFBC]/50 outline-none transition-all"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -218,7 +218,7 @@ function PhoneField({ value, onChange }: { value: string; onChange: (v: string) 
         type="tel"
         required
         placeholder="+250 7XX XXX XXX"
-        className="w-full p-4 border-2 border-emerald-700 rounded-2xl focus:ring-0 outline-none font-medium text-lg bg-emerald-50/10"
+        className="w-full p-4 border-2 border-[#0ABFBC] rounded-2xl focus:ring-0 outline-none font-medium text-lg bg-[rgba(10,191,188,0.05)]"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -238,7 +238,7 @@ function ModeButton({ active, icon, label, onClick }: {
       onClick={onClick}
       aria-pressed={active}
       className={`flex-1 flex flex-col items-center justify-center p-7 rounded-3xl border-2 transition-all duration-200 ${
-        active ? "border-emerald-700 bg-white text-emerald-700 shadow-sm" : "border-gray-100 text-gray-400 hover:border-gray-200 hover:bg-gray-50/30"
+        active ? "border-[#0ABFBC] bg-white text-[#0ABFBC] shadow-sm" : "border-gray-100 text-gray-400 hover:border-gray-200 hover:bg-gray-50/30"
       }`}
     >
       <span aria-hidden="true" className="mb-2 scale-150">{icon}</span>

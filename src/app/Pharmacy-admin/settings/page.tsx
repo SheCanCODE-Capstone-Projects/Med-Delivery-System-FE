@@ -55,7 +55,7 @@ const Toggle = ({ enabled, onChange }: { enabled: boolean, onChange: () => void 
     onClick={onChange}
     className={cn(
       "w-11 h-6 rounded-full transition-all duration-200 relative",
-      enabled ? "bg-[#004d4d]" : "bg-slate-200"
+      enabled ? "bg-[#0ABFBC]" : "bg-slate-200"
     )}
   >
     <div className={cn(
@@ -78,7 +78,7 @@ export default function SystemSettingsPage() {
           <h1 className="text-3xl font-extrabold text-[#004d4d] tracking-tight">System Settings</h1>
           <p className="text-slate-500 font-medium">Global platform configuration and security management.</p>
         </div>
-        <button className="flex items-center gap-2 bg-[#004d4d] text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#003d3d] transition-all shadow-lg shadow-teal-900/10 active:scale-95">
+        <button className="flex items-center gap-2 bg-[#0ABFBC] text-[#040F1A] px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#5EDEDD] transition-all shadow-lg shadow-teal-900/10 active:scale-95">
           <Save size={18} />
           <span>Save Changes</span>
         </button>
@@ -99,7 +99,7 @@ export default function SystemSettingsPage() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <button className="absolute -bottom-2 -right-2 bg-white p-1.5 rounded-lg shadow-md border border-slate-100 text-slate-500 hover:text-teal-600 transition-all">
+              <button className="absolute -bottom-2 -right-2 bg-white p-1.5 rounded-lg shadow-md border border-slate-100 text-slate-500 hover:text-[#0ABFBC] transition-all">
                 <Plus size={14} />
               </button>
             </div>
@@ -107,7 +107,7 @@ export default function SystemSettingsPage() {
               <p className="text-lg font-bold text-slate-800 tracking-tight">System Administrator</p>
               <p className="text-sm text-slate-400 font-medium">Head of Operations</p>
               <div className="flex gap-2 mt-2">
-                <span className="px-2 py-0.5 rounded-md bg-teal-50 text-[10px] font-bold text-teal-600 uppercase tracking-widest border border-teal-100">Superuser</span>
+                <span className="px-2 py-0.5 rounded-md bg-[rgba(10,191,188,0.1)] text-[10px] font-bold text-[#089A97] uppercase tracking-widest border border-[rgba(10,191,188,0.2)]">Superuser</span>
                 <span className="px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-slate-100">Verified</span>
               </div>
             </div>
@@ -116,11 +116,11 @@ export default function SystemSettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Display Name</label>
-              <input type="text" defaultValue="System Admin" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all" />
+              <input type="text" defaultValue="System Admin" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#0ABFBC]/20 transition-all" />
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">Email Address</label>
-              <input type="email" defaultValue="admin@meddelivery.rw" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all" />
+              <input type="email" defaultValue="admin@meddelivery.rw" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#0ABFBC]/20 transition-all" />
             </div>
           </div>
         </SettingsSection>
@@ -143,7 +143,7 @@ export default function SystemSettingsPage() {
             label="IP Whitelisting" 
             description="Restrict portal access to specific administrative offices only."
           >
-            <button className="text-xs font-bold text-teal-600 hover:bg-teal-50 px-3 py-1.5 rounded-lg transition-all">Configure IPs</button>
+            <button className="text-xs font-bold text-[#089A97] hover:bg-[rgba(10,191,188,0.05)] px-3 py-1.5 rounded-lg transition-all">Configure IPs</button>
           </SettingRow>
 
           <SettingRow 

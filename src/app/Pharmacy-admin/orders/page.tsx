@@ -108,7 +108,7 @@ const OrderRow = ({ order }: any) => (
     </td>
     <td className="py-5">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600">
+        <div className="w-8 h-8 rounded-full bg-[rgba(10,191,188,0.05)] flex items-center justify-center text-[#0ABFBC]">
           <User size={14} />
         </div>
         <p className="font-bold text-sm text-slate-700">{order.customer}</p>
@@ -142,7 +142,7 @@ const OrderRow = ({ order }: any) => (
       <p className="font-extrabold text-slate-800 text-sm">{order.amount}</p>
     </td>
     <td className="py-5 pr-4 text-right">
-      <button className="p-2 text-slate-400 hover:text-teal-600 transition-colors">
+      <button className="p-2 text-slate-400 hover:text-[#0ABFBC] transition-colors">
         <ChevronRight size={18} />
       </button>
     </td>
@@ -165,7 +165,7 @@ export default function OrderOversightPage() {
             <Filter size={18} />
             <span>Filters</span>
           </button>
-          <button className="flex items-center gap-2 bg-[#004d4d] text-white px-5 py-3 rounded-xl font-bold text-sm hover:bg-[#003d3d] transition-all shadow-lg shadow-teal-900/10">
+          <button className="flex items-center gap-2 bg-[#0ABFBC] text-[#040F1A] px-5 py-3 rounded-xl font-bold text-sm hover:bg-[#5EDEDD] transition-all shadow-lg shadow-teal-900/10">
             Export Report
           </button>
         </div>
@@ -178,7 +178,7 @@ export default function OrderOversightPage() {
           label="Total Orders" 
           value="1,284" 
           trend="+12.5%"
-          colorClass="bg-teal-50 text-teal-600"
+          colorClass="bg-[rgba(10,191,188,0.05)] text-[#0ABFBC]"
         />
         <StatCard 
           icon={Clock} 
@@ -228,7 +228,7 @@ export default function OrderOversightPage() {
               placeholder="Search by ID, customer or medicine..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:border-teal-500 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:border-[#0ABFBC] transition-all"
             />
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function OrderOversightPage() {
         </div>
         
         <div className="p-6 border-t border-slate-50 flex justify-center">
-            <button className="text-teal-600 text-xs font-bold uppercase tracking-widest hover:text-teal-700 transition-colors flex items-center gap-1.5 group">
+            <button className="text-[#089A97] text-xs font-bold uppercase tracking-widest hover:text-[#0ABFBC] transition-colors flex items-center gap-1.5 group">
               View Detailed Fulfillment Report
               <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </button>

@@ -11,6 +11,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 
 interface NavItemProps {
   href: string;
@@ -27,36 +28,32 @@ const NavItem = ({ href, icon: Icon, label, exact = false }: NavItemProps) => {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300",
         isActive
-          ? "bg-[#003d3d] text-white shadow-sm"
-          : "text-slate-300 hover:text-white hover:bg-[#003d3d]/50"
+          ? "bg-[#0ABFBC] text-white shadow-[0_8px_20px_rgba(10,191,188,0.25)]"
+          : "text-[#7AABB0] hover:text-white hover:bg-[rgba(10,191,188,0.08)]"
       )}
     >
-      <Icon size={20} />
+      <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
       <span>{label}</span>
-      {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400" />}
+      {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
     </Link>
   );
 };
 
 export default function PharmacyAdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#F6FAFA] text-slate-800 font-sans overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#004d4d] flex flex-col h-full shrink-0 shadow-xl">
-        <div className="p-6 mb-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-400/20 flex items-center justify-center border border-teal-400/30">
-            <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#004d4d] rotate-45" />
-            </div>
-          </div>
-          <span className="text-xl font-bold text-white tracking-tight text-nowrap">MedDelivery</span>
+      <aside className="w-72 bg-[#040F1A] flex flex-col h-full shrink-0 shadow-2xl relative z-20">
+        <div className="p-8 pb-6">
+          <MedDeliveryLogo href="/Pharmacy-admin" theme="dark" size="sm" showTagline={false} />
         </div>
 
-        <div className="px-4 mb-2 text-[10px] font-bold text-teal-400 uppercase tracking-widest opacity-60">
+        <div className="px-8 mb-4 text-[10px] font-bold text-[#0ABFBC] uppercase tracking-[0.25em] opacity-80">
           Admin Portal
         </div>
+
 
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
           <NavItem 
@@ -87,9 +84,9 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
           />
         </nav>
 
-        <div className="p-4 border-t border-white/10">
-          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
-            <LogOut size={20} />
+        <div className="p-6 border-t border-[rgba(10,191,188,0.10)]">
+          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-[#7AABB0] hover:text-[#FF5F6D] hover:bg-red-500/5 transition-all duration-200 group">
+            <LogOut size={18} className="group-hover:-translate-x-0.5 transition-transform" />
             <span>Logout</span>
           </button>
         </div>

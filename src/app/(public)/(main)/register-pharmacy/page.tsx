@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
+import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
 
 type Step = "pharmacy" | "manager" | "review";
 
@@ -56,9 +57,9 @@ function StepIndicator({ current }: { current: Step }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-200
                   ${done
-                    ? "border-emerald-600 bg-emerald-50 text-emerald-600"
+                    ? "border-[#0ABFBC] bg-[rgba(10,191,188,0.05)] text-[#089A97]"
                     : active
-                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    ? "border-[#0ABFBC] bg-[#0ABFBC] text-[#040F1A]"
                     : "border-gray-200 text-gray-400"}`}
               >
                 {done ? (
@@ -69,12 +70,12 @@ function StepIndicator({ current }: { current: Step }) {
                   <span>{i + 1}</span>
                 )}
               </div>
-              <span className={`text-[11px] mt-1 font-medium ${active ? "text-emerald-600" : "text-gray-400"}`}>
+              <span className={`text-[11px] mt-1 font-medium ${active ? "text-[#089A97]" : "text-gray-400"}`}>
                 {s.label}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`h-0.5 w-12 mx-2 mb-4 transition-all duration-200 ${done ? "bg-emerald-600" : "bg-gray-200"}`} />
+              <div className={`h-0.5 w-12 mx-2 mb-4 transition-all duration-200 ${done ? "bg-[#0ABFBC]" : "bg-gray-200"}`} />
             )}
           </div>
         );
@@ -126,7 +127,7 @@ function InputField({
         className={`w-full px-4 py-3 text-sm rounded-xl border-2 outline-none transition-all duration-150
           ${error
             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            : "border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"}`}
+            : "border-gray-200 focus:border-[#0ABFBC] focus:ring-2 focus:ring-[rgba(10,191,188,0.2)]"}`}
       />
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
       {hint && !error && <p className="mt-1.5 text-xs text-gray-400">{hint}</p>}
@@ -258,14 +259,14 @@ export default function PharmacyRegistration() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen p-8 bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-2xl w-full text-center">
-          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5">
+      <div className="min-h-screen p-8 bg-[#F6FAFA] flex items-center justify-center">
+      <div className="w-full max-w-2xl bg-white p-8 sm:p-10 rounded-[2rem] shadow-[0_8px_40px_rgba(10,191,188,0.08)] border border-[rgba(10,191,188,0.15)] text-center">
+          <div className="w-16 h-16 bg-[rgba(10,191,188,0.05)] rounded-full flex items-center justify-center mx-auto mb-5">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M6 16L13 23L26 9" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M6 16L13 23L26 9" stroke="#089A97" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-emerald-800 mb-2">Registration Submitted!</h1>
+          <h1 className="text-2xl font-bold text-[#040F1A] mb-2">Registration Submitted!</h1>
           <p className="text-sm text-gray-500 mb-3 leading-relaxed">
             <span className="font-semibold text-gray-700">{pharmacy.name}</span> has been submitted for review.
           </p>
@@ -280,7 +281,7 @@ export default function PharmacyRegistration() {
               // TODO: router.push('/auth/login')
               alert("Navigate to login page");
             }}
-            className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-semibold rounded-xl transition-all duration-150"
+            className="w-full py-3 bg-[#0ABFBC] hover:bg-[#089A97] active:scale-95 text-[#040F1A] font-bold rounded-xl transition-all duration-150 shadow-[0_8px_20px_rgba(10,191,188,0.2)]"
           >
             Back to login
           </button>
@@ -290,9 +291,12 @@ export default function PharmacyRegistration() {
   }
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-2xl w-full">
-        <h1 className="text-2xl font-bold text-emerald-800 mb-6">Register Your Pharmacy</h1>
+    <div className="min-h-screen p-8 bg-[#F6FAFA] flex items-center justify-center">
+      <div className="w-full max-w-2xl bg-white p-8 sm:p-10 rounded-[2rem] shadow-[0_8px_40px_rgba(10,191,188,0.08)] border border-[rgba(10,191,188,0.15)]">
+        <div className="mb-8 flex justify-center sm:justify-start">
+          <MedDeliveryLogo href="/" theme="light" size="md" />
+        </div>
+        <h1 className="text-2xl font-bold text-[#040F1A] mb-6">Register Your Pharmacy</h1>
 
         <StepIndicator current={step} />
 
@@ -327,7 +331,7 @@ export default function PharmacyRegistration() {
                     onClick={() => toggleInsurance(ins)}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all duration-150
                       ${pharmacy.insuranceProviders.includes(ins)
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        ? "border-[#0ABFBC] bg-[rgba(10,191,188,0.05)] text-[#089A97]"
                         : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
                   >
                     {ins}
@@ -339,7 +343,7 @@ export default function PharmacyRegistration() {
               )}
             </div>
 
-            <button type="submit" className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-semibold rounded-xl transition-all duration-150">
+            <button type="submit" className="w-full py-3 bg-[#0ABFBC] hover:bg-[#089A97] active:scale-95 text-[#040F1A] font-bold rounded-xl flex justify-center transition-all duration-150 shadow-[0_8px_20px_rgba(10,191,188,0.2)]">
               Next — Manager details
             </button>
           </form>
@@ -361,7 +365,7 @@ export default function PharmacyRegistration() {
               <button type="button" onClick={() => setStep("pharmacy")} className="flex-1 py-3 border-2 border-gray-200 hover:border-gray-300 text-gray-600 font-semibold rounded-xl transition-all duration-150">
                 Back
               </button>
-              <button type="submit" className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-semibold rounded-xl transition-all duration-150">
+              <button type="submit" className="flex-1 py-3 bg-[#0ABFBC] hover:bg-[#089A97] active:scale-95 text-[#040F1A] font-bold rounded-xl transition-all duration-150 shadow-[0_8px_20px_rgba(10,191,188,0.2)]">
                 Next — Review
               </button>
             </div>
@@ -380,7 +384,7 @@ export default function PharmacyRegistration() {
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-gray-700">Pharmacy details</h3>
-                <button onClick={() => setStep("pharmacy")} className="text-xs text-emerald-600 font-semibold hover:underline">
+                <button onClick={() => setStep("pharmacy")} className="text-xs text-[#0ABFBC] font-semibold hover:underline">
                   Edit
                 </button>
               </div>
@@ -398,7 +402,7 @@ export default function PharmacyRegistration() {
                   <span className="text-xs text-gray-400 w-24 flex-shrink-0">Insurance</span>
                   <div className="flex flex-wrap gap-1">
                     {pharmacy.insuranceProviders.map((ins) => (
-                      <span key={ins} className="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-md">
+                      <span key={ins} className="text-xs bg-[rgba(10,191,188,0.05)] text-[#089A97] font-medium px-2 py-0.5 rounded-md">
                         {ins}
                       </span>
                     ))}
@@ -410,7 +414,7 @@ export default function PharmacyRegistration() {
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-gray-700">Manager details</h3>
-                <button onClick={() => setStep("manager")} className="text-xs text-emerald-600 font-semibold hover:underline">
+                <button onClick={() => setStep("manager")} className="text-xs text-[#0ABFBC] font-semibold hover:underline">
                   Edit
                 </button>
               </div>
@@ -430,7 +434,7 @@ export default function PharmacyRegistration() {
               <button type="button" onClick={() => setStep("manager")} className="flex-1 py-3 border-2 border-gray-200 hover:border-gray-300 text-gray-600 font-semibold rounded-xl transition-all duration-150">
                 Back
               </button>
-              <button onClick={handleSubmit} disabled={loading} className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150">
+              <button onClick={handleSubmit} disabled={loading} className="flex-1 py-3 bg-[#0ABFBC] hover:bg-[#089A97] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed text-[#040F1A] font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 shadow-[0_8px_20px_rgba(10,191,188,0.2)]">
                 {loading ? <Spinner /> : "Submit registration"}
               </button>
             </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
+import { cn } from "@/lib/utils";
 
 type MedDeliveryLogoProps = {
   href?: string;
@@ -33,32 +34,20 @@ const sizeClasses = {
 };
 
 /**
- * Renders the reusable ambulance mark used by the MedDelivery brand lockup.
- *
- * @param className - Optional sizing and layout classes applied to the SVG.
- * @returns The MedDelivery ambulance logo mark.
+ * Renders the standardized MedDelivery logo icon based on the landing page design.
  */
-function LogoMark({ className }: Pick<ComponentPropsWithoutRef<"svg">, "className">) {
+function LogoIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" className={className} role="img" aria-label="MedDelivery ambulance logo">
-      <path
-        d="M12 31.5h26.5c2.8 0 5.4 1.2 7.2 3.3l5 5.7H56"
-        fill="none"
-        stroke="#f8fafc"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="4"
-      />
-      <path
-        d="M14 27h22v15H14zM36 31h8.2l6.2 7.2V42H36z"
-        fill="none"
-        stroke="#f8fafc"
-        strokeLinejoin="round"
-        strokeWidth="4"
-      />
-      <path d="M21 34h9M25.5 29.5v9" stroke="#0ABFBC" strokeLinecap="round" strokeWidth="4" />
-      <circle cx="23" cy="45" r="4" fill="#0ABFBC" />
-      <circle cx="47" cy="45" r="4" fill="#0ABFBC" />
+    <svg viewBox="0 0 24 24" fill="none" className={cn("w-5 h-5", className)}>
+      <rect x="1" y="9" width="13" height="8" rx="1.5"
+        fill="rgba(255,255,255,0.12)" stroke="white" strokeWidth="1.4" />
+      <path d="M14 12h4l2.5 3V17H14V12z"
+        stroke="white" strokeWidth="1.4" strokeLinejoin="round"
+        fill="rgba(255,255,255,0.08)" />
+      <circle cx="5"  cy="17" r="1.5" fill="#0ABFBC" />
+      <circle cx="17" cy="17" r="1.5" fill="#0ABFBC" />
+      <path d="M6.5 12v2.5M5.2 13.2h2.6"
+        stroke="#0ABFBC" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -79,31 +68,39 @@ export default function MedDeliveryLogo({
   className = ""
 }: MedDeliveryLogoProps) {
   const sizes = sizeClasses[size];
-  const wordText = theme === "dark" ? "text-white" : "text-slate-900";
-  const taglineText = theme === "dark" ? "text-[#7AABB0]" : "text-slate-500";
+  const isDark = theme === "dark";
+  
+  const wordText = isDark ? "text-white" : "text-slate-900";
+  const taglineText = isDark ? "text-[#7AABB0]" : "text-slate-500";
+  
   const content = (
     <>
-      <span className={`${sizes.mark} grid shrink-0 place-items-center border border-[#125c69] bg-[#07121f] shadow-[0_0_0_1px_rgba(10,191,188,0.08)]`}>
-        <LogoMark className={sizes.icon} />
-      </span>
-      {showText ? (
-        <span className="min-w-0">
-          <span className={`${sizes.word} block font-bold leading-none tracking-normal ${wordText}`}>
+      <div className={cn(
+        sizes.mark,
+        "flex-shrink-0 rounded-[9px] border border-[rgba(10,191,188,0.28)] shadow-[0_0_14px_rgba(10,191,188,0.15)] flex items-center justify-center transition-shadow",
+        isDark ? "bg-[#0F172A]" : "bg-slate-900" 
+      )}>
+        <LogoIcon className={sizes.icon} />
+      </div>
+      {showText && (
+        <div className="flex flex-col gap-0 min-w-0">
+          <span className={cn("font-bold leading-tight tracking-tight", sizes.word, wordText)}>
             MedDelivery
           </span>
-          {showTagline ? (
-            <span className={`${sizes.tagline} mt-1 block font-semibold leading-tight tracking-normal ${taglineText}`}>
+          {showTagline && (
+            <span className={cn("leading-none whitespace-nowrap", sizes.tagline, taglineText)}>
               {label ?? "Your Pharmacy, Delivered to Your Door"}
             </span>
-          ) : null}
-        </span>
-      ) : null}
+          )}
+        </div>
+      )}
     </>
   );
 
   return (
-    <Link href={href} className={`flex items-center gap-3 no-underline ${className}`} aria-label="MedDelivery home">
+    <Link href={href} className={cn("flex items-center gap-3 no-underline group", className)} aria-label="MedDelivery home">
       {content}
     </Link>
   );
 }
+
