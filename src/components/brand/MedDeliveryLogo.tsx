@@ -6,6 +6,7 @@ type MedDeliveryLogoProps = {
   theme?: "dark" | "light";
   size?: "sm" | "md" | "lg";
   label?: string;
+  ariaLabel?: string;
   showText?: boolean;
   showTagline?: boolean;
   className?: string;
@@ -40,11 +41,11 @@ const sizeClasses = {
  */
 function LogoMark({ className }: Pick<ComponentPropsWithoutRef<"svg">, "className">) {
   return (
-    <svg viewBox="0 0 64 64" className={className} role="img" aria-label="MedDelivery ambulance logo">
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
       <path
         d="M12 31.5h26.5c2.8 0 5.4 1.2 7.2 3.3l5 5.7H56"
         fill="none"
-        stroke="#f8fafc"
+        stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="4"
@@ -52,13 +53,13 @@ function LogoMark({ className }: Pick<ComponentPropsWithoutRef<"svg">, "classNam
       <path
         d="M14 27h22v15H14zM36 31h8.2l6.2 7.2V42H36z"
         fill="none"
-        stroke="#f8fafc"
+        stroke="currentColor"
         strokeLinejoin="round"
         strokeWidth="4"
       />
-      <path d="M21 34h9M25.5 29.5v9" stroke="#0ABFBC" strokeLinecap="round" strokeWidth="4" />
-      <circle cx="23" cy="45" r="4" fill="#0ABFBC" />
-      <circle cx="47" cy="45" r="4" fill="#0ABFBC" />
+      <path d="M21 34h9M25.5 29.5v9" stroke="var(--logo-accent)" strokeLinecap="round" strokeWidth="4" />
+      <circle cx="23" cy="45" r="4" fill="var(--logo-accent)" />
+      <circle cx="47" cy="45" r="4" fill="var(--logo-accent)" />
     </svg>
   );
 }
@@ -74,6 +75,7 @@ export default function MedDeliveryLogo({
   theme = "dark",
   size = "sm",
   label,
+  ariaLabel,
   showText = true,
   showTagline = true,
   className = ""
@@ -81,9 +83,16 @@ export default function MedDeliveryLogo({
   const sizes = sizeClasses[size];
   const wordText = theme === "dark" ? "text-white" : "text-slate-900";
   const taglineText = theme === "dark" ? "text-[#7AABB0]" : "text-slate-500";
+  const markText = theme === "dark" ? "text-slate-50" : "text-slate-50";
+  const markChrome = theme === "dark"
+    ? "border-[#125c69] bg-[#07121f]"
+    : "border-[#125c69] bg-[#07121f]";
+  const linkLabel = ariaLabel ?? (href === "/" ? "MedDelivery home" : "MedDelivery");
   const content = (
     <>
-      <span className={`${sizes.mark} grid shrink-0 place-items-center border border-[#125c69] bg-[#07121f] shadow-[0_0_0_1px_rgba(10,191,188,0.08)]`}>
+      <span
+        className={`${sizes.mark} ${markChrome} ${markText} grid shrink-0 place-items-center border shadow-[0_0_0_1px_rgba(10,191,188,0.08)] [--logo-accent:#0ABFBC]`}
+      >
         <LogoMark className={sizes.icon} />
       </span>
       {showText ? (
@@ -102,7 +111,7 @@ export default function MedDeliveryLogo({
   );
 
   return (
-    <Link href={href} className={`flex items-center gap-3 no-underline ${className}`} aria-label="MedDelivery home">
+    <Link href={href} className={`flex items-center gap-3 no-underline ${className}`} aria-label={linkLabel}>
       {content}
     </Link>
   );
