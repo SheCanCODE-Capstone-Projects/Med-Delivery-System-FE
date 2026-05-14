@@ -169,7 +169,6 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
             <input
               placeholder="Search medicines, orders, pharmacies"
               className="min-h-11 min-w-0 flex-1 bg-transparent text-sm outline-hidden placeholder:text-slate-400"
-              suppressHydrationWarning
             />
             <span className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-400">Ctrl K</span>
           </label>
@@ -264,7 +263,6 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
             <input
               placeholder="Search medicines, orders, pharmacies"
               className="min-h-11 min-w-0 flex-1 bg-transparent text-sm outline-hidden placeholder:text-slate-400"
-              suppressHydrationWarning
             />
           </label>
           {children}

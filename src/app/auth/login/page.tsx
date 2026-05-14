@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useRef, useState } from "react";
+import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
 import { login } from "@/services/authApi";
 
 const trustPoints = [
@@ -53,6 +54,7 @@ const roleRoutes: Record<string, string> = {
 
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const copyrightYear = new Date().getFullYear();
 
 /**
  * Normalizes user identifier input by stripping leading and trailing whitespace.
@@ -167,33 +169,7 @@ export default function LoginPage() {
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="grid h-16 w-16 place-items-center rounded-[1.35rem] border border-white/10 bg-[#121a2f] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] sm:h-18 sm:w-18">
-                <svg viewBox="0 0 48 48" className="h-10 w-10 sm:h-11 sm:w-11" aria-hidden="true">
-                  <rect x="6" y="17" width="21" height="11" rx="3.5" fill="white" opacity="0.96" />
-                  <path d="M27 20h7.2c1.4 0 2.74.63 3.66 1.72L41 25.6V31h-4.2" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M12.5 12h5v3.4h3.5v5h-3.5v3.4h-5v-3.4H9v-5h3.5V12Z" fill="#0f766e" />
-                  <path d="M10 22.5h13" fill="none" stroke="#0f766e" strokeWidth="2.3" strokeLinecap="round" />
-                  <path d="M31 20v7.2h9.2" fill="none" stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M6.5 31h2.7M38.8 31H41" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round" />
-                  <circle cx="14" cy="31.5" r="4.2" fill="#0f172a" />
-                  <circle cx="34" cy="31.5" r="4.2" fill="#0f172a" />
-                  <circle cx="14" cy="31.5" r="1.7" fill="white" opacity="0.9" />
-                  <circle cx="34" cy="31.5" r="1.7" fill="white" opacity="0.9" />
-                  <path d="M4.8 18.5c2-.2 3.55-1.08 4.64-2.64M4.2 22.6c2.6-.13 4.55-1.12 5.86-2.98" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" opacity="0.82" />
-                </svg>
-              </div>
-
-              <div>
-                <p className="text-[1.7rem] leading-none font-semibold tracking-tight sm:text-[2rem]">
-                  <span className="text-white">Med</span>
-                  <span className="text-teal-400">Delivery</span>
-                </p>
-                <p className="mt-1 text-[11px] text-white/65 sm:text-sm">
-                  Your Pharmacy, Delivered to Your Door
-                </p>
-              </div>
-            </div>
+            <MedDeliveryLogo href="/" theme="dark" size="sm" />
 
             <div className="relative z-10 mt-6 max-w-xl lg:mt-8">
               <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-[11px] text-white/75 sm:text-xs">
@@ -221,12 +197,14 @@ export default function LoginPage() {
           </div>
 
           <p className="relative z-10 mt-4 text-xs text-white/40 sm:text-sm lg:mt-5">
-            {new Date().getFullYear()} MedDelivery. Safe delivery, verified every step.
+            {copyrightYear} MedDelivery. Safe delivery, verified every step.
           </p>
         </section>
 
         <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
           <div className="my-auto w-full max-w-[42rem] rounded-4xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
+            <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
+
             <div className="grid grid-cols-3 gap-2" aria-hidden="true">
               <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
               <span className="h-1 rounded-full bg-slate-200" />

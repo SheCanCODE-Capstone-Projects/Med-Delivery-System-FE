@@ -7,6 +7,7 @@ type MedDeliveryLogoProps = {
   theme?: "dark" | "light";
   size?: "sm" | "md" | "lg";
   label?: string;
+  ariaLabel?: string;
   showText?: boolean;
   showTagline?: boolean;
   className?: string;
@@ -63,6 +64,7 @@ export default function MedDeliveryLogo({
   theme = "dark",
   size = "sm",
   label,
+  ariaLabel,
   showText = true,
   showTagline = true,
   className = ""
