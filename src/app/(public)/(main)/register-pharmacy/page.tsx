@@ -2,6 +2,7 @@
 
 import React, { useState, FormEvent } from "react";
 import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
+import { useRouter } from "next/navigation";
 
 type Step = "pharmacy" | "manager" | "review";
 
@@ -53,7 +54,10 @@ function StepIndicator({ current }: { current: Step }) {
         const active = i === currentIdx;
         return (
           <div key={s.id} className="flex items-center">
-            <div className="flex flex-col items-center">
+            <div
+              className="flex flex-col items-center"
+              aria-current={active ? "step" : undefined}
+            >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-200
                   ${done
@@ -86,7 +90,13 @@ function StepIndicator({ current }: { current: Step }) {
 
 function Spinner() {
   return (
-    <svg className="animate-spin w-5 h-5" viewBox="0 0 18 18" fill="none">
+    <svg
+      className="animate-spin w-5 h-5"
+      viewBox="0 0 18 18"
+      fill="none"
+      role="status"
+      aria-label="Loading"
+    >
       <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="32" strokeDashoffset="10" />
     </svg>
   );
@@ -124,13 +134,15 @@ function InputField({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         className={`w-full px-4 py-3 text-sm rounded-xl border-2 outline-none transition-all duration-150
           ${error
             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
             : "border-gray-200 focus:border-[#0ABFBC] focus:ring-2 focus:ring-[rgba(10,191,188,0.2)]"}`}
       />
-      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-      {hint && !error && <p className="mt-1.5 text-xs text-gray-400">{hint}</p>}
+      {error && <p id={`${id}-error`} className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-gray-400">{hint}</p>}
     </div>
   );
 }
@@ -144,7 +156,14 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * PharmacyRegistration provides the public interface for new pharmacies to apply
+ * for platform integration and partnership.
+ *
+ * @returns The pharmacy registration component.
+ */
 export default function PharmacyRegistration() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("pharmacy");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -252,6 +271,13 @@ export default function PharmacyRegistration() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    try {
+   
+      await new Promise((r) => setTimeout(r, 1500));
+      setSubmitted(true);
+    } finally {
+      setLoading(false);
+    }
     await new Promise((r) => setTimeout(r, 1500));
     setLoading(false);
     setSubmitted(true);
@@ -277,10 +303,7 @@ export default function PharmacyRegistration() {
             </p>
           </div>
           <button
-            onClick={() => {
-              // TODO: router.push('/auth/login')
-              alert("Navigate to login page");
-            }}
+            onClick={() => router.push("/auth/login")}
             className="w-full py-3 bg-[#0ABFBC] hover:bg-[#089A97] active:scale-95 text-[#040F1A] font-bold rounded-xl transition-all duration-150 shadow-[0_8px_20px_rgba(10,191,188,0.2)]"
           >
             Back to login
@@ -329,6 +352,7 @@ export default function PharmacyRegistration() {
                     key={ins}
                     type="button"
                     onClick={() => toggleInsurance(ins)}
+                    aria-pressed={pharmacy.insuranceProviders.includes(ins)}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all duration-150
                       ${pharmacy.insuranceProviders.includes(ins)
                         ? "border-[#0ABFBC] bg-[rgba(10,191,188,0.05)] text-[#089A97]"
