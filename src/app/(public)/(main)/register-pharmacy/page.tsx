@@ -45,6 +45,7 @@ function StepIndicator({ current }: { current: Step }) {
   const order: Step[] = ["pharmacy", "manager", "review"];
   const currentIdx = order.indexOf(current);
 
+
   return (
     <div className="flex items-center mb-8">
       {steps.map((s, i) => {
@@ -56,6 +57,7 @@ function StepIndicator({ current }: { current: Step }) {
               className="flex flex-col items-center"
               aria-current={active ? "step" : undefined}
             >
+            <div className="flex flex-col items-center">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-200
                   ${done
@@ -95,6 +97,7 @@ function Spinner() {
       role="status"
       aria-label="Loading"
     >
+    <svg className="animate-spin w-5 h-5" viewBox="0 0 18 18" fill="none">
       <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="32" strokeDashoffset="10" />
     </svg>
   );
@@ -141,6 +144,8 @@ function InputField({
       />
       {error && <p id={`${id}-error`} className="mt-1.5 text-xs text-red-500">{error}</p>}
       {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-gray-400">{hint}</p>}
+      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {hint && !error && <p className="mt-1.5 text-xs text-gray-400">{hint}</p>}
     </div>
   );
 }
@@ -162,6 +167,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
  */
 export default function PharmacyRegistration() {
   const router = useRouter();
+export default function PharmacyRegistration() {
   const [step, setStep] = useState<Step>("pharmacy");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -276,6 +282,9 @@ export default function PharmacyRegistration() {
     } finally {
       setLoading(false);
     }
+    await new Promise((r) => setTimeout(r, 1500));
+    setLoading(false);
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -299,6 +308,10 @@ export default function PharmacyRegistration() {
           </div>
           <button
             onClick={() => router.push("/auth/login")}
+            onClick={() => {
+              // TODO: router.push('/auth/login')
+              alert("Navigate to login page");
+            }}
             className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-semibold rounded-xl transition-all duration-150"
           >
             Back to login

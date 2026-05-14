@@ -133,7 +133,6 @@
 @keyframes float-toast {
   0%, 100% { transform: translateY(0px);  }
   50%       { transform: translateY(-8px); }
-<<<<<<< HEAD
 }
 
 body {
@@ -141,6 +140,3 @@ body {
   color: #E8F4F4;
   overflow-x: hidden;
 }
-=======
-}
->>>>>>> ccf2f60 (adding dependencies and solving some issues)

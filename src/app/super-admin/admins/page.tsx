@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
 import { 
-  ShieldCheck, 
   Search, 
   Filter, 
   MoreVertical, 
@@ -104,13 +103,16 @@ export default function AdminsPage() {
 
   // Load and apply persistence
   useEffect(() => {
-    const storedAdmins = localStorage.getItem('admin_directory');
-    if (storedAdmins) {
-      setAdmins(JSON.parse(storedAdmins));
-    } else {
-      setAdmins(MOCK_ADMINS);
-      localStorage.setItem('admin_directory', JSON.stringify(MOCK_ADMINS));
-    }
+    const initializeAdmins = () => {
+      const storedAdmins = localStorage.getItem('admin_directory');
+      if (storedAdmins) {
+        setAdmins(JSON.parse(storedAdmins));
+      } else {
+        setAdmins(MOCK_ADMINS);
+        localStorage.setItem('admin_directory', JSON.stringify(MOCK_ADMINS));
+      }
+    };
+    initializeAdmins();
   }, []);
 
   const handleAddAdmin = async (e: React.FormEvent) => {

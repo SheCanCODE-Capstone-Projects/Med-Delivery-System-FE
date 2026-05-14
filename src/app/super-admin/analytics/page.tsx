@@ -2,7 +2,6 @@
 import React from 'react';
 import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
 import { 
-  BarChart3, 
   TrendingUp, 
   Users, 
   Building2, 
