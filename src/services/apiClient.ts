@@ -13,11 +13,14 @@ const BASE_URL = 'https://api.meddelivery.com/v1'; // Replace with real URL
 export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   
-  // You would typically attach JWT tokens here
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  // Build headers - don't set Content-Type for FormData (browser sets it automatically)
+  const isFormData = options.body instanceof FormData;
+  const headers: HeadersInit = isFormData
+    ? { ...options.headers }
+    : {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      };
 
   const response = await fetch(url, { ...options, headers });
   

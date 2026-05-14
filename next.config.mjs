@@ -12,8 +12,11 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   reactStrictMode: true,
   turbopack: {
-    root: __dirname
-  }
+    root: __dirname,
+    resolveAlias: {
+      tailwindcss: path.resolve(__dirname, "node_modules/tailwindcss"),
+    },
+  },
 };
 
 export default nextConfig;
