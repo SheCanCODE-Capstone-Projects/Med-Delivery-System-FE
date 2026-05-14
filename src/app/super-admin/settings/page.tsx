@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef } from 'react';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { 
   Settings, 
   User, 
@@ -62,7 +62,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">Account Settings</h1>
         <p className="text-slate-500 mt-1">Manage your platform profile and global system configurations.</p>
@@ -277,6 +277,6 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
-    </SuperAdminLayout>
+    </>
   );
 }

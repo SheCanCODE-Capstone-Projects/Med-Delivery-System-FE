@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { 
   Users, 
   Search, 
@@ -12,8 +12,7 @@ import {
   Calendar,
   MoreVertical,
   Activity,
-  UserCheck,
-  UserPlus
+  UserCheck
 } from 'lucide-react';
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -104,7 +103,7 @@ export default function PatientsPage() {
   );
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Patients & Customers</h1>
@@ -114,10 +113,6 @@ export default function PatientsPage() {
           <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">
             <Download size={18} />
             Export Data
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition shadow-md shadow-teal-600/20">
-            <UserPlus size={18} />
-            Add Patient
           </button>
         </div>
       </div>
@@ -227,6 +222,6 @@ export default function PatientsPage() {
           </div>
         </div>
       </div>
-    </SuperAdminLayout>
+    </>
   );
 }

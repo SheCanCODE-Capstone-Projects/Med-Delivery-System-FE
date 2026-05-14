@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { 
   Building2, 
   MapPin, 
@@ -94,18 +94,18 @@ export default function PharmacyDetailsPage() {
 
   if (loading) {
     return (
-      <SuperAdminLayout>
+      <>
         <div className="flex flex-col items-center justify-center p-24">
           <Loader2 className="h-10 w-10 text-teal-600 animate-spin mb-4" />
           <p className="text-slate-500">Loading pharmacy details...</p>
         </div>
-      </SuperAdminLayout>
+      </>
     );
   }
 
   if (!pharmacy) {
     return (
-      <SuperAdminLayout>
+      <>
         <div className="text-center p-24">
           <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-800">Pharmacy Not Found</h2>
@@ -116,12 +116,12 @@ export default function PharmacyDetailsPage() {
             Back to Pharmacies
           </button>
         </div>
-      </SuperAdminLayout>
+      </>
     );
   }
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-6">
         <button 
           onClick={() => router.back()}
@@ -314,6 +314,6 @@ export default function PharmacyDetailsPage() {
           </div>
         </div>
       </div>
-    </SuperAdminLayout>
+    </>
   );
 }

@@ -1,18 +1,13 @@
 "use client";
 import React, { useState } from 'react';
 import { 
-  User, 
   Shield, 
   Bell, 
   Globe, 
   Database, 
   Lock, 
   Save,
-  Check,
-  ChevronRight,
   LogOut,
-  Mail,
-  Smartphone,
   Plus
 } from 'lucide-react';
 import { cn } from "@/lib/utils";

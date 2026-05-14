@@ -1,7 +1,8 @@
 "use client";
+"use client";
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { 
   ShieldCheck, 
   Mail, 
@@ -65,18 +66,18 @@ export default function AdminDetailsPage() {
 
   if (loading) {
     return (
-      <SuperAdminLayout>
+      <>
         <div className="flex flex-col items-center justify-center p-24">
           <Loader2 className="h-10 w-10 text-teal-600 animate-spin mb-4" />
           <p className="text-slate-500 font-medium">Loading administrator profile...</p>
         </div>
-      </SuperAdminLayout>
+      </>
     );
   }
 
   if (!admin) {
     return (
-      <SuperAdminLayout>
+      <>
         <div className="text-center p-24 bg-white rounded-3xl border border-slate-100 shadow-sm mx-auto max-w-lg">
           <ShieldCheck className="h-16 w-16 text-slate-200 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-800">Admin Not Found</h2>
@@ -88,12 +89,12 @@ export default function AdminDetailsPage() {
             Back to Directory
           </button>
         </div>
-      </SuperAdminLayout>
+      </>
     );
   }
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-6">
         <button 
           onClick={() => router.back()}
@@ -256,6 +257,6 @@ export default function AdminDetailsPage() {
            </div>
         </div>
       </div>
-    </SuperAdminLayout>
+    </>
   );
 }

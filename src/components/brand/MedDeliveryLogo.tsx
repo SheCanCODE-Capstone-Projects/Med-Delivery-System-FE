@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "@/lib/utils";
 
 type MedDeliveryLogoProps = {
@@ -64,7 +63,6 @@ export default function MedDeliveryLogo({
   theme = "dark",
   size = "sm",
   label,
-  ariaLabel,
   showText = true,
   showTagline = true,
   className = ""

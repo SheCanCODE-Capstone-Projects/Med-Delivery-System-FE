@@ -11,9 +11,8 @@ import {
   LogOut,
   Search,
   Bell,
-  PlusSquare,
-  BarChart3,
 } from 'lucide-react';
+import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -49,11 +48,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     <div className="flex h-screen bg-[#f7f9fc] text-slate-800 font-sans">
       {/* Sidebar */}
       <aside className="w-64 bg-[#0F172A] border-r border-white/5 flex flex-col pt-6 fixed h-full z-10 shadow-xl">
-        <div className="px-6 mb-8 flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-teal-500 text-white flex items-center justify-center font-bold">
-            <PlusSquare size={18} />
-          </div>
-          <span className="text-xl font-bold text-white">MedDelivery</span>
+        <div className="px-6 mb-8 flex items-center justify-start">
+          <MedDeliveryLogo href="/super-admin/analytics" theme="dark" size="sm" showTagline={false} />
         </div>
 
         {/* Role badge */}
@@ -65,11 +61,10 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
-          <NavItem href="/super-admin" exact icon={LayoutDashboard} label="Dashboard" />
+          <NavItem href="/super-admin/analytics" icon={LayoutDashboard} label="Dashboard" />
           <NavItem href="/super-admin/pharmacies" icon={Building2} label="Pharmacies" />
           <NavItem href="/super-admin/admins" icon={ShieldCheck} label="Admins" />
           <NavItem href="/super-admin/patients" icon={Users} label="Patients" />
-          <NavItem href="/super-admin/analytics" icon={BarChart3} label="Analytics" />
           <NavItem href="/super-admin/settings" icon={Settings} label="Settings" />
         </nav>
 

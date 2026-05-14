@@ -1,5 +1,11 @@
-import PersonnelManagement from "@/components/pharmacy-admin/PersonnelManagement";
+"use client";
+import React from 'react';
 
-export default function Employees() {
-  return <PersonnelManagement />;
+export default function PharmacyAdminEmployeesPage() {
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold text-slate-800 mb-4">Personnel Management</h1>
+      <p className="text-slate-500">Directory of active pharmacy staff and their roles.</p>
+    </div>
+  );
 }

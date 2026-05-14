@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { getWorkingPharmacies } from '@/services/api';
 import { Building2, Loader2, AlertCircle } from 'lucide-react';
 
@@ -39,7 +39,7 @@ export default function SuperAdminPharmaciesPage() {
   }, []);
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">Platform Pharmacies</h1>
         <p className="text-slate-500 mt-1">View and manage all registered pharmacies on MedDelivery.</p>
@@ -124,6 +124,6 @@ export default function SuperAdminPharmaciesPage() {
           </div>
         </div>
       )}
-    </SuperAdminLayout>
+    </>
   );
 }

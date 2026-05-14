@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { 
   TrendingUp, 
   Users, 
@@ -57,7 +57,7 @@ function StatCard({ label, value, change, isPositive, icon: Icon, color, bg }: a
 
 export default function AnalyticsPage() {
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Platform Analytics</h1>
@@ -173,6 +173,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
-    </SuperAdminLayout>
+    </>
   );
 }

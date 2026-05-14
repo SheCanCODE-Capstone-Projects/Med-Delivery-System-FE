@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import SuperAdminLayout from '@/components/layout/SuperAdminLayout';
+
 import { 
   Search, 
   Filter, 
@@ -160,7 +160,7 @@ export default function AdminsPage() {
   });
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Regional Admins</h1>
@@ -399,6 +399,6 @@ export default function AdminsPage() {
           </div>
         </div>
       )}
-    </SuperAdminLayout>
+    </>
   );
 }

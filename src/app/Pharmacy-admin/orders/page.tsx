@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { 
   Search, 
   ClipboardCheck, 
-  Pill, 
   User, 
   MapPin, 
   Truck, 
