@@ -54,7 +54,7 @@ const roleRoutes: Record<string, string> = {
 
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const copyrightYear = 2026;
+const copyrightYear = new Date().getFullYear();
 
 /**
  * Normalizes user identifier input by stripping leading and trailing whitespace.
@@ -243,7 +243,6 @@ export default function LoginPage() {
                   autoComplete="username"
                   spellCheck={false}
                   disabled={isSigningIn}
-                  suppressHydrationWarning
                   placeholder="Enter phone number or email"
                   className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                 />
@@ -263,7 +262,6 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     spellCheck={false}
                     disabled={isSigningIn}
-                    suppressHydrationWarning
                     placeholder="••••••••"
                     className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
                   />
