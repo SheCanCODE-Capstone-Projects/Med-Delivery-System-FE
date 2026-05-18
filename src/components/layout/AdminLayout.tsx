@@ -2,7 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Users, Store, LogOut, Search, Bell, PlusSquare } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, Store, LogOut, Search, Bell } from 'lucide-react';
+import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
@@ -27,11 +28,8 @@ export default function AdminLayout({ children }) {
     <div className="flex h-screen bg-[#f7f9fc] text-slate-800 font-sans">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col pt-6 fixed h-full z-10">
-        <div className="px-6 mb-8 flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-teal-800 text-white flex items-center justify-center font-bold">
-            <PlusSquare size={18} />
-          </div>
-          <span className="text-xl font-bold text-teal-800">MedDelivery</span>
+        <div className="px-6 mb-8 flex items-center justify-start">
+          <MedDeliveryLogo href="/admin" theme="light" size="sm" showTagline={false} />
         </div>
 
         <nav className="flex-1 px-4 space-y-1">

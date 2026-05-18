@@ -29,11 +29,11 @@ export default function PharmacistDashboard() {
 
   if (loading || !metrics) {
     return (
-      <PharmacistLayout>
+      <>
         <div className="flex items-center justify-center h-full">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0a4843]"></div>
         </div>
-      </PharmacistLayout>
+      </>
     );
   }
 
@@ -45,7 +45,7 @@ export default function PharmacistDashboard() {
   ];
 
   return (
-    <PharmacistLayout>
+    <>
       {/* Metric Cards Top */}
       <div className="grid grid-cols-4 gap-6 mb-12">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 flex flex-col justify-start relative overflow-hidden h-28">
@@ -187,6 +187,6 @@ export default function PharmacistDashboard() {
           </table>
         </div>
       </div>
-    </PharmacistLayout>
+    </>
   );
 }
