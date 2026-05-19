@@ -1,0 +1,275 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
+import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
+import { registerPatient } from "@/services/authApi";
+import { BASE_URL } from "@/services/apiClient";
+
+const benefits = [
+  "Order from verified pharmacies near you",
+  "AI prescription validation built in",
+  "Insurance coverage support",
+  "Real-time delivery tracking",
+];
+
+const copyrightYear = new Date().getFullYear();
+
+export default function Signup() {
+  const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    setError("");
+    if (!fullName.trim()) { setError("Full name is required."); return; }
+    if (!email.trim() && !phoneNumber.trim()) { setError("Email or phone number is required."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    setLoading(true);
+    try {
+      await registerPatient({
+        fullName: fullName.trim(),
+        email: email.trim() || undefined,
+        phoneNumber: phoneNumber.trim() || undefined,
+        password,
+      });
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.1),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)] flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white/85 backdrop-blur-xl rounded-3xl border border-white/70 shadow-[0_24px_56px_rgba(11,19,39,0.16)] p-10 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-teal-50">
+            <CheckCircle2 className="h-8 w-8 text-teal-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900">Account created!</h2>
+          <p className="mt-2 text-sm text-slate-500">Your patient account is ready. Sign in to start ordering medicines.</p>
+          <button
+            onClick={() => router.push("/auth/login")}
+            className="mt-6 w-full h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] hover:-translate-y-0.5 transition"
+          >
+            Sign in
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="h-[100dvh] overflow-hidden text-slate-950 flex">
+      {/* Left panel — dark branding */}
+      <section className="hidden lg:flex flex-col justify-between w-[400px] xl:w-[440px] shrink-0 relative overflow-hidden bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,160,0.30),transparent_32%),linear-gradient(160deg,#0a1628_0%,#0d1f3c_55%,#091422_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white">
+        <div className="pointer-events-none absolute -left-20 bottom-0 h-80 w-80 rounded-full bg-[rgba(14,165,160,0.18)] blur-2xl" />
+        <div className="pointer-events-none absolute right-0 top-20 h-56 w-56 rounded-full bg-[rgba(14,165,160,0.08)] blur-xl" />
+
+        <div className="relative z-10">
+          <MedDeliveryLogo href="/" theme="dark" size="sm" />
+          <div className="mt-8 max-w-xs">
+            <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[11px] text-white/70">
+              Patient Registration
+            </span>
+            <h1 className="mt-3 text-[2.3rem] leading-[1] font-semibold tracking-tighter">
+              Start your health
+              <br />
+              <span className="text-teal-400">journey today.</span>
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-white/60 max-w-[260px]">
+              Join patients managing their medicines safely with verified pharmacies and real-time tracking.
+            </p>
+          </div>
+          <ul className="mt-8 grid gap-3">
+            {benefits.map((b) => (
+              <li key={b} className="flex items-start gap-3 text-sm text-white/80">
+                <CheckCircle2 size={15} className="text-teal-400 shrink-0 mt-0.5" />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative z-10 text-xs text-white/35">
+          {copyrightYear} MedDelivery. Safe delivery, verified every step.
+        </p>
+      </section>
+
+      {/* Right panel — form */}
+      <section className="flex-1 min-w-0 overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.08),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)]">
+        <div className="flex min-h-full items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
+        <div className="w-full max-w-[460px] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.4rem,3.5vh,2.2rem)] shadow-[0_24px_56px_rgba(11,19,39,0.14)] backdrop-blur-xl">
+          <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
+
+          <div>
+            <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">Get started</p>
+            <h2 className="mt-1.5 text-[1.85rem] leading-none font-semibold tracking-tighter text-slate-900">
+              Create your account
+            </h2>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Register as a patient to order medicines online.
+            </p>
+          </div>
+
+          {error && (
+            <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-5 grid gap-3.5" noValidate>
+            <label className="grid gap-1.5">
+              <span className="text-sm font-bold text-slate-600">
+                Full name <span className="text-rose-500">*</span>
+              </span>
+              <input
+                type="text"
+                required
+                autoComplete="name"
+                value={fullName}
+                onChange={(e) => { setFullName(e.target.value); if (error) setError(""); }}
+                placeholder="Jane Doe"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
+                disabled={loading}
+              />
+            </label>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-1.5">
+                <span className="text-sm font-bold text-slate-600">Email</span>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); if (error) setError(""); }}
+                  placeholder="jane@example.com"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
+                  disabled={loading}
+                />
+              </label>
+              <label className="grid gap-1.5">
+                <span className="text-sm font-bold text-slate-600">Phone</span>
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  value={phoneNumber}
+                  onChange={(e) => { setPhoneNumber(e.target.value); if (error) setError(""); }}
+                  placeholder="+250 7XX XXX XXX"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
+                  disabled={loading}
+                />
+              </label>
+            </div>
+            <p className="-mt-1.5 text-xs text-slate-400">Provide email, phone, or both.</p>
+
+            <label className="grid gap-1.5">
+              <span className="text-sm font-bold text-slate-600">
+                Password <span className="text-rose-500">*</span>
+              </span>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (error) setError(""); }}
+                  placeholder="Min. 6 characters"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </label>
+
+            <label className="grid gap-1.5">
+              <span className="text-sm font-bold text-slate-600">
+                Confirm password <span className="text-rose-500">*</span>
+              </span>
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); if (error) setError(""); }}
+                placeholder="Repeat password"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
+                disabled={loading}
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="animate-spin" size={16} /> Creating account…
+                </span>
+              ) : (
+                "Create account"
+              )}
+            </button>
+
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <span className="h-px bg-slate-200" />
+              <p className="text-sm font-semibold text-slate-400">or</p>
+              <span className="h-px bg-slate-200" />
+            </div>
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => { window.location.href = `${BASE_URL}/oauth2/authorization/google`; }}
+              className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md disabled:opacity-60"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
+                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.24-2.5c-.9.6-2.06.96-3.37.96-2.59 0-4.79-1.75-5.57-4.1H3.08v2.58A9.99 9.99 0 0 0 12 22Z" />
+                <path fill="#FBBC05" d="M6.43 13.93A5.98 5.98 0 0 1 6.12 12c0-.67.11-1.31.31-1.93V7.49H3.08A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.08 4.51l3.35-2.58Z" />
+                <path fill="#EA4335" d="M12 5.97c1.47 0 2.8.5 3.84 1.49l2.88-2.88C16.95 2.94 14.69 2 12 2a9.99 9.99 0 0 0-8.92 5.49l3.35 2.58c.78-2.35 2.98-4.1 5.57-4.1Z" />
+              </svg>
+              Continue with Google
+            </button>
+          </form>
+
+          <p className="mt-5 text-center text-sm text-slate-500">
+            Already have an account?{" "}
+            <Link href="/auth/login" className="font-bold text-teal-700 hover:text-teal-900">
+              Sign in
+            </Link>
+          </p>
+
+          <p className="mt-2 text-center text-sm text-slate-500">
+            Own a pharmacy?{" "}
+            <Link href="/auth/pharmacy-signup" className="font-bold text-teal-700 hover:text-teal-900">
+              Register your pharmacy
+            </Link>
+          </p>
+        </div>
+        </div>
+      </section>
+    </main>
+  );
+}

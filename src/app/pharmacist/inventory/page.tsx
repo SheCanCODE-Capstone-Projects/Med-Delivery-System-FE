@@ -1,111 +1,154 @@
 "use client";
-import React, { useState } from 'react';
-import { PackageSearch, Search, Filter, Download, MoreVertical, Archive } from 'lucide-react';
-
-const MOCK_INVENTORY = [
-  { id: 'INV-100', name: 'Amoxicillin 500mg', category: 'Antibiotics', initialStock: 1000, currentStock: 450, cost: '$12.00', status: 'In Stock' },
-  { id: 'INV-101', name: 'Ibuprofen 400mg', category: 'Pain Relief', initialStock: 2000, currentStock: 150, cost: '$4.50', status: 'Low Stock' },
-  { id: 'INV-102', name: 'Atorvastatin 20mg', category: 'Cardiovascular', initialStock: 800, currentStock: 0, cost: '$25.00', status: 'Out of Stock' },
-  { id: 'INV-103', name: 'Metformin 850mg', category: 'Diabetes', initialStock: 1500, currentStock: 1100, cost: '$8.20', status: 'In Stock' },
-  { id: 'INV-104', name: 'Omeprazole 20mg', category: 'Gastrointestinal', initialStock: 500, currentStock: 80, cost: '$15.00', status: 'Low Stock' },
-];
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  return (
-    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-      <div className={`p-3 rounded-lg bg-slate-50 ${color}`}>
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-xl font-bold text-slate-800">{value}</p>
-      </div>
-    </div>
-  );
-}
+import React, { useEffect, useState, useMemo } from 'react';
+import { PackageSearch, Loader2, AlertCircle, Search, RefreshCw, AlertTriangle } from 'lucide-react';
+import { getInventory } from '@/services/pharmacyApi';
+import { getPharmacyId } from '@/services/authApi';
+import type { PharmacyInventoryResponse } from '@/types/api';
 
 export default function PharmacistInventoryPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [items, setItems] = useState<PharmacyInventoryResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+
+  const pharmacyId = getPharmacyId();
+
+  const load = async () => {
+    if (!pharmacyId) { setLoading(false); return; }
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await getInventory(pharmacyId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load inventory');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return items;
+    const q = search.toLowerCase();
+    return items.filter((i) => i.medicineName?.toLowerCase().includes(q));
+  }, [items, search]);
+
+  const isLow = (i: PharmacyInventoryResponse) =>
+    i.lowStockThreshold != null && i.quantity <= i.lowStockThreshold;
+
+  const inStock = items.filter((i) => i.quantity > 0);
+  const lowStock = items.filter(isLow);
+  const outOfStock = items.filter((i) => i.quantity === 0);
 
   return (
-    <>
-      <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
+    <div>
+      <div className="mb-6 flex flex-wrap justify-between items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Inventory Management</h1>
-          <p className="text-slate-500 mt-1">Manage and track your pharmacy stock levels.</p>
+          <h1 className="text-2xl font-bold text-slate-800">Inventory</h1>
+          <p className="text-slate-500 mt-1">Current stock levels for your pharmacy.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">
-            <Download size={18} />
-            Export Data
-          </button>
-        </div>
+        <button onClick={load} className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+          <RefreshCw size={15} /> Refresh
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="Total Items" value="1,248" icon={PackageSearch} color="text-teal-600" />
-        <StatCard label="In Stock" value="1,150" icon={Archive} color="text-emerald-600" />
-        <StatCard label="Low Stock" value="84" icon={Archive} color="text-orange-600" />
-        <StatCard label="Out of Stock" value="14" icon={Archive} color="text-red-600" />
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
-          <div className="relative flex-1 min-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search inventory by item or ID..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all bg-slate-50/50"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Items', value: items.length, color: 'text-teal-600' },
+          { label: 'In Stock', value: inStock.length, color: 'text-emerald-600' },
+          { label: 'Low Stock', value: lowStock.length, color: 'text-amber-600' },
+          { label: 'Out of Stock', value: outOfStock.length, color: 'text-rose-600' },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <p className={`text-2xl font-bold ${s.color}`}>{loading ? '—' : s.value}</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</p>
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
-            <Filter size={15} />
-            Filters
-          </button>
-        </div>
+        ))}
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#f8fafb] text-[11px] font-semibold text-slate-500 tracking-wide uppercase border-b border-slate-100">
-                <th className="px-6 py-4">Item ID</th>
-                <th className="px-6 py-4">Medication Name</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4 text-center">Stock</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {MOCK_INVENTORY.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500 text-xs">{item.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{item.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-600">{item.category}</td>
-                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                    <span className="font-bold text-slate-700">{item.currentStock}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                        item.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : item.status === 'Low Stock' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-red-50 text-red-600 border-red-100'
-                      }`}>
-                        {item.status}
-                      </span>
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition">
-                      <MoreVertical size={18} />
-                    </button>
-                  </td>
+      {error && (
+        <div className="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex gap-2">
+          <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      <div className="mb-5 relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+        <input
+          type="text"
+          placeholder="Search medicines..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 gap-3 text-slate-400">
+            <Loader2 className="animate-spin" size={22} />
+            <span>Loading inventory...</span>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-slate-400">
+            <PackageSearch size={36} className="mx-auto mb-3 opacity-40" />
+            <p className="font-medium">No items found.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                  <th className="px-6 py-4">Medicine</th>
+                  <th className="px-6 py-4">Quantity</th>
+                  <th className="px-6 py-4">Unit</th>
+                  <th className="px-6 py-4">Price</th>
+                  <th className="px-6 py-4">Expiry</th>
+                  <th className="px-6 py-4">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map((item) => {
+                  const low = isLow(item);
+                  const out = item.quantity === 0;
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/60 transition text-sm">
+                      <td className="px-6 py-4 font-semibold text-slate-800">{item.medicineName}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold ${out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-800'}`}>
+                            {item.quantity}
+                          </span>
+                          {low && !out && <AlertTriangle size={13} className="text-amber-500" />}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 text-xs">{item.unit}</td>
+                      <td className="px-6 py-4 text-slate-700 font-semibold">RWF {item.price.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-slate-400 text-xs">
+                        {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                          out ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                          low ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                          'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        }`}>
+                          {out ? 'Out of Stock' : low ? 'Low Stock' : 'In Stock'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
+          {filtered.length} item{filtered.length !== 1 ? 's' : ''}
         </div>
       </div>
-    </>
+    </div>
   );
 }

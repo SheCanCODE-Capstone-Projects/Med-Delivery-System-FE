@@ -136,7 +136,8 @@
 }
 
 body {
-  background-color: #040F1A;
   color: #E8F4F4;
   overflow-x: hidden;
 }
+
+/* Landing / marketing pages that need the dark background set it via their own layout */

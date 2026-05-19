@@ -1,33 +1,147 @@
-// Mock implementations for now until API is ready
+import { apiClient, setTokens, clearTokens } from './apiClient';
+import type {
+  ApiResponse,
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  OtpVerifyRequest,
+  SetPasswordRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+} from '@/types/api';
 
-/**
- * Authenticates a user with mock credentials.
- * Returns a mock JWT token and user role for testing purposes.
- * 
- * @param _credentials - The login credentials (currently unused in mock)
- * @returns Object containing token and user with role
- */
-export const login = async (_credentials) => {
-  // return apiClient('/auth/login', { method: 'POST', body: JSON.stringify(credentials) });
-  return { token: 'mock-jwt-token', user: { role: 'PATIENT' } };
-};
+function normalizeRole(role: string): string {
+  return role?.replace(/^ROLE_/, '') ?? '';
+}
 
-/**
- * Registers a new patient account (placeholder until real API is connected).
- * 
- * @param _data - The patient registration data (currently unused)
- * @returns Object indicating success
- */
-export const registerPatient = async (_data) => {
-  return { success: true };
-};
+export async function login(credentials: LoginRequest): Promise<AuthResponse> {
+  const res = await apiClient<Record<string, unknown>>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(credentials),
+    skipAuth: true,
+  });
 
-/**
- * Registers a new pharmacy account (placeholder until real API is connected).
- * 
- * @param _data - The pharmacy registration data (currently unused)
- * @returns Object indicating success and a mock pharmacy ID
- */
-export const registerPharmacy = async (_data) => {
-  return { success: true, pharmacyId: 'PH-123' };
-};
+  // Unwrap { data: {...} } or use the response directly
+  const raw = (res?.data && typeof res.data === 'object')
+    ? (res.data as Record<string, unknown>)
+    : (res as Record<string, unknown>);
+
+  const accessToken = (raw.accessToken ?? raw.token ?? '') as string;
+  const refreshToken = (raw.refreshToken ?? '') as string;
+  const role = normalizeRole((raw.role ?? '') as string);
+  const fullName = (raw.fullName ?? raw.name ?? '') as string;
+  const pharmacyId = raw.pharmacyId as number | undefined;
+  const userId = (raw.userId ?? raw.id ?? 0) as number;
+
+  if (!accessToken) throw new Error('Login response missing access token.');
+  if (!role) throw new Error('Login response missing role.');
+
+  setTokens(accessToken, refreshToken);
+  localStorage.setItem('user_role', role);
+  if (fullName) localStorage.setItem('user_name', fullName);
+  if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
+
+  return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
+}
+
+export async function registerPatient(data: RegisterRequest): Promise<string> {
+  const res = await apiClient<ApiResponse<string>>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+  return res.message;
+}
+
+export async function sendOtp(username: string): Promise<string> {
+  const res = await apiClient<ApiResponse<string>>(
+    `/api/auth/send-otp?username=${encodeURIComponent(username)}`,
+    { method: 'POST', skipAuth: true }
+  );
+  return res.message;
+}
+
+export async function verifyOtp(data: OtpVerifyRequest): Promise<AuthResponse> {
+  const res = await apiClient<ApiResponse<AuthResponse>>('/api/auth/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+  const auth = res.data;
+  setTokens(auth.accessToken, auth.refreshToken);
+  localStorage.setItem('user_role', auth.role);
+  if (auth.fullName) localStorage.setItem('user_name', auth.fullName);
+  return auth;
+}
+
+export async function setPassword(data: SetPasswordRequest): Promise<AuthResponse> {
+  const res = await apiClient<ApiResponse<AuthResponse>>('/api/auth/set-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+  const auth = res.data;
+  setTokens(auth.accessToken, auth.refreshToken);
+  localStorage.setItem('user_role', auth.role);
+  if (auth.fullName) localStorage.setItem('user_name', auth.fullName);
+  if (auth.pharmacyId) localStorage.setItem('pharmacy_id', String(auth.pharmacyId));
+  return auth;
+}
+
+export async function forgotPassword(data: ForgotPasswordRequest): Promise<void> {
+  await apiClient<ApiResponse<string>>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+}
+
+export async function resetPassword(data: ResetPasswordRequest): Promise<AuthResponse> {
+  const res = await apiClient<ApiResponse<AuthResponse>>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    skipAuth: true,
+  });
+  const auth = res.data;
+  setTokens(auth.accessToken, auth.refreshToken);
+  localStorage.setItem('user_role', auth.role);
+  return auth;
+}
+
+export async function logout(): Promise<void> {
+  const refreshToken = localStorage.getItem('refresh_token') ?? '';
+  try {
+    await apiClient<ApiResponse<string>>(
+      `/api/auth/logout?refreshToken=${encodeURIComponent(refreshToken)}`,
+      { method: 'POST' }
+    );
+  } finally {
+    clearTokens();
+  }
+}
+
+export function getUserRole(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('user_role');
+}
+
+export function getUserName(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('user_name');
+}
+
+export function getPharmacyId(): number | null {
+  if (typeof window === 'undefined') return null;
+  const id = localStorage.getItem('pharmacy_id');
+  return id ? Number(id) : null;
+}
+
+export function roleToRoute(role: string): string {
+  const map: Record<string, string> = {
+    SUPER_ADMIN: '/super-admin/analytics',
+    MANAGER: '/Pharmacy-admin',
+    PHARMACIST: '/pharmacist',
+    PATIENT: '/patient-dashboard',
+  };
+  return map[normalizeRole(role)] ?? '/auth/login';
+}

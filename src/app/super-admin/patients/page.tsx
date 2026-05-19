@@ -1,224 +1,161 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Mail, Phone, Users, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { searchUsers, updateUserStatus } from '@/services/adminApi';
+import type { AdminUserResponse } from '@/types/api';
 
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  Download, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar,
-  MoreVertical,
-  Activity,
-  UserCheck
-} from 'lucide-react';
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_PATIENTS = [
-  { 
-    id: 'PAT-8291', 
-    name: 'Jean Claude Uwimana', 
-    email: 'j.uwimana@email.com', 
-    phone: '+250 788 000 111',
-    region: 'Kigali', 
-    orders: 24, 
-    status: 'Active',
-    lastActive: '2 hours ago',
-    joined: 'Jan 2024'
-  },
-  { 
-    id: 'PAT-8290', 
-    name: 'Marie Claire Mukamanzi', 
-    email: 'm.claire@email.com', 
-    phone: '+250 788 222 333',
-    region: 'Musanze', 
-    orders: 15, 
-    status: 'Active',
-    lastActive: '1 day ago',
-    joined: 'Feb 2024'
-  },
-  { 
-    id: 'PAT-8289', 
-    name: 'Emmanuel Rugero', 
-    email: 'emmanuel.r@email.com', 
-    phone: '+250 788 444 555',
-    region: 'Huye', 
-    orders: 8, 
-    status: 'Inactive',
-    lastActive: '2 weeks ago',
-    joined: 'Mar 2024'
-  },
-  { 
-    id: 'PAT-8288', 
-    name: 'Divine Ishimwe', 
-    email: 'divine.i@email.com', 
-    phone: '+250 788 666 777',
-    region: 'Rubavu', 
-    orders: 31, 
-    status: 'Active',
-    lastActive: '5 mins ago',
-    joined: 'Apr 2024'
-  },
-  { 
-    id: 'PAT-8287', 
-    name: 'Patrick Niyomugabo', 
-    email: 'patrick.n@email.com', 
-    phone: '+250 788 888 999',
-    region: 'Kayonza', 
-    orders: 12, 
-    status: 'Active',
-    lastActive: '12 hours ago',
-    joined: 'May 2024'
-  },
-];
-
-// ─── Components ─────────────────────────────────────────────────────────────
-
-function PatientStat({ label, value, icon: Icon, color }: any) {
-  return (
-    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-      <div className={`p-3 rounded-lg bg-slate-50 ${color}`}>
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-xl font-bold text-slate-800">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Patients Page ─────────────────────────────────────────────────────────────
+const STATUS_STYLE: Record<string, string> = {
+  ACTIVE: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  INACTIVE: 'bg-slate-100 text-slate-500 border-slate-200',
+  SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
+};
 
 export default function PatientsPage() {
+  const [patients, setPatients] = useState<AdminUserResponse[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const [toggling, setToggling] = useState<number | null>(null);
 
-  const filteredPatients = MOCK_PATIENTS.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await searchUsers({ query: searchTerm || undefined, role: 'PATIENT', page, size: 15 });
+      setPatients(res.content);
+      setTotal(res.totalElements);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load patients');
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, page]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleToggle = async (patient: AdminUserResponse) => {
+    setToggling(patient.id);
+    try {
+      const newStatus = patient.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+      await updateUserStatus(patient.id, { status: newStatus });
+      setPatients((prev) => prev.map((p) => p.id === patient.id ? { ...p, status: newStatus } : p));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update patient');
+    } finally {
+      setToggling(null);
+    }
+  };
 
   return (
     <>
       <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Patients & Customers</h1>
-          <p className="text-slate-500 mt-1">Directory of all registered users on the MedDelivery platform.</p>
+          <p className="text-slate-500 mt-1">Directory of all registered patients on the MedDelivery platform.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">
-            <Download size={18} />
-            Export Data
-          </button>
+        <div className="bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-sm text-center">
+          <p className="text-xs text-slate-500 font-medium">Total Patients</p>
+          <p className="text-2xl font-bold text-teal-600">{total.toLocaleString()}</p>
         </div>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <PatientStat label="Total Patients" value="4,561" icon={Users} color="text-teal-600" />
-        <PatientStat label="Active Patients" value="3,842" icon={UserCheck} color="text-emerald-600" />
-        <PatientStat label="New Today" value="+12" icon={Activity} color="text-sky-600" />
-        <PatientStat label="Avg. Orders/User" value="4.8" icon={Calendar} color="text-orange-600" />
-      </div>
-
-      {/* Search and Table */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
-          <div className="relative flex-1 min-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search patients by name, ID, or email..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all bg-slate-50/50"
+        <div className="p-5 border-b border-slate-100 flex flex-wrap items-center gap-4 bg-slate-50/50">
+          <div className="relative flex-1 min-w-[260px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search patients by name or email..."
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
             />
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
-            <Filter size={15} />
-            Filters
-          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#f8fafb] text-[11px] font-semibold text-slate-500 tracking-wide uppercase border-b border-slate-100">
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Patient Name</th>
-                <th className="px-6 py-4">Contact Information</th>
-                <th className="px-6 py-4">Region</th>
-                <th className="px-6 py-4 text-center">Orders</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 italic text-sm">
-              {filteredPatients.map((patient) => (
-                <tr key={patient.id} className="hover:bg-slate-50/80 transition not-italic">
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500 text-xs">{patient.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
-                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${patient.name}`} alt={patient.name} />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-800">{patient.name}</div>
-                        <div className="text-[10px] text-slate-400 capitalize">Member since {patient.joined}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-slate-600 text-[13px]">
-                        <Mail size={12} className="text-slate-400" />
-                        {patient.email}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-slate-600 text-[13px]">
-                        <Phone size={12} className="text-slate-400" />
-                        {patient.phone}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <MapPin size={14} className="text-slate-400" />
-                      {patient.region}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                    <span className="font-bold text-slate-700">{patient.orders}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col gap-1">
-                      <span className={`w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                        patient.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200'
-                      }`}>
-                        {patient.status}
-                      </span>
-                      <span className="text-[10px] text-slate-400">Activity: {patient.lastActive}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition">
-                      <MoreVertical size={18} />
-                    </button>
-                  </td>
+        {error && <div className="p-4 bg-rose-50 border-b border-rose-100 text-rose-700 text-sm font-semibold">{error}</div>}
+
+        <div className="overflow-x-auto min-h-[300px]">
+          {loading ? (
+            <div className="flex items-center justify-center py-24 gap-3 text-slate-400">
+              <Loader2 className="animate-spin" size={24} />
+              <span>Loading patients...</span>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                  <th className="px-6 py-4">Patient</th>
+                  <th className="px-6 py-4">Phone</th>
+                  <th className="px-6 py-4">Joined</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-center">Toggle</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {patients.length > 0 ? patients.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50/80 transition text-sm">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-violet-50 text-violet-700 font-bold flex items-center justify-center text-sm border border-violet-100">
+                          {p.fullName?.charAt(0) ?? '?'}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800">{p.fullName}</p>
+                          <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <Mail size={11} /> {p.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500 text-xs">
+                      {p.phoneNumber ? (
+                        <span className="flex items-center gap-1"><Phone size={11} /> {p.phoneNumber}</span>
+                      ) : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-slate-400 text-xs">
+                      {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[p.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleToggle(p)}
+                        disabled={toggling === p.id}
+                        title={p.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        className="text-slate-400 hover:text-teal-600 transition disabled:opacity-50"
+                      >
+                        {toggling === p.id
+                          ? <Loader2 size={18} className="animate-spin" />
+                          : p.status === 'ACTIVE'
+                            ? <ToggleRight size={22} className="text-teal-600" />
+                            : <ToggleLeft size={22} />}
+                      </button>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center text-slate-400">
+                      <Users size={32} className="mx-auto mb-2 opacity-40" />
+                      No patients found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
-        
+
         <div className="p-4 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500 bg-slate-50/30">
-          <span>Page 1 of 456 (Showing 10 results per page)</span>
+          <span>Showing {patients.length} of {total} patients</span>
           <div className="flex gap-2">
-            <button className="px-3 py-1 border border-slate-200 rounded disabled:opacity-50" disabled>Previous</button>
-            <button className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 transition">Next</button>
+            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1 border border-slate-200 rounded disabled:opacity-50 bg-white hover:bg-slate-50">Previous</button>
+            <button onClick={() => setPage((p) => p + 1)} disabled={patients.length < 15} className="px-3 py-1 border border-slate-200 rounded disabled:opacity-50 bg-white hover:bg-slate-50">Next</button>
           </div>
         </div>
       </div>
