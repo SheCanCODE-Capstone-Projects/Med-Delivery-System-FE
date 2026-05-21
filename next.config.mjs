@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
  */
 const nextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ["192.168.1.77"],
   turbopack: {
     root: __dirname,
     resolveAlias: {

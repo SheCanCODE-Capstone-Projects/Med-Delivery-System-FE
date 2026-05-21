@@ -1,136 +1,147 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-
-import { 
-  Building2, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Building2,
+  MapPin,
+  CheckCircle2,
+  XCircle,
   ArrowLeft,
   ShieldCheck,
   Calendar,
-  Trash2,
-  Check,
   Loader2,
   Mail,
   Phone,
-  User
+  User,
+  AlertTriangle,
+  Ban,
+  UserCog,
 } from 'lucide-react';
-import { getWorkingPharmacies } from '@/services/api';
+import { getPharmacy } from '@/services/pharmacyApi';
+import { approvePharmacy, suspendPharmacy, replacePharmacyManager } from '@/services/adminApi';
+import type { PharmacyResponse } from '@/types/api';
+
+const STATUS_STYLE: Record<string, string> = {
+  ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  PENDING: 'bg-amber-50 text-amber-600 border-amber-100',
+  SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
+  REJECTED: 'bg-slate-50 text-slate-500 border-slate-200',
+};
 
 export default function PharmacyDetailsPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [pharmacy, setPharmacy] = useState<any>(null);
+  const [pharmacy, setPharmacy] = useState<PharmacyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [actionMsg, setActionMsg] = useState('');
+  const [suspendReason, setSuspendReason] = useState('');
+  const [showSuspendDialog, setShowSuspendDialog] = useState(false);
+  const [newManagerEmail, setNewManagerEmail] = useState('');
+  const [replaceManagerLoading, setReplaceManagerLoading] = useState(false);
+  const [replaceManagerMsg, setReplaceManagerMsg] = useState('');
 
   useEffect(() => {
-    const fetchPharmacy = async () => {
-      try {
-        const pharmacies = await getWorkingPharmacies();
-        const found = pharmacies.find(p => p.id.replace('#', '') === id);
-        
-        // Simulating detailed data
-        if (found) {
-          const cachedData = localStorage.getItem('pharmacy_cache');
-          const cache = cachedData ? JSON.parse(cachedData) : {};
-          const statusOverride = cache[found.id]?.status;
-
-          setPharmacy({
-            ...found,
-            status: statusOverride || found.status,
-            email: `${found.name.toLowerCase().replace(' ', '')}@meddelivery.rw`,
-            phone: '+250 788 000 000',
-            address: 'KG 123 St, Kigali, Rwanda',
-            pharmacistName: 'Dr. Jean Bosco',
-            licenseNumber: 'MD-RX-2024-991',
-            region: 'Kigali City',
-            description: 'A licensed pharmacy providing quality healthcare services and authentic medications to the local community.'
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching pharmacy:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPharmacy();
+    if (!id) return;
+    getPharmacy(Number(id))
+      .then(setPharmacy)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacy'))
+      .finally(() => setLoading(false));
   }, [id]);
 
   const handleApprove = async () => {
+    if (!pharmacy) return;
     setActionLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Cache the change
-    const cachedData = localStorage.getItem('pharmacy_cache');
-    const cache = cachedData ? JSON.parse(cachedData) : {};
-    cache[pharmacy.id] = { ...cache[pharmacy.id], status: 'Confirmed' };
-    localStorage.setItem('pharmacy_cache', JSON.stringify(cache));
-
-    setPharmacy(prev => ({ ...prev, status: 'Confirmed' }));
-    setActionLoading(false);
+    setActionMsg('');
+    try {
+      await approvePharmacy(pharmacy.id, { approved: true });
+      setPharmacy((p) => p ? { ...p, status: 'ACTIVE' } : p);
+      setActionMsg('Pharmacy approved successfully.');
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this pharmacy? This action cannot be undone.')) {
-      setActionLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Cache the deletion
-      const cachedData = localStorage.getItem('pharmacy_cache');
-      const cache = cachedData ? JSON.parse(cachedData) : {};
-      cache[pharmacy.id] = { ...cache[pharmacy.id], deleted: true };
-      localStorage.setItem('pharmacy_cache', JSON.stringify(cache));
-
+  const handleReject = async () => {
+    if (!pharmacy) return;
+    setActionLoading(true);
+    setActionMsg('');
+    try {
+      await approvePharmacy(pharmacy.id, { approved: false, reason: 'Does not meet requirements' });
+      setPharmacy((p) => p ? { ...p, status: 'REJECTED' } : p);
+      setActionMsg('Pharmacy rejected.');
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
       setActionLoading(false);
-      router.push('/super-admin/pharmacies');
+    }
+  };
+
+  const handleSuspend = async () => {
+    if (!pharmacy || !suspendReason.trim()) return;
+    setActionLoading(true);
+    setActionMsg('');
+    try {
+      await suspendPharmacy(pharmacy.id, suspendReason);
+      setPharmacy((p) => p ? { ...p, status: 'SUSPENDED' } : p);
+      setActionMsg('Pharmacy suspended.');
+      setShowSuspendDialog(false);
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReplaceManager = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    if (!pharmacy || !newManagerEmail.trim()) return;
+    if (!window.confirm(`Replace pharmacy manager with ${newManagerEmail}?`)) return;
+    setReplaceManagerLoading(true);
+    setReplaceManagerMsg('');
+    try {
+      await replacePharmacyManager(pharmacy.id, { newManagerEmail: newManagerEmail.trim() });
+      setReplaceManagerMsg(`Manager updated to ${newManagerEmail}.`);
+      setNewManagerEmail('');
+      setPharmacy((p) => p ? { ...p, managerEmail: newManagerEmail.trim() } : p);
+    } catch (err) {
+      setReplaceManagerMsg(err instanceof Error ? err.message : 'Failed to replace manager.');
+    } finally {
+      setReplaceManagerLoading(false);
     }
   };
 
   if (loading) {
     return (
-      <>
-        <div className="flex flex-col items-center justify-center p-24">
-          <Loader2 className="h-10 w-10 text-teal-600 animate-spin mb-4" />
-          <p className="text-slate-500">Loading pharmacy details...</p>
-        </div>
-      </>
+      <div className="flex flex-col items-center justify-center p-24">
+        <Loader2 className="h-10 w-10 text-teal-600 animate-spin mb-4" />
+        <p className="text-slate-500">Loading pharmacy details...</p>
+      </div>
     );
   }
 
-  if (!pharmacy) {
+  if (error || !pharmacy) {
     return (
-      <>
-        <div className="text-center p-24">
-          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-800">Pharmacy Not Found</h2>
-          <button 
-            onClick={() => router.push('/super-admin/pharmacies')}
-            className="mt-4 text-teal-600 font-bold hover:underline"
-          >
-            Back to Pharmacies
-          </button>
-        </div>
-      </>
+      <div className="text-center p-24">
+        <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-slate-800">{error || 'Pharmacy Not Found'}</h2>
+        <button onClick={() => router.push('/super-admin/pharmacies')} className="mt-4 text-teal-600 font-bold hover:underline">
+          Back to Pharmacies
+        </button>
+      </div>
     );
   }
 
   return (
     <>
       <div className="mb-6">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition font-medium mb-4"
-        >
-          <ArrowLeft size={16} />
-          Back to Directory
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition font-medium mb-4">
+          <ArrowLeft size={16} /> Back to Directory
         </button>
-        
+
         <div className="flex flex-wrap justify-between items-start gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center border-2 border-teal-100 shadow-sm">
@@ -139,181 +150,185 @@ export default function PharmacyDetailsPage() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-slate-800">{pharmacy.name}</h1>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                  pharmacy.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                  pharmacy.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                  'bg-slate-50 text-slate-500 border-slate-200'
-                }`}>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[pharmacy.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                   {pharmacy.status}
                 </span>
               </div>
-              <p className="text-slate-500 font-medium">Pharmacy ID: {pharmacy.id}</p>
+              <p className="text-slate-500 font-medium">Pharmacy ID: #{pharmacy.id}</p>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            {pharmacy.status !== 'Confirmed' ? (
-              <button 
-                onClick={handleApprove}
+          <div className="flex gap-3 flex-wrap">
+            {pharmacy.status === 'PENDING' && (
+              <>
+                <button
+                  onClick={handleApprove}
+                  disabled={actionLoading}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition disabled:opacity-50"
+                >
+                  {actionLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                  Approve
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={actionLoading}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl font-bold hover:bg-rose-100 transition disabled:opacity-50"
+                >
+                  <XCircle size={16} /> Reject
+                </button>
+              </>
+            )}
+            {pharmacy.status === 'ACTIVE' && (
+              <button
+                onClick={() => setShowSuspendDialog(true)}
                 disabled={actionLoading}
-                className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition shadow-lg shadow-teal-600/20 disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold hover:bg-amber-100 transition disabled:opacity-50"
               >
-                {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                Approve Pharmacy
-              </button>
-            ) : (
-              <button 
-                onClick={handleDelete}
-                disabled={actionLoading}
-                className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 border border-red-100 rounded-xl font-bold hover:bg-red-100 transition disabled:opacity-50"
-              >
-                {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
-                Delete Pharmacy
+                <Ban size={16} /> Suspend
               </button>
             )}
           </div>
         </div>
+
+        {actionMsg && (
+          <p className="mt-4 px-4 py-3 rounded-xl border text-sm font-semibold bg-teal-50 border-teal-100 text-teal-700">
+            {actionMsg}
+          </p>
+        )}
       </div>
 
+      {/* Suspend Dialog */}
+      {showSuspendDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <AlertTriangle size={20} className="text-amber-500" /> Suspend Pharmacy
+            </h2>
+            <p className="text-sm text-slate-500 mb-4">Provide a reason for suspending <strong>{pharmacy.name}</strong>.</p>
+            <textarea
+              value={suspendReason}
+              onChange={(e) => setSuspendReason(e.target.value)}
+              placeholder="Reason for suspension..."
+              rows={3}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15"
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={handleSuspend}
+                disabled={actionLoading || !suspendReason.trim()}
+                className="flex-1 py-2.5 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 disabled:opacity-50"
+              >
+                {actionLoading ? 'Suspending...' : 'Confirm Suspend'}
+              </button>
+              <button
+                onClick={() => setShowSuspendDialog(false)}
+                className="flex-1 py-2.5 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Info Card */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 text-[14px] font-bold text-slate-800">
+            <div className="p-5 border-b border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-800">
               Registration Information
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                    <ShieldCheck size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase">License Number</p>
-                    <p className="font-semibold text-slate-700">{pharmacy.licenseNumber}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                    <User size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Managing Pharmacist</p>
-                    <p className="font-semibold text-slate-700">{pharmacy.pharmacistName}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                    <Calendar size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Registration Date</p>
-                    <p className="font-semibold text-slate-700">{pharmacy.time}</p>
-                  </div>
-                </div>
+              <div className="space-y-5">
+                <InfoRow icon={ShieldCheck} label="Licence Number" value={pharmacy.licenseNumber ?? '—'} />
+                <InfoRow icon={User} label="Manager" value={pharmacy.managerName ?? '—'} />
+                <InfoRow icon={Mail} label="Manager Email" value={pharmacy.managerEmail ?? '—'} />
               </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                    <MapPin size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Operating Region</p>
-                    <p className="font-semibold text-slate-700">{pharmacy.region}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                    <Clock size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Registration Status</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      {pharmacy.status === 'Confirmed' ? (
-                        <CheckCircle2 size={16} className="text-emerald-500" />
-                      ) : (
-                        <Clock size={16} className="text-amber-500" />
-                      )}
-                      <p className="text-sm font-bold text-slate-700">{pharmacy.status}</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-5">
+                <InfoRow icon={MapPin} label="Address" value={pharmacy.address ?? '—'} />
+                <InfoRow icon={Phone} label="Phone" value={pharmacy.phoneNumber ?? '—'} />
+                <InfoRow
+                  icon={Calendar}
+                  label="Registered"
+                  value={pharmacy.createdAt ? new Date(pharmacy.createdAt).toLocaleDateString() : '—'}
+                />
               </div>
             </div>
-            <div className="p-6 bg-slate-50/30 border-t border-slate-100">
-              <p className="text-xs font-bold text-slate-400 uppercase mb-2">About Pharmacy</p>
-              <p className="text-sm text-slate-600 leading-relaxed italic">
-                "{pharmacy.description}"
-              </p>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Clock size={24} />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800">Compliance History</p>
-                <p className="text-xs text-slate-500">This pharmacy has no reported compliance violations.</p>
-              </div>
-            </div>
-            <button className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 transition">View Logs</button>
           </div>
         </div>
 
-        {/* Right Column: Contact & Location */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 text-[14px] font-bold text-slate-800">
-              Contact Details
-            </div>
+            <div className="p-5 border-b border-slate-100 text-sm font-bold text-slate-800">Contact Details</div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                  <Mail size={18} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase leading-none">Email Address</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-1">{pharmacy.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                  <Phone size={18} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase leading-none">Phone Number</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-1">{pharmacy.phone}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                  <MapPin size={18} />
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase leading-none">Main Location</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-1">{pharmacy.address}</p>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 bg-slate-50 flex justify-center">
-               <button className="text-[13px] font-bold text-teal-600 hover:underline">Download Documentation (PDF)</button>
+              <InfoRow icon={Mail} label="Email" value={pharmacy.email ?? '—'} />
+              <InfoRow icon={Phone} label="Phone" value={pharmacy.phoneNumber ?? '—'} />
+              <InfoRow icon={MapPin} label="Address" value={pharmacy.address ?? '—'} />
             </div>
           </div>
 
           <div className="p-6 bg-teal-600 rounded-2xl shadow-lg shadow-teal-600/20 text-white relative overflow-hidden">
             <div className="relative z-10">
-              <h4 className="font-bold mb-1">Stock Overview</h4>
-              <p className="text-xs text-white/70 mb-4">Total products currently in inventory</p>
-              <p className="text-3xl font-black">482</p>
+              <h4 className="font-bold mb-1">Status</h4>
+              <p className="text-xs text-white/70 mb-3">Current pharmacy status on the platform</p>
+              <p className="text-2xl font-black">{pharmacy.status}</p>
             </div>
             <div className="absolute -bottom-6 -right-6 opacity-20">
-               <Building2 size={120} />
+              <Building2 size={120} />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                <UserCog size={18} className="text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Replace Manager</p>
+                <p className="text-xs text-slate-500">Assign a new pharmacy manager</p>
+              </div>
+            </div>
+            <div className="p-5">
+              {replaceManagerMsg && (
+                <p className={`mb-3 text-xs font-semibold px-3 py-2 rounded-lg ${replaceManagerMsg.startsWith('Failed') || replaceManagerMsg.startsWith('Error') ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                  {replaceManagerMsg}
+                </p>
+              )}
+              <form onSubmit={handleReplaceManager} className="space-y-3">
+                <input
+                  type="email"
+                  required
+                  value={newManagerEmail}
+                  onChange={(e) => setNewManagerEmail(e.target.value)}
+                  placeholder="new.manager@email.com"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+                <button
+                  type="submit"
+                  disabled={replaceManagerLoading || !newManagerEmail.trim()}
+                  className="w-full py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                >
+                  {replaceManagerLoading && <Loader2 size={14} className="animate-spin" />}
+                  Replace Manager
+                </button>
+              </form>
             </div>
           </div>
         </div>
       </div>
     </>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="p-2 bg-slate-100 rounded-lg text-slate-500 shrink-0">
+        <Icon size={16} />
+      </div>
+      <div>
+        <p className="text-[11px] font-bold text-slate-400 uppercase">{label}</p>
+        <p className="font-semibold text-slate-700 text-sm">{value}</p>
+      </div>
+    </div>
   );
 }

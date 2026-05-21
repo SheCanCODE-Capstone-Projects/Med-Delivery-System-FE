@@ -1,109 +1,153 @@
 "use client";
-import React, { useState } from 'react';
-import { Search, Filter, Download, History, Calendar, CheckSquare, MoreVertical } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { History, Loader2, AlertCircle, Search, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { getAssignedOrders, getActionLogs } from '@/services/pharmacistApi';
+import type { DispensingOrderResponse, ActionLogResponse } from '@/types/api';
 
-const MOCK_HISTORY = [
-  { id: 'LOG-7701', action: 'Order Fulfilled', entityId: 'ORD-5003', date: 'Oct 11, 2024 - 05:00 PM', value: '$120.00', status: 'Success' },
-  { id: 'LOG-7702', action: 'Prescription Validated', entityId: 'RX-9902', date: 'Oct 11, 2024 - 09:20 AM', value: '--', status: 'Success' },
-  { id: 'LOG-7703', action: 'Stock Replenished', entityId: 'INV-103', date: 'Oct 10, 2024 - 02:15 PM', value: '+500 units', status: 'Success' },
-  { id: 'LOG-7704', action: 'Prescription Rejected', entityId: 'RX-9903', date: 'Oct 10, 2024 - 04:55 PM', value: '--', status: 'Failed' },
-];
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  return (
-    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-      <div className={`p-3 rounded-lg bg-slate-50 ${color}`}>
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-xl font-bold text-slate-800">{value}</p>
-      </div>
-    </div>
-  );
-}
+const STATUS_STYLE: Record<string, string> = {
+  DISPENSED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  COMPLETED: 'bg-teal-50 text-teal-700 border-teal-100',
+  CANCELLED: 'bg-rose-50 text-rose-700 border-rose-100',
+};
 
 export default function PharmacistHistoryPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState<DispensingOrderResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [logs, setLogs] = useState<Record<number, ActionLogResponse[]>>({});
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getAssignedOrders();
+      setOrders(data.filter((o) => ['DISPENSED', 'COMPLETED', 'CANCELLED'].includes(o.status)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load history');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return orders;
+    const q = search.toLowerCase();
+    return orders.filter((o) => o.patientName?.toLowerCase().includes(q) || String(o.id).includes(q));
+  }, [orders, search]);
+
+  const toggleExpand = async (orderId: number) => {
+    if (expandedId === orderId) { setExpandedId(null); return; }
+    setExpandedId(orderId);
+    if (!logs[orderId]) {
+      try {
+        const data = await getActionLogs(orderId);
+        setLogs((prev) => ({ ...prev, [orderId]: data }));
+      } catch { /* ignore */ }
+    }
+  };
 
   return (
-    <>
-      <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
+    <div>
+      <div className="mb-6 flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Transaction History</h1>
-          <p className="text-slate-500 mt-1">Audit logs of all pharmacy transactions and validations.</p>
+          <p className="text-slate-500 mt-1">Completed and cancelled orders with action logs.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">
-            <Download size={18} />
-            Export Logs
-          </button>
-        </div>
+        <button onClick={load} className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+          <RefreshCw size={15} /> Refresh
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="Total Logs" value="8,942" icon={History} color="text-teal-600" />
-        <StatCard label="Last 7 Days" value="450" icon={Calendar} color="text-blue-600" />
-        <StatCard label="Success Events" value="8,800" icon={CheckSquare} color="text-emerald-600" />
+      {error && (
+        <div className="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex gap-2">
+          <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      <div className="mb-5 relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+        <input
+          type="text"
+          placeholder="Search patient or order ID..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
-          <div className="relative flex-1 min-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search history by log ID, action, or entity..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all bg-slate-50/50"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 gap-3 text-slate-400">
+            <Loader2 className="animate-spin" size={22} />
+            <span>Loading history...</span>
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
-            <Filter size={15} />
-            Filters
-          </button>
-        </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-slate-400">
+            <History size={36} className="mx-auto mb-3 opacity-40" />
+            <p className="font-medium">No completed orders yet.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {filtered.map((order) => (
+              <div key={order.id}>
+                <div
+                  className="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/60 transition cursor-pointer"
+                  onClick={() => toggleExpand(order.id)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span className="font-semibold text-slate-800 text-sm">{order.patientName}</span>
+                      <span className="text-xs text-slate-400">#{order.id}</span>
+                    </div>
+                    {order.medicines && order.medicines.length > 0 && (
+                      <p className="text-xs text-slate-500">{order.medicines.map((m) => m.medicineName).join(', ')}</p>
+                    )}
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleString() : '—'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[order.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                      {order.status}
+                    </span>
+                    {expandedId === order.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                  </div>
+                </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#f8fafb] text-[11px] font-semibold text-slate-500 tracking-wide uppercase border-b border-slate-100">
-                <th className="px-6 py-4">Log ID</th>
-                <th className="px-6 py-4">Action Taken</th>
-                <th className="px-6 py-4">Reference Entity</th>
-                <th className="px-6 py-4">Value / Metric</th>
-                <th className="px-6 py-4">Timestamp</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {MOCK_HISTORY.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/80 transition">
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500 text-xs">{log.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-800">{log.action}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500 text-xs">{log.entityId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">{log.value}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500 text-xs">{log.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                        log.status === 'Success' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'
-                      }`}>
-                        {log.status}
-                      </span>
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition">
-                      <MoreVertical size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                {expandedId === order.id && (
+                  <div className="px-6 pb-4 bg-slate-50/50 border-t border-slate-100">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-3 mb-2">Action Log</p>
+                    {(logs[order.id] ?? []).length === 0 ? (
+                      <p className="text-xs text-slate-400">No action logs for this order.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {logs[order.id].map((log) => (
+                          <div key={log.id} className="flex items-start gap-3 text-xs">
+                            <span className="text-slate-400 shrink-0 min-w-[140px]">
+                              {log.createdAt ? new Date(log.createdAt).toLocaleString() : '—'}
+                            </span>
+                            <span className="font-semibold text-slate-700">{log.action}</span>
+                            <span className="text-slate-500">by {log.performedBy}</span>
+                            {log.notes && <span className="text-slate-400 italic">"{log.notes}"</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
+          {filtered.length} of {orders.length} historical orders
         </div>
       </div>
-    </>
+    </div>
   );
 }

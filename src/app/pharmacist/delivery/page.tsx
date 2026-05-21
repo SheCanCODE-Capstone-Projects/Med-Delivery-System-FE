@@ -1,110 +1,139 @@
 "use client";
-import React, { useState } from 'react';
-import { Search, Filter, Download, Truck, MapPin, Navigation, CheckCircle, MoreVertical } from 'lucide-react';
-
-const MOCK_DELIVERIES = [
-  { id: 'DEL-1011', orderId: 'ORD-5001', address: 'Kigali Heights, Kimihurura', rider: 'Moses N.', timeEstimate: '15 mins', status: 'In Transit' },
-  { id: 'DEL-1012', orderId: 'ORD-5002', address: 'Remera, Kisimenti', rider: 'Peter K.', timeEstimate: '--', status: 'Delivered' },
-  { id: 'DEL-1013', orderId: 'ORD-5005', address: 'Kacyiru, near Library', rider: 'Unassigned', timeEstimate: '--', status: 'Awaiting Pickup' },
-];
-
-function StatCard({ label, value, icon: Icon, color }: any) {
-  return (
-    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-      <div className={`p-3 rounded-lg bg-slate-50 ${color}`}>
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-xl font-bold text-slate-800">{value}</p>
-      </div>
-    </div>
-  );
-}
+import React, { useEffect, useState, useMemo } from 'react';
+import { Truck, Loader2, AlertCircle, Search, RefreshCw } from 'lucide-react';
+import { getAssignedOrders } from '@/services/pharmacistApi';
+import type { DispensingOrderResponse } from '@/types/api';
 
 export default function PharmacistDeliveryPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState<DispensingOrderResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getAssignedOrders();
+      setOrders(data.filter((o) => o.stockConfirmed || o.status === 'DISPENSED' || o.status === 'COMPLETED'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load delivery orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return orders;
+    const q = search.toLowerCase();
+    return orders.filter((o) => o.patientName?.toLowerCase().includes(q) || String(o.id).includes(q));
+  }, [orders, search]);
+
+  const readyToDispatch = orders.filter((o) => o.stockConfirmed && o.status !== 'DISPENSED' && o.status !== 'COMPLETED');
+  const dispatched = orders.filter((o) => o.status === 'DISPENSED' || o.status === 'COMPLETED');
 
   return (
-    <>
-      <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
+    <div>
+      <div className="mb-6 flex flex-wrap justify-between items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Delivery Routing</h1>
-          <p className="text-slate-500 mt-1">Track and manage active rider dispatches.</p>
+          <h1 className="text-2xl font-bold text-slate-800">Delivery</h1>
+          <p className="text-slate-500 mt-1">Orders ready for dispatch and completed deliveries.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">
-            <Download size={18} />
-            Export Routes
-          </button>
-        </div>
+        <button onClick={load} className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+          <RefreshCw size={15} /> Refresh
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="Total Dispatches" value="84" icon={Truck} color="text-teal-600" />
-        <StatCard label="In Transit" value="12" icon={Navigation} color="text-blue-600" />
-        <StatCard label="Awaiting Pickup" value="5" icon={MapPin} color="text-orange-600" />
-        <StatCard label="Delivered Today" value="67" icon={CheckCircle} color="text-emerald-600" />
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
-          <div className="relative flex-1 min-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search deliveries by ID, Order, or Address..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all bg-slate-50/50"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'Total Tracked', value: orders.length, color: 'text-teal-600' },
+          { label: 'Ready to Dispatch', value: readyToDispatch.length, color: 'text-amber-600' },
+          { label: 'Dispatched/Done', value: dispatched.length, color: 'text-emerald-600' },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <p className={`text-2xl font-bold ${s.color}`}>{loading ? '—' : s.value}</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</p>
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition">
-            <Filter size={15} />
-            Filters
-          </button>
-        </div>
+        ))}
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+      {error && (
+        <div className="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex gap-2">
+          <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      <div className="mb-5 relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+        <input
+          type="text"
+          placeholder="Search patient or order ID..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 gap-3 text-slate-400">
+            <Loader2 className="animate-spin" size={22} />
+            <span>Loading delivery orders...</span>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-slate-400">
+            <Truck size={36} className="mx-auto mb-3 opacity-40" />
+            <p className="font-medium">No dispatched orders yet.</p>
+          </div>
+        ) : (
+          <table className="w-full text-left">
             <thead>
-              <tr className="bg-[#f8fafb] text-[11px] font-semibold text-slate-500 tracking-wide uppercase border-b border-slate-100">
-                <th className="px-6 py-4">Delivery ID</th>
-                <th className="px-6 py-4">Order ID</th>
-                <th className="px-6 py-4">Destination Address</th>
-                <th className="px-6 py-4">Assigned Rider</th>
-                <th className="px-6 py-4">Est. Time</th>
+              <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                <th className="px-6 py-4">Order</th>
+                <th className="px-6 py-4">Patient</th>
+                <th className="px-6 py-4">Medicines</th>
+                <th className="px-6 py-4">Stock Confirmed</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {MOCK_DELIVERIES.map((delivery) => (
-                <tr key={delivery.id} className="hover:bg-slate-50/80 transition">
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500 text-xs">{delivery.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500 text-xs">{delivery.orderId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-800">{delivery.address}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-800">{delivery.rider}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500 text-xs">{delivery.timeEstimate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                        delivery.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
-                        delivery.status === 'In Transit' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-orange-50 text-orange-600 border-orange-100'
-                      }`}>
-                        {delivery.status}
-                      </span>
+            <tbody className="divide-y divide-slate-100">
+              {filtered.map((order) => (
+                <tr key={order.id} className="hover:bg-slate-50/60 transition text-sm">
+                  <td className="px-6 py-4 text-slate-500 text-xs font-semibold">#{order.id}</td>
+                  <td className="px-6 py-4 font-semibold text-slate-800">{order.patientName}</td>
+                  <td className="px-6 py-4 text-slate-500 text-xs">
+                    {order.medicines?.map((m) => m.medicineName).join(', ') ?? '—'}
                   </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition">
-                      <MoreVertical size={18} />
-                    </button>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${order.stockConfirmed ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-100 text-slate-500'}`}>
+                      {order.stockConfirmed ? 'Yes' : 'No'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                      order.status === 'DISPENSED' || order.status === 'COMPLETED'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        : 'bg-amber-50 text-amber-700 border-amber-100'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-slate-400 text-xs">
+                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        )}
+
+        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
+          {filtered.length} order{filtered.length !== 1 ? 's' : ''}
         </div>
       </div>
-    </>
+    </div>
   );
 }

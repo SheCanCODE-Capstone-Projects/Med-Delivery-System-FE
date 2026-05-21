@@ -2,77 +2,26 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
-import { login } from "@/services/authApi";
+import { login, roleToRoute } from "@/services/authApi";
+import { BASE_URL } from "@/services/apiClient";
 
 const trustPoints = [
   "Insurance verification built in",
   "Location-based pharmacy matching",
-  "Prescription-safe delivery workflow"
+  "Prescription-safe delivery workflow",
 ];
-
-const socialProviders = [
-  {
-    name: "Google",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-        <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
-        <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.24-2.5c-.9.6-2.06.96-3.37.96-2.59 0-4.79-1.75-5.57-4.1H3.08v2.58A9.99 9.99 0 0 0 12 22Z" />
-        <path fill="#FBBC05" d="M6.43 13.93A5.98 5.98 0 0 1 6.12 12c0-.67.11-1.31.31-1.93V7.49H3.08A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.08 4.51l3.35-2.58Z" />
-        <path fill="#EA4335" d="M12 5.97c1.47 0 2.8.5 3.84 1.49l2.88-2.88C16.95 2.94 14.69 2 12 2a9.99 9.99 0 0 0-8.92 5.49l3.35 2.58c.78-2.35 2.98-4.1 5.57-4.1Z" />
-      </svg>
-    )
-  },
-  {
-    name: "Microsoft",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-        <path fill="#F25022" d="M3 3h8.5v8.5H3z" />
-        <path fill="#7FBA00" d="M12.5 3H21v8.5h-8.5z" />
-        <path fill="#00A4EF" d="M3 12.5h8.5V21H3z" />
-        <path fill="#FFB900" d="M12.5 12.5H21V21h-8.5z" />
-      </svg>
-    )
-  },
-  {
-    name: "Yahoo",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-        <path fill="#6001D2" d="M16.8 3h3.42l-4.12 9.17L17.95 21h-3.3l-1.24-6.14L9.87 21H6.52l5.03-8.95L8.1 3h3.37l2.04 5.64L16.8 3Zm.27 18h2.75l.57-3.22h-2.75L17.07 21Z" />
-      </svg>
-    )
-  }
-];
-
-const roleRoutes: Record<string, string> = {
-  patient: "/patient-dashboard",
-  pharmacist: "/pharmacist",
-  pharmacy: "/Pharmacy-admin",
-  "super-admin": "/super-admin"
-};
 
 const phonePattern = /^\+?\d[\d\s-]{8,14}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const copyrightYear = new Date().getFullYear();
 
-/**
- * Normalizes user identifier input by stripping leading and trailing whitespace.
- * 
- * @param value - The raw identifier string (email or phone).
- * @returns The trimmed string.
- */
 function normalizeIdentifier(value: string) {
   return value.trim();
 }
 
-/**
- * LoginPage serves as the primary authentication portal for all user roles.
- * It handles credentials validation, mock and real API authentication flows,
- * and dynamic routing based on the authenticated user's role.
- * 
- * @returns The login page component.
- */
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -84,66 +33,31 @@ export default function LoginPage() {
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
-  /**
-   * Validates user credentials before submission.
-   * Checks that the username is a valid email or phone number,
-   * and that the password meets minimum length requirements.
-   * 
-   * @returns true if credentials are valid, false otherwise
-   */
   const validateCredentials = () => {
     const isEmail = emailPattern.test(normalizedUsername);
     const isPhone = phonePattern.test(normalizedUsername);
-
     if (!isEmail && !isPhone) {
       setError("Enter a valid phone number or email address.");
       return false;
     }
-
-    if (password.trim().length < 8) {
-      setError("Password must be at least 8 characters.");
+    if (password.trim().length < 6) {
+      setError("Password must be at least 6 characters.");
       return false;
     }
-
     return true;
   };
 
-  /**
-   * Handles form submission for user authentication.
-   * Prevents duplicate submissions, validates credentials, calls the login API,
-   * stores the auth token, and redirects the user based on their role.
-   * 
-   * @param event - The form submit event
-   */
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const handleSubmit = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
     if (isSigningInRef.current) return;
-
     setError("");
-
     if (!validateCredentials()) return;
 
     isSigningInRef.current = true;
     setIsSigningIn(true);
-
     try {
-      const response = await login({
-        username: normalizedUsername,
-        password
-      });
-
-      if (!response?.token) {
-        setError("Sign in failed. Please try again.");
-        return;
-      }
-      // NOTE: localStorage is a temporary placeholder.
-      // HttpOnly cookie-based auth will be implemented once the backend API is available.
-      localStorage.setItem("auth_token", response.token);
-
-      const userRole = response.user?.role?.toLowerCase().replace(/_/g, "-") ?? "patient";
-      const nextRoute = roleRoutes[userRole] ?? roleRoutes.patient;
-      router.push(nextRoute);
+      const response = await login({ username: normalizedUsername, password });
+      router.push(roleToRoute(response.role));
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Sign in failed.");
     } finally {
@@ -152,25 +66,21 @@ export default function LoginPage() {
     }
   };
 
-  /**
-   * Handles social sign-in button clicks (placeholder until OAuth is connected).
-   * 
-   * @param providerName - The name of the OAuth provider (Google, Microsoft, Yahoo)
-   */
-  const handleSocialSignIn = (providerName: string) => {
-    setError(`${providerName} sign-in is not connected yet.`);
+  const handleGoogleSignIn = () => {
+    // Spring Security OAuth2 authorization endpoint
+    window.location.href = `${BASE_URL}/oauth2/authorization/google`;
   };
 
   return (
-    <main className="fixed inset-0 overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+    <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
       <div className="grid h-full min-h-0 lg:grid-cols-[minmax(420px,0.8fr)_minmax(560px,1fr)]">
+        {/* Left panel */}
         <section className="relative hidden min-h-0 overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
           <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
           <div className="relative z-10">
             <MedDeliveryLogo href="/" theme="dark" size="sm" />
-
             <div className="relative z-10 mt-6 max-w-xl lg:mt-8">
               <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-[11px] text-white/75 sm:text-xs">
                 Care network for patients, pharmacies and pharmacists
@@ -184,7 +94,6 @@ export default function LoginPage() {
                 Secure medicine delivery with prescription validation and nearby pharmacy support.
               </p>
             </div>
-
             <ul className="relative z-10 mt-5 grid gap-2">
               {trustPoints.map((item) => (
                 <li key={item} className="flex items-center gap-3 text-xs text-white/85 sm:text-sm">
@@ -193,7 +102,6 @@ export default function LoginPage() {
                 </li>
               ))}
             </ul>
-
           </div>
 
           <p className="relative z-10 mt-4 text-xs text-white/40 sm:text-sm lg:mt-5">
@@ -201,131 +109,127 @@ export default function LoginPage() {
           </p>
         </section>
 
+        {/* Right panel */}
         <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
-          <div className="my-auto w-full max-w-[42rem] rounded-4xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
+          <div className="my-auto w-full max-w-[42rem] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
             <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
 
-            <div className="grid grid-cols-3 gap-2" aria-hidden="true">
-              <span className="h-1 rounded-full bg-linear-to-r from-teal-400 to-teal-600" />
-              <span className="h-1 rounded-full bg-slate-200" />
-              <span className="h-1 rounded-full bg-slate-200" />
-            </div>
-
-            <div className="mt-5">
-              <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">
-                User sign in
-              </p>
-              <h2 className="mt-2 text-[2.05rem] leading-none font-semibold tracking-tighter text-slate-900 sm:text-[2.25rem]">
-                Welcome back to MedDelivery
+            <div>
+              <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">Sign in</p>
+              <h2 className="mt-2 text-[2rem] leading-none font-semibold tracking-tighter text-slate-900">
+                Welcome back
               </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500 sm:text-base">
-                Sign in with your phone number and password.
+              <p className="mt-1.5 text-sm text-slate-500">
+                Sign in with your email/phone and password, or use Google.
               </p>
             </div>
 
-            {error ? (
-              <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error && (
+              <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {error}
               </p>
-            ) : null}
+            )}
 
-            <form className="mt-[clamp(0.85rem,2.4vh,1.25rem)] grid gap-[clamp(0.7rem,1.8vh,0.9rem)]" onSubmit={handleSubmit} autoComplete="on">
-              <label className="grid gap-2">
+            <form className="mt-5 grid gap-4" onSubmit={handleSubmit} autoComplete="on">
+              <label className="grid gap-1.5">
                 <span className="text-sm font-bold text-slate-600">Username</span>
                 <input
                   type="text"
                   name="username"
                   value={username}
-                  onChange={(event) => {
-                    setUsername(event.target.value);
-                    if (error) setError("");
-                  }}
+                  onChange={(e) => { setUsername(e.target.value); if (error) setError(""); }}
                   autoComplete="username"
                   spellCheck={false}
                   disabled={isSigningIn}
-                  placeholder="Enter phone number or email"
-                  className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                  placeholder="Phone number or email"
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
                 />
               </label>
 
-              <label className="grid gap-2">
+              <label className="grid gap-1.5">
                 <span className="text-sm font-bold text-slate-600">Password</span>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
+                <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value);
-                      if (error) setError("");
-                    }}
+                    onChange={(e) => { setPassword(e.target.value); if (error) setError(""); }}
                     autoComplete="current-password"
                     spellCheck={false}
                     disabled={isSigningIn}
                     placeholder="••••••••"
-                    className="min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    disabled={isSigningIn}
-                    className="grid min-h-[clamp(2.85rem,6.8vh,3.65rem)] w-16 place-items-center rounded-2xl border border-slate-200 text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
                   >
-                    {showPassword ? (
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                        <path d="M3 3l18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M10.58 10.58A2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M9.88 5.09A9.77 9.77 0 0 1 12 4c5 0 9 8 9 8a15.1 15.1 0 0 1-2.16 2.94M6.71 6.7C4.03 8.18 3 12 3 12s4 8 9 8a9.8 9.8 0 0 0 5.29-1.53" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                        <path d="M2 12s3.64-7 10-7 10 7 10 7-3.64 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
-                      </svg>
-                    )}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </label>
 
+              <div className="flex items-center justify-between">
+                <span />
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs font-semibold text-teal-700 hover:text-teal-900"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
               <button
                 type="submit"
                 disabled={isSigningIn}
-                className="min-h-[clamp(2.95rem,7vh,3.65rem)] rounded-2xl bg-linear-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                className="h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSigningIn ? "Signing in..." : "Sign in"}
+                {isSigningIn ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin" size={16} /> Signing in…
+                  </span>
+                ) : (
+                  "Sign in"
+                )}
               </button>
             </form>
 
-            <div className="mt-[clamp(0.9rem,2.6vh,1.5rem)] grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <span className="h-px bg-slate-200" aria-hidden="true" />
-              <p className="text-center text-sm font-semibold text-slate-500">Continue with</p>
-              <span className="h-px bg-slate-200" aria-hidden="true" />
+            <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <span className="h-px bg-slate-200" />
+              <p className="text-center text-sm font-semibold text-slate-500">or</p>
+              <span className="h-px bg-slate-200" />
             </div>
 
-            <div className="mt-[clamp(0.65rem,1.6vh,1rem)] grid grid-cols-3 gap-3">
-              {socialProviders.map((provider) => (
-                <button
-                  type="button"
-                  key={provider.name}
-                  onClick={() => handleSocialSignIn(provider.name)}
-                  disabled={isSigningIn}
-                  aria-label={`Sign in with ${provider.name}`}
-                  title={`Sign in with ${provider.name}`}
-                  className="flex min-h-[clamp(2.4rem,5.6vh,3rem)] select-none items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:text-slate-900 hover:shadow-md focus:outline-hidden focus:ring-4 focus:ring-teal-500/15 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {provider.icon}
-                  <span>{provider.name}</span>
-                </button>
-              ))}
-            </div>
+            {/* Google Only */}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isSigningIn}
+              className="mt-4 flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md disabled:opacity-60"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
+                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.24-2.5c-.9.6-2.06.96-3.37.96-2.59 0-4.79-1.75-5.57-4.1H3.08v2.58A9.99 9.99 0 0 0 12 22Z" />
+                <path fill="#FBBC05" d="M6.43 13.93A5.98 5.98 0 0 1 6.12 12c0-.67.11-1.31.31-1.93V7.49H3.08A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.08 4.51l3.35-2.58Z" />
+                <path fill="#EA4335" d="M12 5.97c1.47 0 2.8.5 3.84 1.49l2.88-2.88C16.95 2.94 14.69 2 12 2a9.99 9.99 0 0 0-8.92 5.49l3.35 2.58c.78-2.35 2.98-4.1 5.57-4.1Z" />
+              </svg>
+              Continue with Google
+            </button>
 
-            <p className="mt-[clamp(0.75rem,2vh,1rem)] text-center text-sm text-slate-500">
-              If you don&apos;t have an account,{" "}
-              <Link href="/signup" className="font-bold text-teal-700 transition hover:text-teal-900">
-                sign up
+            <p className="mt-5 text-center text-sm text-slate-500">
+              New patient?{" "}
+              <Link href="/auth/signup" className="font-bold text-teal-700 hover:text-teal-900">
+                Create account
               </Link>
-              .
+            </p>
+
+            <p className="mt-2 text-center text-sm text-slate-500">
+              Own a pharmacy?{" "}
+              <Link href="/auth/pharmacy-signup" className="font-bold text-teal-700 hover:text-teal-900">
+                Register your pharmacy
+              </Link>
             </p>
           </div>
         </section>
