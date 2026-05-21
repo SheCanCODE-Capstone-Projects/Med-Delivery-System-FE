@@ -1,137 +1,437 @@
-import { AlertCircle, CheckCircle2, Clock3, CreditCard, MessageSquare, PackageCheck, Pill, Truck } from "lucide-react";
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import {
+  CheckCircle2,
+  Circle,
+  ClipboardList,
+  CreditCard,
+  Loader2,
+  Pill,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Truck,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
+import {
+  getMyOrders,
+  getPendingSubstitutions,
+  approveSubstitution,
+  rejectSubstitution,
+  confirmPayment,
+  getPaymentDetails,
+} from "@/services/patientApi";
+import type { OrderResponse, SubstitutionResponse, PaymentResponse } from "@/types/api";
 
-const timeline = [
-  { label: "Uploaded", detail: "Prescription and order request received.", complete: true },
-  { label: "Matching", detail: "Checking nearby pharmacies for availability.", complete: true },
-  { label: "Assigned", detail: "Central Pharmacy accepted the order.", complete: true },
-  { label: "In progress", detail: "Pharmacist is validating stock and prescription.", complete: false },
-  { label: "Ready", detail: "Pickup or delivery handoff will appear here.", complete: false }
-];
+const STATUS_TONE: Record<string, string> = {
+  PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+  CONFIRMED: "bg-sky-50 text-sky-700 border-sky-200",
+  PROCESSING: "bg-violet-50 text-violet-700 border-violet-200",
+  DISPENSED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  COMPLETED: "bg-teal-50 text-teal-700 border-teal-200",
+  CANCELLED: "bg-rose-50 text-rose-700 border-rose-200",
+};
 
-/**
- * TrackingPage provides a detailed view of a patient's active order status.
- * It displays a visual timeline of the order's progress, fulfillment details,
- * payment split, and a substitution approval/rejection interface.
- * 
- * @returns The order tracking page component.
- */
+const ORDER_STEPS = ["PENDING", "CONFIRMED", "PROCESSING", "DISPENSED", "COMPLETED"];
+
+function OrderTimeline({ status }: { status: string }) {
+  const currentIdx = ORDER_STEPS.indexOf(status);
+  const isCancelled = status === "CANCELLED";
+
+  return (
+    <div className="mt-4 flex items-start gap-1 overflow-x-auto pb-1">
+      {ORDER_STEPS.map((step, idx) => {
+        const done = !isCancelled && currentIdx >= idx;
+        const active = !isCancelled && currentIdx === idx;
+        return (
+          <div key={step} className="flex items-center gap-1 shrink-0">
+            <div className="flex flex-col items-center gap-1">
+              <div
+                className={`h-7 w-7 rounded-full flex items-center justify-center border-2 transition-colors ${
+                  done
+                    ? "bg-teal-600 border-teal-600 text-white"
+                    : "bg-white border-slate-200 text-slate-400"
+                } ${active ? "ring-2 ring-teal-300 ring-offset-1" : ""}`}
+              >
+                {done ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+              </div>
+              <span className={`text-[10px] font-semibold capitalize whitespace-nowrap ${done ? "text-teal-700" : "text-slate-400"}`}>
+                {step.charAt(0) + step.slice(1).toLowerCase()}
+              </span>
+            </div>
+            {idx < ORDER_STEPS.length - 1 && (
+              <div className={`h-0.5 w-8 mb-4 rounded-full ${done && currentIdx > idx ? "bg-teal-600" : "bg-slate-200"}`} />
+            )}
+          </div>
+        );
+      })}
+      {isCancelled && (
+        <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 self-start mt-1">
+          Cancelled
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function TrackingPage() {
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [substitutions, setSubstitutions] = useState<SubstitutionResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [subLoading, setSubLoading] = useState<Record<number, boolean>>({});
+  const [subError, setSubError] = useState<Record<number, string>>({});
+  const [payLoading, setPayLoading] = useState<Record<number, boolean>>({});
+  const [payError, setPayError] = useState<Record<number, string>>({});
+  const [paymentDetails, setPaymentDetails] = useState<Record<number, PaymentResponse>>({});
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [ordPage, subs] = await Promise.all([
+        getMyOrders(0, 50).catch(() => ({ content: [] as OrderResponse[], totalElements: 0, totalPages: 0, number: 0, size: 50 })),
+        getPendingSubstitutions().catch((): SubstitutionResponse[] => []),
+      ]);
+      setOrders(ordPage.content);
+      setSubstitutions(subs);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleApprove = async (subId: number) => {
+    setSubLoading((p) => ({ ...p, [subId]: true }));
+    setSubError((p) => ({ ...p, [subId]: "" }));
+    try {
+      await approveSubstitution(subId);
+      setSubstitutions((prev) => prev.filter((s) => s.id !== subId));
+    } catch (err) {
+      setSubError((p) => ({ ...p, [subId]: err instanceof Error ? err.message : "Failed" }));
+    } finally {
+      setSubLoading((p) => ({ ...p, [subId]: false }));
+    }
+  };
+
+  const handleReject = async (subId: number) => {
+    setSubLoading((p) => ({ ...p, [subId]: true }));
+    setSubError((p) => ({ ...p, [subId]: "" }));
+    try {
+      await rejectSubstitution(subId, "Patient declined substitution");
+      setSubstitutions((prev) => prev.filter((s) => s.id !== subId));
+    } catch (err) {
+      setSubError((p) => ({ ...p, [subId]: err instanceof Error ? err.message : "Failed" }));
+    } finally {
+      setSubLoading((p) => ({ ...p, [subId]: false }));
+    }
+  };
+
+  const handlePay = async (orderId: number) => {
+    setPayLoading((p) => ({ ...p, [orderId]: true }));
+    setPayError((p) => ({ ...p, [orderId]: "" }));
+    try {
+      const updated = await confirmPayment(orderId);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
+    } catch (err) {
+      setPayError((p) => ({ ...p, [orderId]: err instanceof Error ? err.message : "Payment failed" }));
+    } finally {
+      setPayLoading((p) => ({ ...p, [orderId]: false }));
+    }
+  };
+
+  const handleLoadPaymentDetails = async (orderId: number) => {
+    if (paymentDetails[orderId]) return;
+    try {
+      const details = await getPaymentDetails(orderId);
+      setPaymentDetails((p) => ({ ...p, [orderId]: details }));
+    } catch {
+      // payment details not available yet
+    }
+  };
+
+  const filtered = useMemo(() => {
+    let list = orders;
+    if (statusFilter !== "ALL") list = list.filter((o) => o.status === statusFilter);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (o) =>
+          String(o.id).includes(q) ||
+          o.medicines?.some((m) => m.medicineName.toLowerCase().includes(q)) ||
+          o.pharmacyName?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [orders, statusFilter, search]);
+
+  const statuses = ["ALL", "PENDING", "CONFIRMED", "PROCESSING", "DISPENSED", "COMPLETED", "CANCELLED"];
+
   return (
     <PatientAppShell>
-      <section className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">Order tracking</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Track your order</h1>
-          <p className="mt-2 text-base text-slate-500">Follow pharmacy assignment, payment split, and substitution decisions.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Order Tracking</h1>
+          <p className="mt-2 text-base text-slate-500">Monitor all your orders and manage substitutions.</p>
         </div>
-        <span className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-teal-50 px-4 text-sm font-bold text-teal-700">
-          <Clock3 className="h-4 w-4" aria-hidden="true" />
-          In progress
-        </span>
+        <button
+          onClick={load}
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+        >
+          <RefreshCw size={15} /> Refresh
+        </button>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] sm:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">Current order</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">#MD-2048</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">Prescription request assigned to Central Pharmacy.</p>
-            </div>
-            <span className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-teal-50 px-4 text-sm font-bold text-teal-700">
-              <Clock3 className="h-4 w-4" aria-hidden="true" />
-              In progress
-            </span>
+      {substitutions.length > 0 && (
+        <section className="mt-6 rounded-3xl border border-violet-200 bg-violet-50 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldCheck className="h-5 w-5 text-violet-600" />
+            <h2 className="text-lg font-bold text-violet-900">
+              Pending Substitutions ({substitutions.length})
+            </h2>
           </div>
-
-          <div className="mt-7 grid gap-4">
-            {timeline.map((step, index) => (
-              <div key={step.label} className="grid grid-cols-[auto_1fr] gap-4">
-                <div className="grid justify-items-center gap-2">
-                  <span className={`grid h-10 w-10 place-items-center rounded-2xl ${step.complete ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-400"}`}>
-                    {step.complete ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <Clock3 className="h-5 w-5" aria-hidden="true" />}
-                  </span>
-                  {index < timeline.length - 1 ? <span className="h-10 w-px bg-slate-200" aria-hidden="true" /> : null}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {substitutions.map((sub) => (
+              <div key={sub.id} className="rounded-2xl bg-white border border-violet-100 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Order #{sub.orderId}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      <span className="line-through text-rose-500">{sub.originalMedicine}</span>
+                      {" → "}
+                      <span className="text-emerald-700 font-semibold">{sub.substituteMedicine}</span>
+                    </p>
+                    {sub.reason && (
+                      <p className="text-xs text-slate-400 mt-1 italic">&ldquo;{sub.reason}&rdquo;</p>
+                    )}
+                  </div>
+                  <Pill className="h-5 w-5 text-violet-400 shrink-0" />
                 </div>
-                <article className="rounded-3xl border border-slate-100 bg-slate-50/80 p-4">
-                  <h2 className="font-bold text-slate-900">{step.label}</h2>
-                  <p className="mt-1 text-sm leading-5 text-slate-500">{step.detail}</p>
-                </article>
+                {subError[sub.id] && (
+                  <p className="text-xs text-rose-600 mb-2">{subError[sub.id]}</p>
+                )}
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => handleApprove(sub.id)}
+                    disabled={subLoading[sub.id]}
+                    className="flex-1 rounded-xl bg-teal-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50 transition"
+                  >
+                    {subLoading[sub.id] ? <Loader2 className="inline animate-spin" size={12} /> : "Approve"}
+                  </button>
+                  <button
+                    onClick={() => handleReject(sub.id)}
+                    disabled={subLoading[sub.id]}
+                    className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-50 transition"
+                  >
+                    {subLoading[sub.id] ? <Loader2 className="inline animate-spin" size={12} /> : "Reject"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </section>
+      )}
 
-        <aside className="grid gap-5">
-          <section className="rounded-[2rem] border border-teal-100 bg-teal-50 p-6 text-teal-950 shadow-[0_24px_60px_rgba(15,118,110,0.12)]">
-            <div className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-100 text-teal-700">
-                <Truck className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-sm text-teal-700">Fulfillment</p>
-                <h2 className="text-xl font-bold">Delivery</h2>
-              </div>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-teal-800">123 Main St, City, State 12345</p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-3xl border border-teal-100 bg-white/70 p-4 shadow-sm">
-                <p className="text-xs font-bold text-teal-700">Patient pays</p>
-                <p className="mt-1 text-2xl font-bold text-teal-700">$10.00</p>
-              </div>
-              <div className="rounded-3xl border border-teal-100 bg-white/70 p-4 shadow-sm">
-                <p className="text-xs font-bold text-teal-700">Insurance pays</p>
-                <p className="mt-1 text-2xl font-bold text-teal-700">$40.00</p>
-              </div>
-            </div>
-          </section>
+      <section className="mt-6">
+        <div className="mb-4 flex flex-wrap gap-2">
+          {statuses.map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition border ${
+                statusFilter === s
+                  ? "bg-teal-600 text-white border-teal-600"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-teal-200"
+              }`}
+            >
+              {s === "ALL" ? `All (${orders.length})` : s}
+            </button>
+          ))}
+        </div>
 
-          <section className="rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-[0_20px_50px_rgba(11,19,39,0.1)]">
-            <h2 className="text-xl font-bold text-slate-900">Order summary</h2>
-            <div className="mt-4 grid gap-3">
-              {[
-                { icon: Pill, label: "Paracetamol 500mg", value: "2 units" },
-                { icon: PackageCheck, label: "Item status", value: "Available" },
-                { icon: CreditCard, label: "Payment", value: "Insurance pending" }
-              ].map((item) => (
-                <div key={item.label} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                  <item.icon className="h-5 w-5 text-teal-700" aria-hidden="true" />
-                  <span className="text-sm font-bold text-slate-700">{item.label}</span>
-                  <span className="text-sm text-slate-500">{item.value}</span>
+        <div className="mb-5 relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+          <input
+            type="text"
+            placeholder="Search by ID, medicine, or pharmacy…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-2xl border border-slate-200 bg-white pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          />
+        </div>
+
+        <div className="space-y-3">
+          {loading ? (
+            <div className="flex items-center justify-center gap-3 py-16 text-slate-400">
+              <Loader2 className="animate-spin" size={22} />
+              <span>Loading orders…</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-16 text-center text-slate-400">
+              <ClipboardList size={36} className="mx-auto mb-3 opacity-40" />
+              <p className="font-medium">No orders found.</p>
+            </div>
+          ) : (
+            filtered.map((order) => (
+              <article
+                key={order.id}
+                className="rounded-3xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] overflow-hidden"
+              >
+                <div
+                  className="flex cursor-pointer items-start gap-4 px-5 py-4 hover:bg-slate-50/60 transition"
+                  onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="font-bold text-slate-800">
+                        {order.medicines && order.medicines.length > 0
+                          ? order.medicines.map((m) => m.medicineName).join(", ")
+                          : "Order"}
+                      </span>
+                      <span className={`rounded-full border px-2.5 py-0.5 text-xs font-bold ${STATUS_TONE[order.status] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500">
+                      {order.pharmacyName ?? "Awaiting pharmacy assignment"}
+                      {" · "}
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Truck size={11} />
+                        {order.fulfilmentType}
+                      </span>
+                      {order.totalAmount != null && (
+                        <span>RWF {order.totalAmount.toLocaleString()}</span>
+                      )}
+                      <span className="font-semibold tracking-wide">#{order.id}</span>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-slate-400 mt-1">
+                    {expandedId === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </section>
 
-          <section className="rounded-[2rem] border border-amber-100 bg-amber-50 p-5">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600" aria-hidden="true" />
-              <div>
-                <h2 className="font-bold text-amber-900">Substitution approval</h2>
-                <p className="mt-1 text-sm leading-5 text-amber-800">If the pharmacy suggests an alternative, approve or reject it before the order continues.</p>
-              </div>
-            </div>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <button className="min-h-11 rounded-2xl bg-teal-600 px-4 text-sm font-bold text-white">Approve</button>
-              <button className="min-h-11 rounded-2xl border border-amber-200 bg-white px-4 text-sm font-bold text-amber-800">Reject</button>
-            </div>
-          </section>
+                {expandedId === order.id && (
+                  <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-4">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Progress</p>
+                    <OrderTimeline status={order.status} />
 
-          <section className="rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-[0_20px_50px_rgba(11,19,39,0.1)]">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-teal-700" aria-hidden="true" />
-              <h2 className="font-bold text-slate-900">Care chat</h2>
-            </div>
-            <p className="mt-2 text-sm leading-5 text-slate-500">Ask about order progress, medication usage, or platform steps.</p>
-            <div className="mt-4 flex gap-2">
-              <label htmlFor="care-chat-input" className="sr-only">Ask a question</label>
-              <input id="care-chat-input" placeholder="Ask a question" className="min-h-11 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
-              <button className="min-h-11 rounded-2xl bg-teal-600 px-4 text-sm font-bold text-white">Send</button>
-            </div>
-          </section>
-        </aside>
-      </div>
+                    {order.medicines && order.medicines.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Medicines</p>
+                        <div className="space-y-1">
+                          {order.medicines.map((m, i) => (
+                            <div key={i} className="flex items-center justify-between rounded-xl bg-white border border-slate-100 px-3 py-2 text-sm">
+                              <span className="font-semibold text-slate-800">{m.medicineName}</span>
+                              <div className="flex items-center gap-3 text-slate-500">
+                                <span>x{m.quantity}</span>
+                                {m.price != null && <span className="font-semibold text-slate-700">RWF {m.price.toLocaleString()}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {order.notes && (
+                      <div className="mt-3 rounded-xl bg-white border border-slate-100 px-3 py-2">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Notes</p>
+                        <p className="text-sm text-slate-600">{order.notes}</p>
+                      </div>
+                    )}
+
+                    {order.prescriptionUrl && (
+                      <a
+                        href={order.prescriptionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-teal-50 border border-teal-100 px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-100 transition"
+                      >
+                        View Prescription
+                      </a>
+                    )}
+
+                    {order.status === "DISPENSED" && order.totalAmount != null && (
+                      <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                        <div className="flex items-center justify-between gap-4 flex-wrap">
+                          <div>
+                            <p className="text-sm font-bold text-emerald-900">Payment Due</p>
+                            <p className="text-xl font-bold text-emerald-700 mt-0.5">
+                              RWF {order.totalAmount.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-emerald-600 mt-0.5">Your medicines are ready — confirm payment to complete your order.</p>
+                          </div>
+                          <button
+                            onClick={() => handlePay(order.id)}
+                            disabled={payLoading[order.id]}
+                            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60 transition shadow-sm"
+                          >
+                            {payLoading[order.id]
+                              ? <Loader2 className="animate-spin" size={16} />
+                              : <CreditCard size={16} />}
+                            {payLoading[order.id] ? "Processing…" : "Pay Now"}
+                          </button>
+                        </div>
+                        {payError[order.id] && (
+                          <p className="mt-2 text-xs text-rose-600 font-semibold">{payError[order.id]}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {(order.status === "COMPLETED" || order.status === "DISPENSED") && (
+                      <button
+                        onClick={() => handleLoadPaymentDetails(order.id)}
+                        className="mt-3 text-xs font-semibold text-slate-500 hover:text-teal-600 transition underline underline-offset-2"
+                      >
+                        View payment details
+                      </button>
+                    )}
+
+                    {paymentDetails[order.id] && (
+                      <div className="mt-2 rounded-xl bg-white border border-slate-100 px-4 py-3 text-sm space-y-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Details</p>
+                        <div className="flex justify-between text-slate-600">
+                          <span>Amount</span>
+                          <span className="font-semibold text-slate-800">RWF {paymentDetails[order.id].amount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                          <span>Status</span>
+                          <span className={`font-bold ${paymentDetails[order.id].status === "PAID" ? "text-emerald-600" : "text-amber-600"}`}>
+                            {paymentDetails[order.id].status}
+                          </span>
+                        </div>
+                        {paymentDetails[order.id].insuranceProvider && (
+                          <div className="flex justify-between text-slate-600">
+                            <span>Insurance</span>
+                            <span className="font-semibold text-slate-800">{paymentDetails[order.id].insuranceProvider}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-slate-600">
+                          <span>Date</span>
+                          <span className="font-semibold text-slate-800">
+                            {new Date(paymentDetails[order.id].createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </article>
+            ))
+          )}
+        </div>
+
+        <p className="mt-4 text-xs text-slate-400 text-center">
+          {filtered.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}
+        </p>
+      </section>
     </PatientAppShell>
   );
 }

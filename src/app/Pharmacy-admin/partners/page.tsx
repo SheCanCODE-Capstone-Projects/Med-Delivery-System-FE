@@ -1,214 +1,223 @@
 "use client";
 import React, { useState } from 'react';
-import { 
-  Search, 
-  MapPin, 
-  Edit2, 
-  ExternalLink,
-  Handshake,
-  Building2,
-  CheckCircle2,
-  Clock,
-  Plus
-} from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { Handshake, Search, Loader2, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { getInsuranceCard, verifyInsurance, markInsurancePending } from '@/services/pharmacyApi';
+import { getPharmacyId } from '@/services/authApi';
+import type { InsuranceCardResponse } from '@/types/api';
 
-// --- Mock Data ---
+const STATUS_COLOR: Record<string, string> = {
+  VERIFIED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  PENDING: 'bg-amber-50 text-amber-700 border-amber-100',
+  REJECTED: 'bg-rose-50 text-rose-700 border-rose-100',
+  UNVERIFIED: 'bg-slate-100 text-slate-600 border-slate-200',
+};
 
-const PARTNERS = [
-  {
-    id: 1,
-    name: "Kigali Central Pharmacy",
-    code: "KCP-001",
-    location: "Kigali, Rwanda",
-    status: "Active",
-    joinedDate: "Feb 2024",
-    email: "contact@kigalipharmacy.rw",
-    logo: "https://api.dicebear.com/7.x/initials/svg?seed=KC"
-  },
-  {
-    id: 2,
-    name: "Healing Hands Rx",
-    code: "HHR-042",
-    location: "Gisenyi, Rwanda",
-    status: "Pending",
-    joinedDate: "May 2024",
-    email: "office@healinghands.com",
-    logo: "https://api.dicebear.com/7.x/initials/svg?seed=HH"
-  },
-  {
-    id: 3,
-    name: "Metro Wellness Center",
-    code: "MWC-009",
-    location: "Butare, Rwanda",
-    status: "Active",
-    joinedDate: "Jan 2024",
-    email: "info@metrowellness.rw",
-    logo: "https://api.dicebear.com/7.x/initials/svg?seed=MW"
-  },
-  {
-    id: 4,
-    name: "Sunlight Pharmaceuticals",
-    code: "SP-112",
-    location: "Kigali, Rwanda",
-    status: "Active",
-    joinedDate: "Mar 2024",
-    email: "support@sunlight.rw",
-    logo: "https://api.dicebear.com/7.x/initials/svg?seed=SP"
-  }
-];
+export default function InsurancePage() {
+  const [cardId, setCardId] = useState('');
+  const [card, setCard] = useState<InsuranceCardResponse | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState('');
+  const [notes, setNotes] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionMsg, setActionMsg] = useState('');
 
-// --- Sub-components ---
+  const pharmacyId = getPharmacyId();
 
-const SummaryCard = ({ icon: Icon, label, value, colorClass }: any) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5 flex-1 min-w-[200px]">
-    <div className={cn("p-4 rounded-xl", colorClass)}>
-      <Icon size={24} />
-    </div>
-    <div>
-      <p className="text-3xl font-extrabold text-slate-800 tracking-tight">{value}</p>
-      <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-    </div>
-  </div>
-);
+  const handleLookup = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    const id = Number(cardId.trim());
+    if (!id) return;
+    setLookupLoading(true);
+    setLookupError('');
+    setCard(null);
+    setActionMsg('');
+    try {
+      const data = await getInsuranceCard(id);
+      setCard(data);
+    } catch (err) {
+      setLookupError(err instanceof Error ? err.message : 'Card not found');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
 
-const PartnerRow = ({ partner }: any) => (
-  <tr className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors group">
-    <td className="py-5 pl-4">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 p-1 flex items-center justify-center">
-          <img src={partner.logo} alt={partner.name} className="w-full h-full object-contain" />
-        </div>
-        <div>
-          <p className="font-bold text-slate-800">{partner.name}</p>
-          <p className="text-xs text-slate-400 font-medium">{partner.email}</p>
-        </div>
-      </div>
-    </td>
-    <td className="py-5">
-      <div className="flex items-center gap-2 text-slate-700">
-        <Building2 size={14} className="text-[#0ABFBC]" />
-        <p className="font-bold text-sm tracking-tight">{partner.code}</p>
-      </div>
-    </td>
-    <td className="py-5">
-      <div className="flex items-center gap-2 text-slate-600">
-        <MapPin size={14} className="text-slate-400" />
-        <p className="text-sm font-medium">{partner.location}</p>
-      </div>
-    </td>
-    <td className="py-5 text-center">
-      <span className={cn(
-        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-        partner.status === "Active" 
-          ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-          : "bg-amber-50 text-amber-600 border border-amber-100"
-      )}>
-        {partner.status}
-      </span>
-    </td>
-    <td className="py-5 pr-4 text-right">
-      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="p-2 h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-all">
-          <Edit2 size={16} />
-        </button>
-        <button className="p-2 h-9 w-9 flex items-center justify-center rounded-lg text-[#0ABFBC] hover:bg-[rgba(10,191,188,0.05)] transition-all">
-          <ExternalLink size={16} />
-        </button>
-      </div>
-    </td>
-  </tr>
-);
+  const handleVerify = async (approved: boolean) => {
+    if (!card || !pharmacyId) return;
+    setActionLoading(true);
+    setActionMsg('');
+    try {
+      await verifyInsurance(card.id, pharmacyId, approved, notes || undefined);
+      setActionMsg(approved ? 'Insurance card approved successfully.' : 'Insurance card rejected.');
+      setCard((prev) => prev ? { ...prev, status: approved ? 'VERIFIED' : 'REJECTED', verified: approved } : null);
+      setNotes('');
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
-export default function PharmacyPartnersPage() {
-  const [search, setSearch] = useState("");
+  const handleMarkPending = async () => {
+    if (!card) return;
+    setActionLoading(true);
+    setActionMsg('');
+    try {
+      await markInsurancePending(card.id);
+      setActionMsg('Card moved back to pending review.');
+      setCard((prev) => prev ? { ...prev, status: 'PENDING', verified: false } : null);
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : 'Failed to update status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold text-[#004d4d] tracking-tight">Pharmacy Partners</h1>
-          <p className="text-slate-500 font-medium">Manage and monitor all pharmacy partnerships on the platform.</p>
+    <div className="p-8 max-w-2xl">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-800">Insurance Verification</h1>
+        <p className="text-slate-500 mt-1">Look up a patient's insurance card by ID and verify coverage.</p>
+      </div>
+
+      <form onSubmit={handleLookup} className="flex gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            type="number"
+            min={1}
+            value={cardId}
+            onChange={(e) => setCardId(e.target.value)}
+            placeholder="Enter insurance card ID..."
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+          />
         </div>
-        <button className="flex items-center gap-2 bg-[#0ABFBC] text-[#040F1A] px-5 py-3 rounded-xl font-bold text-sm hover:bg-[#5EDEDD] transition-all shadow-lg shadow-teal-900/10">
-          <Plus size={18} />
-          <span>Invite New Partner</span>
+        <button
+          type="submit"
+          disabled={!cardId.trim() || lookupLoading}
+          className="px-5 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 disabled:opacity-50 transition flex items-center gap-2"
+        >
+          {lookupLoading && <Loader2 size={14} className="animate-spin" />}
+          Look Up
         </button>
-      </div>
+      </form>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <SummaryCard 
-          icon={Handshake} 
-          label="Total Partners" 
-          value="42" 
-          colorClass="bg-[rgba(10,191,188,0.05)] text-[#0ABFBC]"
-        />
-        <SummaryCard 
-          icon={CheckCircle2} 
-          label="Active Integrations" 
-          value="38" 
-          colorClass="bg-emerald-50 text-emerald-600"
-        />
-        <SummaryCard 
-          icon={Clock} 
-          label="Pending Applications" 
-          value="4" 
-          colorClass="bg-amber-50 text-amber-600"
-        />
-      </div>
+      {lookupError && (
+        <div className="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex gap-2">
+          <AlertCircle size={16} /> {lookupError}
+        </div>
+      )}
 
-      {/* Partners List */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-bold text-slate-800">Partner Directory</h3>
-            <p className="text-sm text-slate-500 font-medium">Verified pharmacies delivering via MedDelivery.</p>
-          </div>
-          <div className="relative max-w-xs w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search by name, code or city..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:outline-none focus:border-[#0ABFBC] transition-all"
-            />
-          </div>
+      {actionMsg && (
+        <div className="mb-4 p-4 bg-teal-50 border border-teal-100 rounded-xl text-teal-700 text-sm font-semibold">
+          {actionMsg}
         </div>
+      )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Pharmacy</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Code</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Location</th>
-                <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-widest">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {PARTNERS.filter(p => 
-                p.name.toLowerCase().includes(search.toLowerCase()) || 
-                p.code.toLowerCase().includes(search.toLowerCase()) ||
-                p.location.toLowerCase().includes(search.toLowerCase())
-              ).map(partner => (
-                <PartnerRow key={partner.id} partner={partner} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        <div className="p-6 border-t border-slate-50 flex justify-between items-center">
-          <p className="text-xs text-slate-400 font-medium">Showing 4 of 42 results</p>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-50" disabled>Previous</button>
-            <button className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all">Next</button>
+      {card && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center">
+                  <Handshake size={20} className="text-teal-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800">{card.providerName}</h2>
+                  <p className="text-xs text-slate-500">Member ID: <span className="font-semibold text-slate-700">{card.memberId}</span></p>
+                </div>
+              </div>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_COLOR[card.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                {card.status}
+              </span>
+            </div>
           </div>
+
+          <div className="p-6 grid grid-cols-2 gap-4 text-sm">
+            {[
+              { label: 'Card ID', value: `#${card.id}` },
+              { label: 'Coverage', value: card.coveragePercentage != null ? `${card.coveragePercentage}%` : '—' },
+              { label: 'Verified', value: card.verified ? 'Yes' : 'No' },
+              { label: 'Added', value: card.createdAt ? new Date(card.createdAt).toLocaleDateString() : '—' },
+            ].map((row) => (
+              <div key={row.label}>
+                <span className="text-xs font-bold text-slate-400 uppercase block mb-0.5">{row.label}</span>
+                <span className="font-semibold text-slate-700">{row.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {card.frontImageUrl && (
+            <div className="px-6 pb-4 flex gap-3">
+              <div className="rounded-lg overflow-hidden border border-slate-200 w-40">
+                <img src={card.frontImageUrl} alt="Front" className="w-full object-cover" />
+                <p className="text-center text-[10px] text-slate-500 py-1 bg-slate-50">Front</p>
+              </div>
+              {card.backImageUrl && (
+                <div className="rounded-lg overflow-hidden border border-slate-200 w-40">
+                  <img src={card.backImageUrl} alt="Back" className="w-full object-cover" />
+                  <p className="text-center text-[10px] text-slate-500 py-1 bg-slate-50">Back</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {card.status !== 'VERIFIED' && card.status !== 'REJECTED' && (
+            <div className="p-6 border-t border-slate-100 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Notes (optional)</label>
+                <textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add verification notes..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleVerify(true)}
+                  disabled={actionLoading}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition"
+                >
+                  {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleVerify(false)}
+                  disabled={actionLoading}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-sm font-bold hover:bg-rose-100 disabled:opacity-50 transition"
+                >
+                  {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                  Reject
+                </button>
+              </div>
+            </div>
+          )}
+
+          {(card.status === 'VERIFIED' || card.status === 'REJECTED') && (
+            <div className="px-6 pb-6 pt-2 flex items-center justify-between gap-4">
+              <span className="text-sm text-slate-500">
+                This card has been {card.status.toLowerCase()}.
+              </span>
+              <button
+                onClick={handleMarkPending}
+                disabled={actionLoading}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-xs font-bold hover:bg-amber-100 disabled:opacity-50 transition"
+              >
+                {actionLoading ? <Loader2 size={12} className="animate-spin" /> : null}
+                Mark as Pending
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {!card && !lookupLoading && !lookupError && (
+        <div className="py-16 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
+          <Handshake size={36} className="mx-auto mb-3 opacity-40" />
+          <p className="font-medium">Enter a card ID above to begin verification.</p>
+        </div>
+      )}
     </div>
   );
 }
