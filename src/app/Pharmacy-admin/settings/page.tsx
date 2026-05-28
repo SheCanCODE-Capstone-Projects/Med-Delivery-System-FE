@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Building2, UserCog, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { getMyPharmacy, transferManager } from '@/services/pharmacyApi';
+import { Building2, UserCog, Loader2, AlertCircle, CheckCircle2, User, Phone, MapPin, Save } from 'lucide-react';
+import { getMyPharmacy, transferManager, updateMyPharmacy } from '@/services/pharmacyApi';
+import { getUserName } from '@/services/authApi';
 import type { PharmacyResponse } from '@/types/api';
 
 export default function SettingsPage() {
@@ -9,19 +10,52 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Editable fields
+  const [contactInfo, setContactInfo] = useState('');
+  const [address, setAddress] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+  const [saveError, setSaveError] = useState('');
+
+  // Transfer manager
   const [transferEmail, setTransferEmail] = useState('');
   const [transferLoading, setTransferLoading] = useState(false);
   const [transferMsg, setTransferMsg] = useState('');
   const [transferError, setTransferError] = useState('');
 
+  const managerName = typeof window !== 'undefined' ? getUserName() : null;
+
   useEffect(() => {
     getMyPharmacy()
-      .then(setPharmacy)
+      .then((ph) => {
+        setPharmacy(ph);
+        setContactInfo(ph.contactInfo ?? '');
+        setAddress(ph.address ?? '');
+      })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacy'))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleTransfer = async (e: { preventDefault(): void }) => {
+  const handleSavePharmacy = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveMsg('');
+    setSaveError('');
+    try {
+      const updated = await updateMyPharmacy({
+        contactInfo: contactInfo || undefined,
+        address: address || undefined,
+      });
+      setPharmacy(updated);
+      setSaveMsg('Pharmacy details updated successfully.');
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to update details');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTransfer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!window.confirm(`Transfer manager role to ${transferEmail}? You will lose manager access.`)) return;
     setTransferLoading(true);
@@ -57,45 +91,133 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">System Settings</h1>
-        <p className="text-slate-500 mt-1">Pharmacy configuration and administrative controls.</p>
+        <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
+        <p className="text-slate-500 mt-1">Manage your profile and pharmacy configuration.</p>
       </div>
 
-      {/* Pharmacy Info Card */}
+      {/* Manager Profile (read-only) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <User size={20} className="text-indigo-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-800">Manager Profile</h2>
+            <p className="text-xs text-slate-500">Your personal account information.</p>
+          </div>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Full Name</span>
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold">
+              <User size={14} className="text-slate-400 shrink-0" />
+              {managerName ?? pharmacy?.managerName ?? '—'}
+            </div>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Email Address</span>
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold">
+              <span className="text-slate-400 shrink-0 text-xs">@</span>
+              {pharmacy?.managerEmail ?? '—'}
+            </div>
+          </div>
+        </div>
+        <div className="px-6 pb-5 text-xs text-slate-400">
+          To update your name or email, please contact support.
+        </div>
+      </div>
+
+      {/* Pharmacy Information */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
             <Building2 size={20} className="text-teal-600" />
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-800">Pharmacy Information</h2>
-            <p className="text-xs text-slate-500">Read-only — contact support to update.</p>
+            <p className="text-xs text-slate-500">Update your contact info and address below.</p>
           </div>
         </div>
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+
+        {/* Read-only fields */}
+        <div className="px-6 pt-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {[
-            { label: 'Name', value: pharmacy?.name },
+            { label: 'Pharmacy Name', value: pharmacy?.name },
+            { label: 'Pharmacy Code', value: pharmacy?.pharmacyCode },
             { label: 'Licence Number', value: pharmacy?.licenseNumber },
-            { label: 'Manager', value: pharmacy?.managerName },
-            { label: 'Manager Email', value: pharmacy?.managerEmail },
-            { label: 'Email', value: pharmacy?.email },
-            { label: 'Phone', value: pharmacy?.phoneNumber },
-            { label: 'Address', value: pharmacy?.address },
             { label: 'Status', value: pharmacy?.status },
           ].map((row) => (
             <div key={row.label}>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">{row.label}</span>
-              <span className="font-semibold text-slate-700">{row.value ?? '—'}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{row.label}</span>
+              <div className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold text-sm">
+                {row.value ?? '—'}
+              </div>
             </div>
           ))}
         </div>
+
+        {/* Editable fields */}
+        <form onSubmit={handleSavePharmacy} className="px-6 pb-6 pt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                Phone / Contact <span className="text-teal-600 normal-case font-normal">(editable)</span>
+              </label>
+              <div className="relative">
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={contactInfo}
+                  onChange={(e) => setContactInfo(e.target.value)}
+                  placeholder="+250 788 000 000"
+                  className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                Address <span className="text-teal-600 normal-case font-normal">(editable)</span>
+              </label>
+              <div className="relative">
+                <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street, City"
+                  className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {saveMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-sm font-semibold flex items-center gap-2">
+              <CheckCircle2 size={15} /> {saveMsg}
+            </div>
+          )}
+          {saveError && (
+            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex items-center gap-2">
+              <AlertCircle size={15} /> {saveError}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 disabled:opacity-50 transition"
+          >
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            Save Changes
+          </button>
+        </form>
       </div>
 
       {/* Transfer Manager */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+        <div className="p-5 border-b border-slate-100 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
             <UserCog size={20} className="text-amber-600" />
           </div>

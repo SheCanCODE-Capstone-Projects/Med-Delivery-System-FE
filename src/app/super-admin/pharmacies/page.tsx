@@ -1,18 +1,79 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Loader2, AlertCircle, Search, Filter } from 'lucide-react';
+import {
+  Building2, Loader2, AlertCircle, Search, Filter,
+  CheckCircle2, XCircle, Ban, AlertTriangle, X,
+} from 'lucide-react';
 import { getAllPharmacies } from '@/services/pharmacyApi';
+import { approvePharmacy, suspendPharmacy } from '@/services/adminApi';
 import type { PharmacyResponse } from '@/types/api';
 
-const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED', 'REJECTED'];
+const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING_APPROVAL', 'SUSPENDED', 'REJECTED'];
 
 const STATUS_STYLE: Record<string, string> = {
   ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  PENDING_APPROVAL: 'bg-amber-50 text-amber-600 border-amber-100',
   PENDING: 'bg-amber-50 text-amber-600 border-amber-100',
   SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
   REJECTED: 'bg-slate-50 text-slate-500 border-slate-200',
 };
+
+function SuspendModal({
+  pharmacy,
+  onConfirm,
+  onClose,
+  loading,
+}: {
+  pharmacy: PharmacyResponse;
+  onConfirm: (reason: string) => void;
+  onClose: () => void;
+  loading: boolean;
+}) {
+  const [reason, setReason] = useState('');
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-500" /> Suspend Pharmacy
+          </h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1">
+            <X size={18} />
+          </button>
+        </div>
+        <p className="text-sm text-slate-500 mb-4">
+          Provide a reason for suspending <strong className="text-slate-700">{pharmacy.name}</strong>.
+        </p>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason for suspension..."
+          rows={3}
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 resize-none"
+        />
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 border border-slate-200 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(reason)}
+            disabled={loading || !reason.trim()}
+            className="flex-1 py-2.5 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+          >
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            Confirm Suspend
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const isPending = (status: string) => status === 'PENDING_APPROVAL' || status === 'PENDING';
 
 export default function SuperAdminPharmaciesPage() {
   const router = useRouter();
@@ -22,6 +83,9 @@ export default function SuperAdminPharmaciesPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [actioning, setActioning] = useState<number | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<PharmacyResponse | null>(null);
+  const [suspendLoading, setSuspendLoading] = useState(false);
 
   useEffect(() => {
     getAllPharmacies()
@@ -29,6 +93,36 @@ export default function SuperAdminPharmaciesPage() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacies'))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleApprove = async (id: number, approved: boolean) => {
+    setActioning(id);
+    try {
+      await approvePharmacy(id, { action: approved ? 'APPROVE' : 'REJECT' });
+      setPharmacies((prev) =>
+        prev.map((p) => p.id === id ? { ...p, status: approved ? 'ACTIVE' : 'REJECTED' } : p)
+      );
+    } catch {
+      // user can retry from detail page
+    } finally {
+      setActioning(null);
+    }
+  };
+
+  const handleSuspend = async (reason: string) => {
+    if (!suspendTarget) return;
+    setSuspendLoading(true);
+    try {
+      await suspendPharmacy(suspendTarget.id, reason);
+      setPharmacies((prev) =>
+        prev.map((p) => p.id === suspendTarget.id ? { ...p, status: 'SUSPENDED' } : p)
+      );
+      setSuspendTarget(null);
+    } catch {
+      // user can retry from detail page
+    } finally {
+      setSuspendLoading(false);
+    }
+  };
 
   useEffect(() => {
     let list = pharmacies;
@@ -38,20 +132,31 @@ export default function SuperAdminPharmaciesPage() {
       list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
-          p.email?.toLowerCase().includes(q) ||
+          p.contactInfo?.toLowerCase().includes(q) ||
           p.licenseNumber?.toLowerCase().includes(q)
       );
     }
     setFiltered(list);
   }, [search, statusFilter, pharmacies]);
 
+  const pendingCount = pharmacies.filter((p) => p.status === 'PENDING_APPROVAL' || p.status === 'PENDING').length;
+
   return (
     <>
       <div className="mb-8 flex flex-wrap gap-4 items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Platform Pharmacies</h1>
-          <p className="text-slate-500 mt-1">View and manage all registered pharmacies on MedDelivery.</p>
+          <p className="text-slate-500 mt-1">View, approve, reject, or suspend all registered pharmacies.</p>
         </div>
+        {pendingCount > 0 && (
+          <button
+            onClick={() => setStatusFilter('PENDING')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm font-bold hover:bg-amber-100 transition"
+          >
+            <AlertTriangle size={15} />
+            {pendingCount} pending approval
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -111,52 +216,81 @@ export default function SuperAdminPharmaciesPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
-                  <th className="px-6 py-4">ID</th>
-                  <th className="px-6 py-4">Pharmacy Name</th>
+                  <th className="px-6 py-4">Pharmacy</th>
                   <th className="px-6 py-4">Manager</th>
                   <th className="px-6 py-4">Contact</th>
                   <th className="px-6 py-4">Registered</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.length > 0 ? (
                   filtered.map((pharmacy) => (
-                    <tr key={pharmacy.id} className="hover:bg-slate-50/80 transition">
-                      <td className="px-6 py-4 text-xs font-bold text-slate-400">#{pharmacy.id}</td>
+                    <tr key={pharmacy.id} className={`hover:bg-slate-50/80 transition ${isPending(pharmacy.status) ? 'bg-amber-50/30' : ''}`}>
                       <td className="px-6 py-4">
                         <div className="font-bold text-slate-800">{pharmacy.name}</div>
                         <div className="text-xs text-slate-400">{pharmacy.licenseNumber}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">{pharmacy.managerName ?? '—'}</td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-600">{pharmacy.email}</div>
-                        <div className="text-xs text-slate-400">{pharmacy.phoneNumber}</div>
+                        <div className="text-sm text-slate-600">{pharmacy.contactInfo ?? '—'}</div>
+                        <div className="text-xs text-slate-400">{pharmacy.address ?? ''}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-500">
                         {pharmacy.createdAt ? new Date(pharmacy.createdAt).toLocaleDateString() : '—'}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[pharmacy.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                          {pharmacy.status}
+                          {pharmacy.status === 'PENDING_APPROVAL' ? 'PENDING' : pharmacy.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => router.push(`/super-admin/pharmacies/${pharmacy.id}`)}
-                          className="text-xs font-bold text-teal-600 hover:text-teal-800 hover:underline transition"
-                        >
-                          View Details
-                        </button>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          {isPending(pharmacy.status) && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(pharmacy.id, true)}
+                                disabled={actioning === pharmacy.id}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition disabled:opacity-50"
+                              >
+                                {actioning === pharmacy.id
+                                  ? <Loader2 size={12} className="animate-spin" />
+                                  : <CheckCircle2 size={12} />}
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleApprove(pharmacy.id, false)}
+                                disabled={actioning === pharmacy.id}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition disabled:opacity-50"
+                              >
+                                <XCircle size={12} /> Reject
+                              </button>
+                            </>
+                          )}
+                          {pharmacy.status === 'ACTIVE' && (
+                            <button
+                              onClick={() => setSuspendTarget(pharmacy)}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition"
+                            >
+                              <Ban size={12} /> Suspend
+                            </button>
+                          )}
+                          <button
+                            onClick={() => router.push(`/super-admin/pharmacies/${pharmacy.id}`)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-600 border border-teal-100 bg-teal-50 hover:bg-teal-100 transition"
+                          >
+                            Details
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-16 text-center">
+                    <td colSpan={6} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center gap-2 text-slate-400">
-                        <AlertCircle size={32} />
+                        <Building2 size={32} className="opacity-40" />
                         <p className="font-medium">No pharmacies found.</p>
                       </div>
                     </td>
@@ -166,6 +300,15 @@ export default function SuperAdminPharmaciesPage() {
             </table>
           </div>
         </div>
+      )}
+
+      {suspendTarget && (
+        <SuspendModal
+          pharmacy={suspendTarget}
+          onConfirm={handleSuspend}
+          onClose={() => setSuspendTarget(null)}
+          loading={suspendLoading}
+        />
       )}
     </>
   );

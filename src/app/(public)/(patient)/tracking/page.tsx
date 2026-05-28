@@ -27,15 +27,25 @@ import {
 import type { OrderResponse, SubstitutionResponse, PaymentResponse } from "@/types/api";
 
 const STATUS_TONE: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700 border-amber-200",
-  CONFIRMED: "bg-sky-50 text-sky-700 border-sky-200",
-  PROCESSING: "bg-violet-50 text-violet-700 border-violet-200",
-  DISPENSED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  COMPLETED: "bg-teal-50 text-teal-700 border-teal-200",
-  CANCELLED: "bg-rose-50 text-rose-700 border-rose-200",
+  UPLOADED:          "bg-amber-50 text-amber-700 border-amber-200",
+  MATCHING:          "bg-sky-50 text-sky-700 border-sky-200",
+  ASSIGNED:          "bg-violet-50 text-violet-700 border-violet-200",
+  IN_PROGRESS:       "bg-violet-50 text-violet-700 border-violet-200",
+  STOCK_CONFIRMED:   "bg-emerald-50 text-emerald-700 border-emerald-200",
+  READY_FOR_PICKUP:  "bg-teal-50 text-teal-700 border-teal-200",
+  OUT_FOR_DELIVERY:  "bg-teal-50 text-teal-700 border-teal-200",
+  COMPLETED:         "bg-slate-100 text-slate-600 border-slate-200",
+  CANCELLED:         "bg-rose-50 text-rose-700 border-rose-200",
 };
 
-const ORDER_STEPS = ["PENDING", "CONFIRMED", "PROCESSING", "DISPENSED", "COMPLETED"];
+const STATUS_LABEL: Record<string, string> = {
+  UPLOADED: "Received", MATCHING: "Matching", ASSIGNED: "Assigned",
+  IN_PROGRESS: "In Progress", STOCK_CONFIRMED: "Confirmed",
+  READY_FOR_PICKUP: "Ready", OUT_FOR_DELIVERY: "Out for Delivery",
+  COMPLETED: "Completed", CANCELLED: "Cancelled",
+};
+
+const ORDER_STEPS = ["UPLOADED", "ASSIGNED", "IN_PROGRESS", "STOCK_CONFIRMED", "READY_FOR_PICKUP", "COMPLETED"];
 
 function OrderTimeline({ status }: { status: string }) {
   const currentIdx = ORDER_STEPS.indexOf(status);
@@ -163,14 +173,14 @@ export default function TrackingPage() {
       list = list.filter(
         (o) =>
           String(o.id).includes(q) ||
-          o.medicines?.some((m) => m.medicineName.toLowerCase().includes(q)) ||
+          o.items?.some((m) => m.medicineName.toLowerCase().includes(q)) ||
           o.pharmacyName?.toLowerCase().includes(q)
       );
     }
     return list;
   }, [orders, statusFilter, search]);
 
-  const statuses = ["ALL", "PENDING", "CONFIRMED", "PROCESSING", "DISPENSED", "COMPLETED", "CANCELLED"];
+  const statuses = ["ALL", "UPLOADED", "MATCHING", "ASSIGNED", "IN_PROGRESS", "STOCK_CONFIRMED", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "COMPLETED", "CANCELLED"];
 
   return (
     <PatientAppShell>
@@ -289,12 +299,12 @@ export default function TrackingPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="font-bold text-slate-800">
-                        {order.medicines && order.medicines.length > 0
-                          ? order.medicines.map((m) => m.medicineName).join(", ")
+                        {order.items && order.items.length > 0
+                          ? order.items.map((m) => m.medicineName).join(", ")
                           : "Order"}
                       </span>
                       <span className={`rounded-full border px-2.5 py-0.5 text-xs font-bold ${STATUS_TONE[order.status] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
-                        {order.status}
+                        {STATUS_LABEL[order.status] ?? order.status}
                       </span>
                     </div>
                     <p className="text-sm text-slate-500">
@@ -305,7 +315,7 @@ export default function TrackingPage() {
                     <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-400">
                       <span className="flex items-center gap-1">
                         <Truck size={11} />
-                        {order.fulfilmentType}
+                        {order.fulfillmentType}
                       </span>
                       {order.totalAmount != null && (
                         <span>RWF {order.totalAmount.toLocaleString()}</span>
@@ -323,16 +333,16 @@ export default function TrackingPage() {
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Progress</p>
                     <OrderTimeline status={order.status} />
 
-                    {order.medicines && order.medicines.length > 0 && (
+                    {order.items && order.items.length > 0 && (
                       <div className="mt-4">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Medicines</p>
                         <div className="space-y-1">
-                          {order.medicines.map((m, i) => (
+                          {order.items.map((m, i) => (
                             <div key={i} className="flex items-center justify-between rounded-xl bg-white border border-slate-100 px-3 py-2 text-sm">
                               <span className="font-semibold text-slate-800">{m.medicineName}</span>
                               <div className="flex items-center gap-3 text-slate-500">
                                 <span>x{m.quantity}</span>
-                                {m.price != null && <span className="font-semibold text-slate-700">RWF {m.price.toLocaleString()}</span>}
+                                {m.unitPrice != null && <span className="font-semibold text-slate-700">RWF {m.unitPrice.toLocaleString()}</span>}
                               </div>
                             </div>
                           ))}
@@ -358,7 +368,7 @@ export default function TrackingPage() {
                       </a>
                     )}
 
-                    {order.status === "DISPENSED" && order.totalAmount != null && (
+                    {order.status === "READY_FOR_PICKUP" && order.totalAmount != null && (
                       <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                         <div className="flex items-center justify-between gap-4 flex-wrap">
                           <div>
@@ -385,7 +395,7 @@ export default function TrackingPage() {
                       </div>
                     )}
 
-                    {(order.status === "COMPLETED" || order.status === "DISPENSED") && (
+                    {(order.status === "COMPLETED" || order.status === "READY_FOR_PICKUP") && (
                       <button
                         onClick={() => handleLoadPaymentDetails(order.id)}
                         className="mt-3 text-xs font-semibold text-slate-500 hover:text-teal-600 transition underline underline-offset-2"
@@ -399,7 +409,7 @@ export default function TrackingPage() {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Details</p>
                         <div className="flex justify-between text-slate-600">
                           <span>Amount</span>
-                          <span className="font-semibold text-slate-800">RWF {paymentDetails[order.id].amount.toLocaleString()}</span>
+                          <span className="font-semibold text-slate-800">RWF {paymentDetails[order.id].totalAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-slate-600">
                           <span>Status</span>

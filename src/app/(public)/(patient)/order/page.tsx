@@ -28,9 +28,6 @@ export default function OrderingForm() {
   const [items, setItems] = useState<MedicineItem[]>([{ id: "item-1", medicine: "", quantity: 1 }]);
   const [notes, setNotes] = useState("");
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
-  const [prescriptionDate, setPrescriptionDate] = useState("");
-  const [hasStamp, setHasStamp] = useState(false);
-  const [hasSignature, setHasSignature] = useState(false);
 
   const [insuranceCards, setInsuranceCards] = useState<InsuranceCardResponse[]>([]);
   const [locations, setLocations] = useState<PatientLocationResponse[]>([]);
@@ -60,14 +57,14 @@ export default function OrderingForm() {
 
     const medicines = items.filter((i) => i.medicine.trim()).map((i) => ({
       medicineName: i.medicine.trim(),
-      quantity: i.quantity,
+      quantity: i.quantity as number,
     }));
 
     if (requestType === "prescription" && !prescriptionFile) {
       setFormError("Upload a prescription file before submitting.");
       return;
     }
-    if (medicines.length === 0 && !notes.trim()) {
+    if (requestType === "private" && medicines.length === 0 && !notes.trim()) {
       setFormError("Enter at least one medicine name or add notes.");
       return;
     }
@@ -76,21 +73,26 @@ export default function OrderingForm() {
     try {
       let prescriptionId: number | undefined;
       if (prescriptionFile) {
-        const rx = await uploadPrescription(prescriptionFile, {
-          prescriptionDate: prescriptionDate || undefined,
-          hasStamp,
-          hasSignature,
-        });
+        const rx = await uploadPrescription(prescriptionFile);
         prescriptionId = rx.id;
       }
 
+      const selectedLoc = typeof selectedLocationId === "number"
+        ? locations.find((l) => l.id === selectedLocationId)
+        : undefined;
+
       const order = await createOrder({
-        medicines,
+        orderType: requestType === "prescription" ? "PRESCRIPTION_BASED" : "PRIVATE_PURCHASE",
+        fulfillmentType: fulfillment,
         prescriptionId,
-        notes: notes || undefined,
-        fulfilmentType: fulfillment,
-        locationId: typeof selectedLocationId === "number" ? selectedLocationId : undefined,
         insuranceCardId: typeof selectedInsuranceId === "number" ? selectedInsuranceId : undefined,
+        items: requestType === "private"
+          ? medicines.map((m) => ({ medicineName: m.medicineName, quantity: m.quantity }))
+          : [],
+        deliveryAddress: fulfillment === "DELIVERY"
+          ? (selectedLoc?.manualAddress ?? locations.find((l) => l.isDefault)?.manualAddress)
+          : undefined,
+        notes: notes || undefined,
       });
 
       setOrderId(order.id);
@@ -205,21 +207,6 @@ export default function OrderingForm() {
                   <X className="h-4 w-4" /> Remove file
                 </button>
               )}
-              <div className="grid gap-4 sm:grid-cols-3">
-                <label className="grid gap-2">
-                  <span className="text-sm font-bold text-slate-700">Prescription date</span>
-                  <input type="date" value={prescriptionDate} onChange={(e) => setPrescriptionDate(e.target.value)}
-                    className="min-h-12 rounded-2xl border border-slate-200 bg-white px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
-                </label>
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4">
-                  <input type="checkbox" checked={hasStamp} onChange={(e) => setHasStamp(e.target.checked)} className="h-4 w-4 accent-teal-600" />
-                  <span className="text-sm font-bold text-slate-700">Has stamp</span>
-                </label>
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4">
-                  <input type="checkbox" checked={hasSignature} onChange={(e) => setHasSignature(e.target.checked)} className="h-4 w-4 accent-teal-600" />
-                  <span className="text-sm font-bold text-slate-700">Has signature</span>
-                </label>
-              </div>
             </div>
           ) : (
             <div className="mt-5 grid gap-4 rounded-3xl border border-slate-100 bg-slate-50/80 p-4">
@@ -232,42 +219,47 @@ export default function OrderingForm() {
             </div>
           )}
 
-          <div className="mt-6">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-lg font-bold text-slate-900">Medicines</h3>
-              <button type="button"
-                onClick={() => setItems((cur) => [...cur, { id: `item-${nextIdRef.current++}`, medicine: "", quantity: 1 }])}
-                className="inline-flex min-h-10 items-center gap-2 rounded-2xl border border-teal-200 bg-teal-50 px-4 text-sm font-bold text-teal-700">
-                <Plus className="h-4 w-4" /> Add
-              </button>
-            </div>
-            <div className="mt-3 grid gap-3">
-              {items.map((item) => (
-                <div key={item.id} className="grid gap-3 rounded-3xl border border-slate-100 bg-white p-3 sm:grid-cols-[1fr_8rem_auto]">
-                  <label className="grid gap-2">
-                    <span className="text-xs font-bold text-slate-500">Medicine name</span>
-                    <div className="relative">
-                      <Pill className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" />
-                      <input value={item.medicine} onChange={(e) => updateItem(item.id, "medicine", e.target.value)}
-                        placeholder="e.g. Amoxicillin 500mg"
-                        className="min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+          {requestType === "private" && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-bold text-slate-900">Medicines</h3>
+                <button type="button"
+                  onClick={() => setItems((cur) => [...cur, { id: `item-${nextIdRef.current++}`, medicine: "", quantity: 1 }])}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-2xl border border-teal-200 bg-teal-50 px-4 text-sm font-bold text-teal-700">
+                  <Plus className="h-4 w-4" /> Add
+                </button>
+              </div>
+              <div className="mt-3 grid gap-3">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-3 rounded-3xl border border-slate-100 bg-white p-3">
+                    <label className="flex-1 grid gap-2 min-w-0">
+                      <span className="text-xs font-bold text-slate-500">Medicine name</span>
+                      <div className="relative">
+                        <Pill className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" />
+                        <input value={item.medicine} onChange={(e) => updateItem(item.id, "medicine", e.target.value)}
+                          placeholder="e.g. Amoxicillin 500mg"
+                          className="min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+                      </div>
+                    </label>
+                    <label className="w-24 shrink-0 grid gap-2">
+                      <span className="text-xs font-bold text-slate-500">Qty</span>
+                      <input type="number" min={1} value={item.quantity}
+                        onChange={(e) => updateItem(item.id, "quantity", Math.max(1, parseInt(e.target.value) || 1))}
+                        className="min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+                    </label>
+                    <div className="shrink-0 grid gap-2">
+                      <span className="text-xs font-bold text-transparent select-none">x</span>
+                      <button type="button" aria-label="Remove medicine"
+                        onClick={() => setItems((cur) => cur.filter((i) => i.id !== item.id))}
+                        className="min-h-12 w-12 grid place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:border-rose-200 hover:text-rose-600">
+                        <Minus className="h-4 w-4" />
+                      </button>
                     </div>
-                  </label>
-                  <label className="grid gap-2">
-                    <span className="text-xs font-bold text-slate-500">Quantity</span>
-                    <input type="number" min={1} value={item.quantity}
-                      onChange={(e) => updateItem(item.id, "quantity", Math.max(1, parseInt(e.target.value) || 1))}
-                      className="min-h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
-                  </label>
-                  <button type="button" aria-label="Remove medicine"
-                    onClick={() => setItems((cur) => cur.filter((i) => i.id !== item.id))}
-                    className="grid min-h-12 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:border-rose-200 hover:text-rose-600 sm:self-end">
-                    <Minus className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {requestType === "prescription" && insuranceCards.length > 0 && (
@@ -303,20 +295,21 @@ export default function OrderingForm() {
                   className="min-h-12 rounded-2xl border border-slate-200 bg-white px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15">
                   <option value="">Select a location</option>
                   {locations.map((l) => (
-                    <option key={l.id} value={l.id}>{l.label} — {l.address}{l.isDefault ? " (default)" : ""}</option>
+                    <option key={l.id} value={l.id}>
+                      {l.label ? `${l.label} — ${l.manualAddress || ""}` : (l.manualAddress || "—")}{l.isDefault ? " (default)" : ""}
+                    </option>
                   ))}
                 </select>
               ) : (
-                <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" />
-                  <input placeholder="Street, city, state"
-                    className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
-                </div>
+                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3">
+                  No delivery locations saved.{" "}
+                  <a href="/locations" className="font-bold underline">Add one now</a> before placing a delivery order.
+                </p>
               )}
             </div>
           )}
 
-          <div className="sticky bottom-0 z-20 -mx-5 mt-6 border-t border-slate-200/80 bg-white/90 px-5 py-4 backdrop-blur-xl sm:-mx-7 sm:px-7">
+          <div className="mt-8">
             <button type="submit" disabled={submitting || submitted}
               className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
               {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}

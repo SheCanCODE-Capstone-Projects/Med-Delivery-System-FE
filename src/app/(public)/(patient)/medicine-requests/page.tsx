@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, ClipboardPlus, Loader2, Plus, X, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, ClipboardPlus, Loader2, Plus, RefreshCw, X, XCircle } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
 import {
   getMyMedicineRequests,
@@ -30,6 +30,8 @@ export default function MedicineRequestsPage() {
   const [showForm, setShowForm] = useState(false);
   const [medicineName, setMedicineName] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [orderType, setOrderType] = useState<'PRIVATE_PURCHASE' | 'PRESCRIPTION_BASED'>('PRIVATE_PURCHASE');
+  const [fulfillmentType, setFulfillmentType] = useState<'DELIVERY' | 'PICKUP'>('DELIVERY');
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -52,6 +54,8 @@ export default function MedicineRequestsPage() {
     setShowForm(false);
     setMedicineName("");
     setQuantity(1);
+    setOrderType('PRIVATE_PURCHASE');
+    setFulfillmentType('DELIVERY');
     setNotes("");
     setFormError("");
   };
@@ -65,6 +69,8 @@ export default function MedicineRequestsPage() {
       await submitMedicineRequest({
         medicineName: medicineName.trim(),
         quantity,
+        orderType,
+        fulfillmentType,
         notes: notes.trim() || undefined,
       });
       closeForm();
@@ -116,7 +122,7 @@ export default function MedicineRequestsPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Medicine Requests</h1>
             <p className="text-slate-500 mt-1 text-sm">
-              Request specific medicines and track pharmacy responses.
+              Need a specific medicine? Ask pharmacies if they have it in stock. This is different from placing an order — it is a stock inquiry for medicines you need.
             </p>
           </div>
           <button
@@ -128,7 +134,13 @@ export default function MedicineRequestsPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold">{error}</div>
+          <div className="mb-4 flex items-center gap-3 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm">
+            <AlertCircle size={16} className="shrink-0" />
+            <span className="flex-1">{error}</span>
+            <button onClick={load} className="flex items-center gap-1 font-bold hover:text-rose-900 transition">
+              <RefreshCw size={13} /> Retry
+            </button>
+          </div>
         )}
         {actionMsg && (
           <div className="mb-4 p-4 bg-teal-50 border border-teal-100 rounded-xl text-teal-700 text-sm font-semibold">{actionMsg}</div>
@@ -163,6 +175,44 @@ export default function MedicineRequestsPage() {
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Purchase Type</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([['PRIVATE_PURCHASE', 'Private Purchase'], ['PRESCRIPTION_BASED', 'Prescription Based']] as const).map(([val, label]) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setOrderType(val)}
+                        className={`py-2.5 rounded-xl border text-sm font-semibold transition ${
+                          orderType === val
+                            ? 'bg-teal-600 text-white border-teal-600'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-teal-300'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Fulfillment</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([['DELIVERY', 'Delivery'], ['PICKUP', 'Pickup']] as const).map(([val, label]) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setFulfillmentType(val)}
+                        className={`py-2.5 rounded-xl border text-sm font-semibold transition ${
+                          fulfillmentType === val
+                            ? 'bg-teal-600 text-white border-teal-600'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-teal-300'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">

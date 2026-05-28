@@ -27,7 +27,6 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
@@ -44,33 +43,14 @@ export default function Signup() {
         phoneNumber: phoneNumber.trim() || undefined,
         password,
       });
-      setSuccess(true);
+      const identifier = email.trim() || phoneNumber.trim();
+      router.push(`/auth/verify-otp?username=${encodeURIComponent(identifier)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.1),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)] flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white/85 backdrop-blur-xl rounded-3xl border border-white/70 shadow-[0_24px_56px_rgba(11,19,39,0.16)] p-10 text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-teal-50">
-            <CheckCircle2 className="h-8 w-8 text-teal-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900">Account created!</h2>
-          <p className="mt-2 text-sm text-slate-500">Your patient account is ready. Sign in to start ordering medicines.</p>
-          <button
-            onClick={() => router.push("/auth/login")}
-            className="mt-6 w-full h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] hover:-translate-y-0.5 transition"
-          >
-            Sign in
-          </button>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="h-[100dvh] overflow-hidden text-slate-950 flex">
