@@ -23,10 +23,13 @@ import type { PharmacyResponse } from '@/types/api';
 
 const STATUS_STYLE: Record<string, string> = {
   ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+  PENDING_APPROVAL: 'bg-amber-50 text-amber-600 border-amber-100',
   PENDING: 'bg-amber-50 text-amber-600 border-amber-100',
   SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
   REJECTED: 'bg-slate-50 text-slate-500 border-slate-200',
 };
+
+const isPending = (status: string) => status === 'PENDING_APPROVAL' || status === 'PENDING';
 
 export default function PharmacyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +58,7 @@ export default function PharmacyDetailsPage() {
     setActionLoading(true);
     setActionMsg('');
     try {
-      await approvePharmacy(pharmacy.id, { approved: true });
+      await approvePharmacy(pharmacy.id, { action: 'APPROVE' });
       setPharmacy((p) => p ? { ...p, status: 'ACTIVE' } : p);
       setActionMsg('Pharmacy approved successfully.');
     } catch (err) {
@@ -70,7 +73,7 @@ export default function PharmacyDetailsPage() {
     setActionLoading(true);
     setActionMsg('');
     try {
-      await approvePharmacy(pharmacy.id, { approved: false, reason: 'Does not meet requirements' });
+      await approvePharmacy(pharmacy.id, { action: 'REJECT', reason: 'Does not meet requirements' });
       setPharmacy((p) => p ? { ...p, status: 'REJECTED' } : p);
       setActionMsg('Pharmacy rejected.');
     } catch (err) {
@@ -151,7 +154,7 @@ export default function PharmacyDetailsPage() {
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-slate-800">{pharmacy.name}</h1>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[pharmacy.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                  {pharmacy.status}
+                  {pharmacy.status === 'PENDING_APPROVAL' ? 'PENDING' : pharmacy.status}
                 </span>
               </div>
               <p className="text-slate-500 font-medium">Pharmacy ID: #{pharmacy.id}</p>
@@ -159,7 +162,7 @@ export default function PharmacyDetailsPage() {
           </div>
 
           <div className="flex gap-3 flex-wrap">
-            {pharmacy.status === 'PENDING' && (
+            {isPending(pharmacy.status) && (
               <>
                 <button
                   onClick={handleApprove}
@@ -245,7 +248,7 @@ export default function PharmacyDetailsPage() {
               </div>
               <div className="space-y-5">
                 <InfoRow icon={MapPin} label="Address" value={pharmacy.address ?? '—'} />
-                <InfoRow icon={Phone} label="Phone" value={pharmacy.phoneNumber ?? '—'} />
+                <InfoRow icon={Phone} label="Contact" value={pharmacy.contactInfo ?? '—'} />
                 <InfoRow
                   icon={Calendar}
                   label="Registered"
@@ -260,8 +263,7 @@ export default function PharmacyDetailsPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-5 border-b border-slate-100 text-sm font-bold text-slate-800">Contact Details</div>
             <div className="p-6 space-y-4">
-              <InfoRow icon={Mail} label="Email" value={pharmacy.email ?? '—'} />
-              <InfoRow icon={Phone} label="Phone" value={pharmacy.phoneNumber ?? '—'} />
+              <InfoRow icon={Phone} label="Contact" value={pharmacy.contactInfo ?? '—'} />
               <InfoRow icon={MapPin} label="Address" value={pharmacy.address ?? '—'} />
             </div>
           </div>
@@ -270,7 +272,7 @@ export default function PharmacyDetailsPage() {
             <div className="relative z-10">
               <h4 className="font-bold mb-1">Status</h4>
               <p className="text-xs text-white/70 mb-3">Current pharmacy status on the platform</p>
-              <p className="text-2xl font-black">{pharmacy.status}</p>
+              <p className="text-2xl font-black">{pharmacy.status === 'PENDING_APPROVAL' ? 'PENDING' : pharmacy.status}</p>
             </div>
             <div className="absolute -bottom-6 -right-6 opacity-20">
               <Building2 size={120} />

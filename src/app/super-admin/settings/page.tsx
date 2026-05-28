@@ -1,19 +1,20 @@
 "use client";
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-import { 
-  Settings, 
-  User, 
-  Lock, 
-  Bell, 
-  Database, 
-  Mail, 
+import {
+  Settings,
+  User,
+  Lock,
+  Bell,
+  Database,
+  Mail,
   Upload,
   Save,
   AlertCircle,
   CheckCircle2,
   Loader2
 } from 'lucide-react';
+import { getAdminProfile, updateAdminProfile } from '@/services/adminApi';
 
 // ─── Settings Page ─────────────────────────────────────────────────────────────
 
@@ -21,16 +22,30 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile State
   const [profile, setProfile] = useState({
-    firstName: 'Cynthy',
-    lastName: 'Uwera',
-    email: 'cynthy@meddelivery.rw',
-    phone: '+250 788 000 000',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
     avatar: `https://api.dicebear.com/7.x/initials/svg?seed=SuperAdmin&backgroundColor=14b8a6`
   });
+
+  useEffect(() => {
+    getAdminProfile().then((data) => {
+      const parts = (data.fullName ?? '').split(' ');
+      setProfile((p) => ({
+        ...p,
+        firstName: parts[0] ?? '',
+        lastName: parts.slice(1).join(' '),
+        email: data.email ?? '',
+        phone: data.phoneNumber ?? '',
+      }));
+    }).catch(() => {});
+  }, []);
 
   const tabs = [
     { id: 'profile', label: 'Profile Settings', icon: User },
@@ -54,11 +69,25 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    setSaveError('');
+    try {
+      const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+      const updated = await updateAdminProfile({ fullName, phoneNumber: profile.phone });
+      const parts = (updated.fullName ?? '').split(' ');
+      setProfile((p) => ({
+        ...p,
+        firstName: parts[0] ?? '',
+        lastName: parts.slice(1).join(' '),
+        email: updated.email ?? p.email,
+        phone: updated.phoneNumber ?? p.phone,
+      }));
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -197,6 +226,12 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end items-center gap-4">
+                {saveError && (
+                  <div className="flex items-center gap-1.5 text-rose-600 text-sm font-semibold">
+                    <AlertCircle size={16} />
+                    {saveError}
+                  </div>
+                )}
                 {showSuccess && (
                   <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold animate-in fade-in slide-in-from-right-4">
                     <CheckCircle2 size={16} />

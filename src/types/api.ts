@@ -45,7 +45,8 @@ export interface OtpVerifyRequest {
 }
 
 export interface SetPasswordRequest {
-  token: string;
+  username: string;
+  otp: string;
   password: string;
 }
 
@@ -109,7 +110,7 @@ export interface PharmacyApprovalDetailResponse {
 }
 
 export interface PharmacyApprovalRequest {
-  approved: boolean;
+  action: 'APPROVE' | 'REJECT';
   reason?: string;
 }
 
@@ -156,26 +157,33 @@ export interface InsuranceProvider {
   id: number;
   name: string;
   code: string;
+  coveragePercentage: number;
 }
 
 export interface PaymentResponse {
   id: number;
   orderId: number;
-  patientName: string;
-  amount: number;
+  totalAmount: number;
+  insuranceAmount: number;
+  patientAmount: number;
   status: string;
+  paymentMethod?: string;
+  transactionId?: string;
   insuranceProvider?: string;
+  failureReason?: string;
   createdAt: string;
+  paidAt?: string;
 }
 
 export interface InsuranceCardResponse {
   id: number;
+  patientName?: string;
   providerName: string;
   memberId: string;
   frontImageUrl?: string;
   backImageUrl?: string;
   coveragePercentage?: number;
-  verified: boolean;
+  verified?: boolean;
   status: string;
   createdAt: string;
 }
@@ -185,13 +193,16 @@ export interface InsuranceCardResponse {
 export interface PharmacyResponse {
   id: number;
   name: string;
+  pharmacyCode?: string;
   licenseNumber: string;
-  address: string;
-  phoneNumber: string;
-  email: string;
+  contactInfo?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
   status: string;
   managerName?: string;
   managerEmail?: string;
+  supportedInsurances?: string[];
   createdAt: string;
 }
 
@@ -205,14 +216,20 @@ export interface PharmacyRegistrationRequest {
   managerName: string;
   managerEmail: string;
   insuranceProviderIds: number[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface PharmacistResponse {
   id: number;
+  pharmacistUniqueId?: string;
   fullName: string;
   email: string;
   phoneNumber?: string;
-  status: string;
+  pharmacyId?: number;
+  pharmacyName?: string;
+  isActive: boolean;
+  isVerified: boolean;
   createdAt: string;
 }
 
@@ -248,27 +265,38 @@ export interface OrderResponse {
   patientName: string;
   pharmacyName?: string;
   status: string;
-  fulfilmentType: string;
+  orderType?: string;
+  fulfillmentType?: string;
+  deliveryAddress?: string;
   totalAmount?: number;
-  medicines?: OrderMedicineItem[];
-  createdAt: string;
-  prescriptionUrl?: string;
+  patientPayableAmount?: number;
+  insurancePayableAmount?: number;
+  coveragePercentage?: number;
+  paymentStatus?: string;
+  paymentMethod?: string;
   notes?: string;
+  prescriptionUrl?: string;
+  items?: OrderItemResponse[];
+  createdAt: string;
 }
 
-export interface OrderMedicineItem {
+export interface OrderItemResponse {
+  id: number;
+  medicineId: number;
   medicineName: string;
   quantity: number;
-  price?: number;
+  unitPrice: number;
+  status?: string;
 }
 
 export interface CreateOrderRequest {
-  medicines: OrderMedicineItem[];
+  orderType: 'PRESCRIPTION_BASED' | 'PRIVATE_PURCHASE';
+  fulfillmentType?: 'DELIVERY' | 'PICKUP';
   prescriptionId?: number;
-  notes?: string;
-  fulfilmentType: 'DELIVERY' | 'PICKUP';
-  locationId?: number;
   insuranceCardId?: number;
+  items: Array<{ medicineName?: string; medicineId?: number; quantity: number }>;
+  deliveryAddress?: string;
+  notes?: string;
 }
 
 // ─── Prescription ─────────────────────────────────────────────────────────────
@@ -289,39 +317,52 @@ export interface PrescriptionResponse {
 
 export interface PatientProfileResponse {
   id: number;
+  userId?: number;
   fullName: string;
   email?: string;
+  phoneNumber?: string;
+  profileImageUrl?: string;
+  emailNotifications?: boolean;
+  smsNotifications?: boolean;
+  dateOfBirth?: string;
+  gender?: string;
+  bloodType?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  hasLocation?: boolean;
+  hasInsurance?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PatientProfileRequest {
+  fullName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
   gender?: string;
   bloodType?: string;
   allergies?: string;
-  profileImageUrl?: string;
-  createdAt: string;
-}
-
-export interface PatientProfileRequest {
-  fullName?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  bloodType?: string;
-  allergies?: string;
+  medicalNotes?: string;
 }
 
 export interface PatientLocationResponse {
   id: number;
-  label: string;
-  address: string;
+  label?: string;
+  manualAddress?: string;
   latitude?: number;
   longitude?: number;
+  inputType?: 'GPS' | 'MANUAL';
   isDefault: boolean;
+  updatedAt?: string;
 }
 
 export interface PatientLocationRequest {
-  label: string;
-  address: string;
+  manualAddress: string;
+  label?: string;
+  inputType: 'GPS' | 'MANUAL';
   latitude?: number;
   longitude?: number;
+  isDefault?: boolean;
 }
 
 // ─── Medicine Request ─────────────────────────────────────────────────────────
@@ -338,6 +379,8 @@ export interface MedicineRequestResponse {
 export interface MedicineRequestRequest {
   medicineName: string;
   quantity: number;
+  orderType: 'PRIVATE_PURCHASE' | 'PRESCRIPTION_BASED';
+  fulfillmentType: 'DELIVERY' | 'PICKUP';
   notes?: string;
 }
 
@@ -348,7 +391,7 @@ export interface DispensingOrderResponse {
   patientName: string;
   status: string;
   prescriptionUrl?: string;
-  medicines?: OrderMedicineItem[];
+  medicines?: OrderItemResponse[];
   validationStatus?: string;
   stockConfirmed?: boolean;
   createdAt: string;
@@ -385,4 +428,13 @@ export interface ChatbotResponse {
   conversationId: string;
   tokenUsage?: number;
   model?: string;
+}
+
+export interface NotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  createdAt: string;
 }

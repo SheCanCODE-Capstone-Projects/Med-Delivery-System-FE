@@ -1,14 +1,199 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Mail, Loader2, ToggleLeft, ToggleRight, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  Search, Mail, Loader2, ToggleLeft, ToggleRight, Users,
+  X, Phone, Building2, MapPin, ShieldCheck, Calendar, ExternalLink,
+} from 'lucide-react';
 import { searchUsers, updateUserStatus } from '@/services/adminApi';
-import type { AdminUserResponse } from '@/types/api';
+import { getAllPharmacies, getPharmacistsByPharmacy } from '@/services/pharmacyApi';
+import type { AdminUserResponse, PharmacyResponse } from '@/types/api';
 
 const STATUS_STYLE: Record<string, string> = {
   ACTIVE: 'bg-emerald-50 text-emerald-700 border-emerald-100',
   INACTIVE: 'bg-slate-100 text-slate-500 border-slate-200',
   SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
+  PENDING: 'bg-amber-50 text-amber-700 border-amber-100',
 };
+
+const ROLE_STYLE: Record<string, string> = {
+  SUPER_ADMIN: 'bg-violet-50 text-violet-700',
+  MANAGER: 'bg-amber-50 text-amber-700',
+  PHARMACIST: 'bg-sky-50 text-sky-700',
+  PATIENT: 'bg-teal-50 text-teal-700',
+};
+
+// ─── Profile Modal ─────────────────────────────────────────────────────────────
+
+function ProfileModal({
+  user,
+  pharmacies,
+  onClose,
+}: {
+  user: AdminUserResponse;
+  pharmacies: PharmacyResponse[];
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [pharmacy, setPharmacy] = useState<PharmacyResponse | null | 'loading'>('loading');
+
+  useEffect(() => {
+    if (user.role === 'MANAGER') {
+      const match = pharmacies.find(
+        (p) => p.managerEmail?.toLowerCase() === user.email?.toLowerCase()
+      );
+      setPharmacy(match ?? null);
+      return;
+    }
+
+    if (user.role === 'PHARMACIST') {
+      // Search across all pharmacies for this pharmacist's email
+      let cancelled = false;
+      (async () => {
+        for (const p of pharmacies) {
+          try {
+            const list = await getPharmacistsByPharmacy(p.id);
+            if (list.some((ph) => ph.email?.toLowerCase() === user.email?.toLowerCase())) {
+              if (!cancelled) setPharmacy(p);
+              return;
+            }
+          } catch {
+            // skip this pharmacy
+          }
+        }
+        if (!cancelled) setPharmacy(null);
+      })();
+      return () => { cancelled = true; };
+    }
+
+    setPharmacy(null);
+  }, [user, pharmacies]);
+
+  const initials = user.fullName?.slice(0, 2).toUpperCase() ?? '??';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h2 className="text-base font-bold text-slate-800">User Profile</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition p-1">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* User Info */}
+        <div className="px-6 py-5 flex items-start gap-4 border-b border-slate-100">
+          <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-700 font-bold flex items-center justify-center text-lg border border-teal-100 shrink-0">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-bold text-slate-900 text-lg leading-tight">{user.fullName}</p>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${ROLE_STYLE[user.role] ?? 'bg-slate-100 text-slate-600'}`}>
+                {user.role.replace('_', ' ')}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_STYLE[user.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                {user.status}
+              </span>
+            </div>
+            <div className="mt-2 space-y-1">
+              {user.email && (
+                <p className="text-sm text-slate-500 flex items-center gap-1.5">
+                  <Mail size={13} className="shrink-0" /> {user.email}
+                </p>
+              )}
+              {user.phoneNumber && (
+                <p className="text-sm text-slate-500 flex items-center gap-1.5">
+                  <Phone size={13} className="shrink-0" /> {user.phoneNumber}
+                </p>
+              )}
+              {user.createdAt && (
+                <p className="text-sm text-slate-500 flex items-center gap-1.5">
+                  <Calendar size={13} className="shrink-0" />
+                  Joined {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Pharmacy Section — only for MANAGER and PHARMACIST */}
+        {(user.role === 'MANAGER' || user.role === 'PHARMACIST') && (
+          <div className="px-6 py-5">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Building2 size={13} /> Pharmacy
+            </p>
+
+            {pharmacy === 'loading' ? (
+              <div className="flex items-center gap-2 text-slate-400 py-4">
+                <Loader2 size={16} className="animate-spin" />
+                <span className="text-sm">Looking up pharmacy…</span>
+              </div>
+            ) : pharmacy === null ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center">
+                <Building2 size={24} className="mx-auto mb-2 text-slate-300" />
+                <p className="text-sm text-slate-400 font-medium">No pharmacy linked</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {user.role === 'PHARMACIST'
+                    ? 'This pharmacist may not be assigned to a pharmacy yet.'
+                    : 'No pharmacy found with this manager.'}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
+                <div className="flex items-start gap-3 p-4">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 shrink-0">
+                    <Building2 size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-slate-800 text-sm">{pharmacy.name}</p>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_STYLE[pharmacy.status] ?? 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                        {pharmacy.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">{pharmacy.licenseNumber}</p>
+                    {pharmacy.address && (
+                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                        <MapPin size={11} /> {pharmacy.address}
+                      </p>
+                    )}
+                    {pharmacy.contactInfo && (
+                      <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                        <Mail size={11} /> {pharmacy.contactInfo}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="px-4 pb-3 flex items-center justify-between">
+                  {user.role === 'MANAGER' && (
+                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                      <ShieldCheck size={11} className="text-teal-500" /> Manager of this pharmacy
+                    </p>
+                  )}
+                  {user.role === 'PHARMACIST' && (
+                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                      <ShieldCheck size={11} className="text-sky-500" /> Pharmacist at this pharmacy
+                    </p>
+                  )}
+                  <button
+                    onClick={() => router.push(`/super-admin/pharmacies/${pharmacy.id}`)}
+                    className="flex items-center gap-1 text-xs font-bold text-teal-600 hover:text-teal-800 transition"
+                  >
+                    View pharmacy <ExternalLink size={11} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AdminsPage() {
   const [users, setUsers] = useState<AdminUserResponse[]>([]);
@@ -19,6 +204,8 @@ export default function AdminsPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [page, setPage] = useState(0);
   const [toggling, setToggling] = useState<number | null>(null);
+  const [pharmacies, setPharmacies] = useState<PharmacyResponse[]>([]);
+  const [selectedUser, setSelectedUser] = useState<AdminUserResponse | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,6 +228,11 @@ export default function AdminsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Fetch pharmacies once for manager/pharmacist lookups
+  useEffect(() => {
+    getAllPharmacies().then(setPharmacies).catch(() => {});
+  }, []);
+
   const handleToggleStatus = async (user: AdminUserResponse) => {
     setToggling(user.id);
     try {
@@ -53,6 +245,8 @@ export default function AdminsPage() {
       setToggling(null);
     }
   };
+
+  const canViewProfile = (role: string) => role === 'MANAGER' || role === 'PHARMACIST';
 
   return (
     <>
@@ -108,7 +302,7 @@ export default function AdminsPage() {
                   <th className="px-6 py-4">Phone</th>
                   <th className="px-6 py-4">Joined</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-center">Toggle</th>
+                  <th className="px-6 py-4 text-center">Activate / Deactivate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -124,12 +318,20 @@ export default function AdminsPage() {
                           <p className="text-xs text-slate-400 flex items-center gap-1">
                             <Mail size={11} /> {user.email}
                           </p>
+                          {canViewProfile(user.role) && (
+                            <button
+                              onClick={() => setSelectedUser(user)}
+                              className="mt-0.5 text-[11px] font-bold text-teal-600 hover:text-teal-800 hover:underline transition flex items-center gap-1"
+                            >
+                              <Building2 size={11} /> View pharmacy
+                            </button>
+                          )}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                        {user.role}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${ROLE_STYLE[user.role] ?? 'bg-slate-100 text-slate-600'}`}>
+                        {user.role.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-500 text-xs">{user.phoneNumber ?? '—'}</td>
@@ -145,7 +347,7 @@ export default function AdminsPage() {
                       <button
                         onClick={() => handleToggleStatus(user)}
                         disabled={toggling === user.id}
-                        title={user.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        title={user.status === 'ACTIVE' ? 'Deactivate user' : 'Activate user'}
                         className="text-slate-400 hover:text-teal-600 transition disabled:opacity-50"
                       >
                         {toggling === user.id
@@ -177,6 +379,14 @@ export default function AdminsPage() {
           </div>
         </div>
       </div>
+
+      {selectedUser && (
+        <ProfileModal
+          user={selectedUser}
+          pharmacies={pharmacies}
+          onClose={() => setSelectedUser(null)}
+        />
+      )}
     </>
   );
 }

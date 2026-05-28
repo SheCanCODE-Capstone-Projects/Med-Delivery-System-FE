@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Loader2, Search, UserRound, Users } from "lucide-react";
-import PharmacyAdminLayout from "@/components/layout/PharmacyAdminLayout";
-import { getPharmacyPatients } from "@/services/pharmacyApi";
-import { getPharmacyId } from "@/services/authApi";
+import { getPharmacyPatients, getMyPharmacy } from "@/services/pharmacyApi";
 import type { PatientProfileResponse } from "@/types/api";
 
 export default function PharmacyPatientsPage() {
@@ -14,9 +12,8 @@ export default function PharmacyPatientsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const id = getPharmacyId();
-    if (!id) { setError("Pharmacy ID not found. Please log in again."); setLoading(false); return; }
-    getPharmacyPatients(id)
+    getMyPharmacy()
+      .then((pharmacy) => getPharmacyPatients(pharmacy.id))
       .then(setPatients)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load patients"))
       .finally(() => setLoading(false));
@@ -32,7 +29,7 @@ export default function PharmacyPatientsPage() {
     : patients;
 
   return (
-    <PharmacyAdminLayout>
+    <>
       <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Our Patients</h1>
@@ -44,7 +41,6 @@ export default function PharmacyPatientsPage() {
         </div>
       </div>
 
-      {/* Search */}
       <div className="mb-6 relative w-72">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
         <input
@@ -79,7 +75,6 @@ export default function PharmacyPatientsPage() {
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Phone</th>
                   <th className="px-6 py-4">Date of Birth</th>
-                  <th className="px-6 py-4">Blood Type</th>
                   <th className="px-6 py-4">Allergies</th>
                 </tr>
               </thead>
@@ -97,18 +92,7 @@ export default function PharmacyPatientsPage() {
                     <td className="px-6 py-4 text-slate-500">{patient.email ?? "—"}</td>
                     <td className="px-6 py-4 text-slate-500">{patient.phoneNumber ?? "—"}</td>
                     <td className="px-6 py-4 text-slate-500">
-                      {patient.dateOfBirth
-                        ? new Date(patient.dateOfBirth).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      {patient.bloodType ? (
-                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-100">
-                          {patient.bloodType}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
+                      {patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-6 py-4 text-slate-500 max-w-[200px] truncate">
                       {patient.allergies || "—"}
@@ -120,6 +104,6 @@ export default function PharmacyPatientsPage() {
           </div>
         )}
       </div>
-    </PharmacyAdminLayout>
+    </>
   );
 }

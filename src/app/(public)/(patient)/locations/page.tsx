@@ -30,6 +30,7 @@ export default function LocationsPage() {
   const [form, setForm] = useState<LocationForm>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [gpsLoading, setGpsLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -55,8 +56,8 @@ export default function LocationsPage() {
   const openEdit = (loc: PatientLocationResponse) => {
     setEditingId(loc.id);
     setForm({
-      label: loc.label,
-      address: loc.address,
+      label: loc.label ?? "",
+      address: loc.manualAddress ?? "",
       latitude: loc.latitude != null ? String(loc.latitude) : "",
       longitude: loc.longitude != null ? String(loc.longitude) : "",
     });
@@ -73,18 +74,20 @@ export default function LocationsPage() {
 
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    if (!form.label.trim() || !form.address.trim()) {
-      setFormError("Label and address are required.");
+    if (!form.address.trim()) {
+      setFormError("Address is required.");
       return;
     }
     setSubmitting(true);
     setFormError("");
     try {
+      const hasCoords = !!(form.latitude && form.longitude);
       const payload = {
-        label: form.label.trim(),
-        address: form.address.trim(),
-        latitude: form.latitude ? parseFloat(form.latitude) : undefined,
-        longitude: form.longitude ? parseFloat(form.longitude) : undefined,
+        manualAddress: form.address.trim(),
+        label: form.label.trim() || undefined,
+        inputType: hasCoords ? ('GPS' as const) : ('MANUAL' as const),
+        latitude: hasCoords ? parseFloat(form.latitude) : undefined,
+        longitude: hasCoords ? parseFloat(form.longitude) : undefined,
       };
       if (editingId != null) {
         await updateLocation(editingId, payload);
@@ -108,6 +111,53 @@ export default function LocationsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove location");
     }
+  };
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) { setFormError("Geolocation is not supported by your browser."); return; }
+    setGpsLoading(true);
+    setFormError("");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        setForm((f) => ({
+          ...f,
+          latitude: String(lat),
+          longitude: String(lon),
+        }));
+        // Reverse geocode to fill address automatically
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.display_name) {
+              // Build a clean short address from components
+              const a = data.address ?? {};
+              const parts = [
+                a.road || a.pedestrian || a.footway,
+                a.suburb || a.neighbourhood || a.quarter,
+                a.city || a.town || a.village || a.county,
+                a.country,
+              ].filter(Boolean);
+              const address = parts.length > 0 ? parts.join(", ") : data.display_name;
+              setForm((f) => ({ ...f, address }));
+            }
+          }
+        } catch {
+          // silently ignore — user can type address manually
+        }
+        setGpsLoading(false);
+      },
+      () => {
+        setFormError("Could not detect location. Please allow location access and try again.");
+        setGpsLoading(false);
+      },
+      { timeout: 10000 }
+    );
   };
 
   const handleSetDefault = async (id: number) => {
@@ -160,7 +210,7 @@ export default function LocationsPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Label
+                    Label <span className="font-normal text-slate-400">(optional)</span>
                   </label>
                   <input
                     value={form.label}
@@ -180,30 +230,38 @@ export default function LocationsPage() {
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                      Latitude <span className="font-normal text-slate-400">(optional)</span>
-                    </label>
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-700">
+                      GPS Coordinates <span className="font-normal text-slate-400">(optional)</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleGetLocation}
+                      disabled={gpsLoading}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 text-xs font-bold text-teal-700 hover:bg-teal-100 transition disabled:opacity-60"
+                    >
+                      {gpsLoading
+                        ? <Loader2 size={12} className="animate-spin" />
+                        : <MapPin size={12} />}
+                      {gpsLoading ? "Getting address…" : "Use my location"}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <input
                       type="number"
                       step="any"
                       value={form.latitude}
                       onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
-                      placeholder="-1.9403"
+                      placeholder="Latitude (e.g. -1.9403)"
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                      Longitude <span className="font-normal text-slate-400">(optional)</span>
-                    </label>
                     <input
                       type="number"
                       step="any"
                       value={form.longitude}
                       onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
-                      placeholder="29.8739"
+                      placeholder="Longitude (e.g. 29.8739)"
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                     />
                   </div>
@@ -262,14 +320,18 @@ export default function LocationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-slate-800 text-sm">{loc.label}</p>
+                      <p className="font-semibold text-slate-800 text-sm truncate">
+                        {loc.label || loc.manualAddress || "—"}
+                      </p>
                       {loc.isDefault && (
-                        <span className="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold">
+                        <span className="shrink-0 px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold">
                           Default
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">{loc.address}</p>
+                    {loc.label && loc.manualAddress && (
+                      <p className="text-xs text-slate-500 mt-0.5 truncate">{loc.manualAddress}</p>
+                    )}
                     {loc.latitude != null && loc.longitude != null && (
                       <p className="text-xs text-slate-400 mt-0.5">
                         {loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}

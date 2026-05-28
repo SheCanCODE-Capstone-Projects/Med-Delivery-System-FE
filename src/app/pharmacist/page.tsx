@@ -1,31 +1,46 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ClipboardCheck, Loader2, AlertCircle, Pill, CheckCircle2, Clock, RefreshCw, ChevronRight } from 'lucide-react';
+import {
+  ClipboardCheck, Loader2, AlertCircle, Pill,
+  CheckCircle2, Clock, RefreshCw, ChevronRight,
+  PackageSearch, Truck, FileText, Activity,
+  AlertTriangle, TrendingUp, Zap,
+} from 'lucide-react';
 import { getAssignedOrders, validatePrescription, confirmStock, dispenseMedicine } from '@/services/pharmacistApi';
 import type { DispensingOrderResponse } from '@/types/api';
+import { getUserName } from '@/services/authApi';
 
-const STATUS_STYLE: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 border-amber-100',
-  CONFIRMED: 'bg-sky-50 text-sky-700 border-sky-100',
-  PROCESSING: 'bg-violet-50 text-violet-700 border-violet-100',
-  DISPENSED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-  COMPLETED: 'bg-teal-50 text-teal-700 border-teal-100',
-  CANCELLED: 'bg-rose-50 text-rose-700 border-rose-100',
+const STATUS_STYLE: Record<string, { pill: string; dot: string; label: string }> = {
+  PENDING:    { pill: 'bg-amber-50 text-amber-700 border-amber-200',    dot: 'bg-amber-400',   label: 'Pending' },
+  CONFIRMED:  { pill: 'bg-sky-50 text-sky-700 border-sky-200',          dot: 'bg-sky-400',     label: 'Confirmed' },
+  PROCESSING: { pill: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-400',  label: 'Processing' },
+  DISPENSED:  { pill: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400', label: 'Dispensed' },
+  COMPLETED:  { pill: 'bg-teal-50 text-teal-700 border-teal-200',       dot: 'bg-teal-400',    label: 'Completed' },
+  CANCELLED:  { pill: 'bg-rose-50 text-rose-700 border-rose-200',       dot: 'bg-rose-400',    label: 'Cancelled' },
 };
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export default function PharmacistDashboard() {
   const [orders, setOrders] = useState<DispensingOrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => { setUserName(getUserName()); }, []);
 
   const load = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getAssignedOrders();
-      setOrders(data);
+      setOrders(await getAssignedOrders());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load orders');
     } finally {
@@ -35,9 +50,11 @@ export default function PharmacistDashboard() {
 
   useEffect(() => { load(); }, []);
 
-  const pending = orders.filter((o) => o.status === 'PENDING');
+  const pending    = orders.filter((o) => o.status === 'PENDING');
   const inProgress = orders.filter((o) => o.status === 'CONFIRMED' || o.status === 'PROCESSING');
-  const completed = orders.filter((o) => o.status === 'DISPENSED' || o.status === 'COMPLETED');
+  const completed  = orders.filter((o) => o.status === 'DISPENSED' || o.status === 'COMPLETED');
+  const activeOrders = orders.filter((o) => !['DISPENSED', 'COMPLETED', 'CANCELLED'].includes(o.status));
+  const needsRx    = activeOrders.filter((o) => o.status === 'PENDING');
 
   const handleAction = async (order: DispensingOrderResponse) => {
     setActionLoading(order.id);
@@ -64,108 +81,198 @@ export default function PharmacistDashboard() {
     return null;
   };
 
-  const activeOrders = orders.filter((o) => !['DISPENSED', 'COMPLETED', 'CANCELLED'].includes(o.status));
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const displayName = userName ?? 'Pharmacist';
 
   return (
-    <div>
-      <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Dispensing Dashboard</h1>
-          <p className="text-slate-500 mt-1">Your assigned orders and dispensing queue.</p>
+    <div className="space-y-6">
+
+      {/* Workstation Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-8 flex flex-wrap items-center justify-between gap-4">
+        {/* subtle dot pattern */}
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+        <div className="relative flex items-center gap-5">
+          <div className="h-14 w-14 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+            <Pill className="text-white" size={26} />
+          </div>
+          <div>
+            <p className="text-teal-100 text-xs font-semibold tracking-widest uppercase">{getGreeting()}</p>
+            <h1 className="text-white text-2xl font-bold leading-tight">{displayName}</h1>
+            <p className="text-teal-100 text-sm mt-0.5">{today} · Pharmacist Portal</p>
+          </div>
         </div>
-        <button
-          onClick={load}
-          className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
-        >
-          <RefreshCw size={15} /> Refresh
-        </button>
+
+        <div className="relative flex items-center gap-3 flex-wrap">
+          {needsRx.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/20 border border-white/20">
+              <AlertTriangle size={14} className="text-white" />
+              <span className="text-white text-xs font-semibold">{needsRx.length} Rx awaiting validation</span>
+            </div>
+          )}
+          <button
+            onClick={load}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 border border-white/20 text-white text-sm font-semibold transition"
+          >
+            <RefreshCw size={14} /> Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex gap-2">
-          <AlertCircle size={16} /> {error}
+        <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm font-semibold flex gap-2">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Awaiting Action', value: pending.length, icon: Clock, color: 'text-amber-600 bg-amber-50', href: '/pharmacist/orders' },
-          { label: 'In Progress', value: inProgress.length, icon: ClipboardCheck, color: 'text-violet-600 bg-violet-50', href: '/pharmacist/orders' },
-          { label: 'Completed', value: completed.length, icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50', href: '/pharmacist/history' },
+          { label: 'Awaiting Action', value: pending.length,    icon: Clock,         accent: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100',  href: '/pharmacist/orders' },
+          { label: 'In Progress',     value: inProgress.length, icon: Activity,      accent: 'text-violet-600',  bg: 'bg-violet-50',  border: 'border-violet-100', href: '/pharmacist/orders' },
+          { label: 'Dispensed Today', value: completed.length,  icon: CheckCircle2,  accent: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100',href: '/pharmacist/history' },
+          { label: 'Total Assigned',  value: orders.length,     icon: TrendingUp,    accent: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-100',   href: '/pharmacist/orders' },
         ].map((card) => (
-          <Link
-            key={card.label}
-            href={card.href}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:border-teal-200 hover:shadow-md transition flex items-center gap-4"
+          <Link key={card.label} href={card.href}
+            className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:shadow-md hover:border-teal-200 transition group"
           >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${card.color}`}>
-              <card.icon size={22} />
+            <div className="flex items-start justify-between mb-3">
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${card.bg} ${card.border} border`}>
+                <card.icon size={17} className={card.accent} />
+              </div>
+              <ChevronRight size={14} className="text-slate-300 group-hover:text-teal-500 transition mt-1" />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">{loading ? '—' : card.value}</p>
-              <p className="text-sm text-slate-500 font-medium">{card.label}</p>
-            </div>
+            <p className="text-2xl font-bold text-slate-800">{loading ? <span className="text-slate-300">—</span> : card.value}</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">{card.label}</p>
           </Link>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-800">Active Queue</h2>
-          <Link href="/pharmacist/orders" className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
-            View all <ChevronRight size={14} />
-          </Link>
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        {/* Dispensing Queue — left 2/3 */}
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+              <h2 className="text-sm font-bold text-slate-800">Live Dispensing Queue</h2>
+            </div>
+            <Link href="/pharmacist/orders" className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
+              View all <ChevronRight size={13} />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16 gap-3 text-slate-400">
+              <Loader2 className="animate-spin" size={20} />
+              <span className="text-sm">Loading queue…</span>
+            </div>
+          ) : activeOrders.length === 0 ? (
+            <div className="py-16 text-center text-slate-400">
+              <CheckCircle2 size={36} className="mx-auto mb-3 opacity-30 text-teal-400" />
+              <p className="font-semibold text-sm">Queue is clear</p>
+              <p className="text-xs mt-1">No active orders right now.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {activeOrders.slice(0, 8).map((order) => {
+                const st = STATUS_STYLE[order.status];
+                const actionLabel = getActionLabel(order);
+                return (
+                  <div key={order.id} className="flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50/70 transition">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${st?.dot ?? 'bg-slate-300'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <p className="font-semibold text-slate-800 text-sm truncate">{order.patientName}</p>
+                        {order.prescriptionUrl && (
+                          <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-violet-50 text-violet-600 border border-violet-100 rounded">Rx</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 truncate">
+                        #{order.id}
+                        {order.medicines?.length ? ` · ${order.medicines.map((m) => m.medicineName).join(', ')}` : ''}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border ${st?.pill ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                      {st?.label ?? order.status}
+                    </span>
+                    {actionLabel && (
+                      <button
+                        onClick={() => handleAction(order)}
+                        disabled={actionLoading === order.id}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 disabled:opacity-50 transition"
+                      >
+                        {actionLoading === order.id && <Loader2 size={11} className="animate-spin" />}
+                        {actionLabel}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/40 flex items-center justify-between">
+            <span className="text-xs text-slate-400">{activeOrders.length} active order{activeOrders.length !== 1 ? 's' : ''}</span>
+            {activeOrders.length > 8 && (
+              <Link href="/pharmacist/orders" className="text-xs font-semibold text-teal-600 hover:underline">
+                +{activeOrders.length - 8} more
+              </Link>
+            )}
+          </div>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16 gap-3 text-slate-400">
-            <Loader2 className="animate-spin" size={22} />
-            <span>Loading queue...</span>
-          </div>
-        ) : activeOrders.length === 0 ? (
-          <div className="py-16 text-center text-slate-400">
-            <Pill size={36} className="mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No active orders in your queue.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {activeOrders.slice(0, 8).map((order) => {
-              const actionLabel = getActionLabel(order);
-              return (
-                <div key={order.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/60 transition">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="font-semibold text-slate-800 text-sm">{order.patientName}</p>
-                      {order.prescriptionUrl && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-violet-50 text-violet-600 border border-violet-100 rounded">Rx</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      Order #{order.id}
-                      {order.medicines && order.medicines.length > 0 && ` · ${order.medicines.map((m) => m.medicineName).join(', ')}`}
-                    </p>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ${STATUS_STYLE[order.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                    {order.status}
-                  </span>
-                  {actionLabel && (
-                    <button
-                      onClick={() => handleAction(order)}
-                      disabled={actionLoading === order.id}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 disabled:opacity-50 transition shrink-0"
-                    >
-                      {actionLoading === order.id ? <Loader2 size={12} className="animate-spin" /> : null}
-                      {actionLabel}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {/* Right Panel */}
+        <div className="space-y-4">
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
-          {activeOrders.length} active order{activeOrders.length !== 1 ? 's' : ''}
+          {/* Quick Actions */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Zap size={15} className="text-teal-500" />
+              <h3 className="text-sm font-bold text-slate-800">Quick Actions</h3>
+            </div>
+            <div className="space-y-2">
+              {[
+                { href: '/pharmacist/prescriptions', icon: FileText,      label: 'Review Prescriptions', accent: 'text-violet-600 bg-violet-50 border-violet-100' },
+                { href: '/pharmacist/inventory',     icon: PackageSearch,  label: 'Check Inventory',      accent: 'text-sky-600 bg-sky-50 border-sky-100' },
+                { href: '/pharmacist/delivery',      icon: Truck,          label: 'Track Deliveries',     accent: 'text-amber-600 bg-amber-50 border-amber-100' },
+                { href: '/pharmacist/orders',        icon: ClipboardCheck, label: 'All Orders',           accent: 'text-teal-600 bg-teal-50 border-teal-100' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-slate-100 hover:border-teal-200 hover:bg-teal-50/30 transition group"
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${item.accent} shrink-0`}>
+                    <item.icon size={15} />
+                  </div>
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-teal-700 flex-1">{item.label}</span>
+                  <ChevronRight size={14} className="text-slate-300 group-hover:text-teal-500 transition" />
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Workflow Guide */}
+          <div className="bg-gradient-to-br from-teal-600 to-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-3">Dispensing Workflow</p>
+            <div className="space-y-3">
+              {[
+                { step: '01', label: 'Validate Rx', desc: 'Verify prescription details' },
+                { step: '02', label: 'Confirm Stock', desc: 'Check medicine availability' },
+                { step: '03', label: 'Dispense', desc: 'Release to patient / delivery' },
+              ].map((s) => (
+                <div key={s.step} className="flex items-start gap-3">
+                  <span className="text-xs font-bold text-teal-300 w-6 shrink-0 mt-0.5">{s.step}</span>
+                  <div>
+                    <p className="text-sm font-semibold leading-tight">{s.label}</p>
+                    <p className="text-teal-200 text-xs">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
