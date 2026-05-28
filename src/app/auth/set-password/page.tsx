@@ -10,8 +10,9 @@ import { KeyRound, Eye, EyeOff } from "lucide-react";
 function SetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const username = searchParams.get("username") ?? "";
 
+  const [otp, setOtp] = useState("");
   const [password, setPass] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,12 +20,16 @@ function SetPasswordForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!token) {
-      setError("Invalid or missing activation token. Please use the link from your email.");
+    if (!username) {
+      setError("Invalid activation link. Please use the link sent to your email.");
+      return;
+    }
+    if (!otp) {
+      setError("Please enter the OTP sent to your email.");
       return;
     }
     if (password.length < 8) {
@@ -38,7 +43,7 @@ function SetPasswordForm() {
 
     setLoading(true);
     try {
-      const auth = await setPassword({ token, password });
+      const auth = await setPassword({ username, otp, password });
       setSuccess(true);
       setTimeout(() => router.push(roleToRoute(auth.role)), 1500);
     } catch (err) {
@@ -64,7 +69,7 @@ function SetPasswordForm() {
         </div>
 
         <p className="text-sm text-slate-500 mb-6">
-          Create a secure password to activate your account. You were invited by your pharmacy admin.
+          Enter the OTP sent to your email and create a secure password to activate your account.
         </p>
 
         {error && (
@@ -79,6 +84,18 @@ function SetPasswordForm() {
         )}
 
         <form onSubmit={handleSubmit} className="grid gap-4">
+          <label className="grid gap-2">
+            <span className="text-sm font-bold text-slate-600">OTP Code</span>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter OTP from your email"
+              disabled={loading || success}
+              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-hidden transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+            />
+          </label>
+
           <label className="grid gap-2">
             <span className="text-sm font-bold text-slate-600">New Password</span>
             <div className="relative">

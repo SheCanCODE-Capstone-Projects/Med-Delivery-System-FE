@@ -163,6 +163,7 @@ export interface InsuranceProvider {
 export interface PaymentResponse {
   id: number;
   orderId: number;
+  patientName?: string;
   totalAmount: number;
   insuranceAmount: number;
   patientAmount: number;
