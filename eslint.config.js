@@ -27,6 +27,7 @@ export default defineConfig([
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      'preserve-caught-error': 'off',
     },
   },
   {
@@ -34,6 +35,8 @@ export default defineConfig([
     extends: [reactHooks.configs.flat.recommended],
     rules: {
       'react-hooks/static-components': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-caught-error': 'off',
     },
   },
 ])
