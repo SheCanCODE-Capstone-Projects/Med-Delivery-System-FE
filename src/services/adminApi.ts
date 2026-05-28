@@ -19,8 +19,10 @@ import type {
 } from '@/types/api';
 
 export async function getDashboardStats(): Promise<DashboardStatsResponse> {
-  const res = await apiClient<ApiResponse<DashboardStatsResponse>>('/api/admin/dashboard/stats');
-  return res.data;
+  const res = await apiClient<unknown>('/api/admin/dashboard/stats');
+  const typed = res as ApiResponse<DashboardStatsResponse>;
+  if (typed?.data && typeof typed.data === 'object') return typed.data;
+  return res as DashboardStatsResponse;
 }
 
 export async function searchUsers(
@@ -84,6 +86,32 @@ export async function getAllInsuranceProviders(): Promise<InsuranceProvider[]> {
   return res.data;
 }
 
+export interface InsuranceProviderRequest {
+  name: string;
+  code: string;
+  coveragePercentage: number;
+}
+
+export async function createInsuranceProvider(data: InsuranceProviderRequest): Promise<InsuranceProvider> {
+  const res = await apiClient<ApiResponse<InsuranceProvider>>('/api/admin/insurance-providers', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function updateInsuranceProvider(id: number, data: InsuranceProviderRequest): Promise<InsuranceProvider> {
+  const res = await apiClient<ApiResponse<InsuranceProvider>>(`/api/admin/insurance-providers/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function deleteInsuranceProvider(id: number): Promise<void> {
+  await apiClient<ApiResponse<void>>(`/api/admin/insurance-providers/${id}`, { method: 'DELETE' });
+}
+
 export async function getGlobalOrders(
   page = 0,
   size = 20,
@@ -135,8 +163,11 @@ export async function getLowStockAlerts(threshold = 5): Promise<unknown[]> {
 }
 
 export async function getAuditLogs(): Promise<AuditLogResponse[]> {
-  const res = await apiClient<ApiResponse<AuditLogResponse[]>>('/api/admin/audit-logs');
-  return res.data;
+  const res = await apiClient<unknown>('/api/admin/audit-logs');
+  const typed = res as ApiResponse<AuditLogResponse[]>;
+  if (Array.isArray(typed?.data)) return typed.data;
+  if (Array.isArray(res)) return res as AuditLogResponse[];
+  return [];
 }
 
 export async function getAnalyticsReport(
@@ -172,6 +203,14 @@ export async function processInsuranceClaim(
   return res.data;
 }
 
+export async function getAllAdminInsuranceCards(status?: string): Promise<InsuranceCardResponse[]> {
+  const params = status ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await apiClient<ApiResponse<InsuranceCardResponse[]>>(
+    `/api/admin/insurance-cards${params}`
+  );
+  return res.data;
+}
+
 export async function verifyInsuranceCard(
   id: number,
   coveragePercentage: number
@@ -180,5 +219,32 @@ export async function verifyInsuranceCard(
     `/api/admin/insurance-cards/${id}/verify?coveragePercentage=${coveragePercentage}`,
     { method: 'POST' }
   );
+  return res.data;
+}
+
+export async function rejectInsuranceCard(
+  id: number,
+  notes?: string
+): Promise<InsuranceCardResponse> {
+  const params = notes ? `?notes=${encodeURIComponent(notes)}` : '';
+  const res = await apiClient<ApiResponse<InsuranceCardResponse>>(
+    `/api/admin/insurance-cards/${id}/reject${params}`,
+    { method: 'POST' }
+  );
+  return res.data;
+}
+
+export async function getAdminProfile(): Promise<AdminUserResponse> {
+  const res = await apiClient<ApiResponse<AdminUserResponse>>('/api/admin/me');
+  return res.data;
+}
+
+export async function updateAdminProfile(
+  data: { fullName?: string; phoneNumber?: string }
+): Promise<AdminUserResponse> {
+  const res = await apiClient<ApiResponse<AdminUserResponse>>('/api/admin/me', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
   return res.data;
 }

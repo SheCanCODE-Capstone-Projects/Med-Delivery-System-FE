@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, Save, UserRound } from "lucide-react";
+import { Camera, Loader2, Phone, Save, UserRound } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
 import { getMyProfile, updateProfile, uploadProfileImage } from "@/services/patientApi";
 import type { PatientProfileResponse } from "@/types/api";
@@ -17,20 +17,24 @@ export default function ProfilePage() {
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
   const [bloodType, setBloodType] = useState("");
   const [allergies, setAllergies] = useState("");
+  const [medicalNotes, setMedicalNotes] = useState("");
 
   useEffect(() => {
     getMyProfile()
       .then((p) => {
         setProfile(p);
         setFullName(p.fullName ?? "");
+        setPhoneNumber(p.phoneNumber ?? "");
         setDateOfBirth(p.dateOfBirth ?? "");
         setGender(p.gender ?? "");
         setBloodType(p.bloodType ?? "");
         setAllergies(p.allergies ?? "");
+        setMedicalNotes(p.medicalNotes ?? "");
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load profile"))
       .finally(() => setLoading(false));
@@ -44,10 +48,12 @@ export default function ProfilePage() {
     try {
       const updated = await updateProfile({
         fullName: fullName.trim() || undefined,
+        phoneNumber: phoneNumber.trim() || undefined,
         dateOfBirth: dateOfBirth || undefined,
         gender: gender || undefined,
         bloodType: bloodType || undefined,
         allergies: allergies.trim() || undefined,
+        medicalNotes: medicalNotes.trim() || undefined,
       });
       setProfile(updated);
       setSuccess(true);
@@ -80,7 +86,9 @@ export default function ProfilePage() {
       <div className="max-w-2xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-800">My Profile</h1>
-          <p className="text-slate-500 mt-1 text-sm">Keep your health information up to date for pharmacists.</p>
+          <p className="text-slate-500 mt-1 text-sm">
+            Keep your health information up to date. Phone number is required for delivery and OTP verification.
+          </p>
         </div>
 
         {loading ? (
@@ -93,7 +101,7 @@ export default function ProfilePage() {
             {/* Avatar + upload */}
             <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
               <div className="relative">
-                <div className="h-16 w-16 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center overflow-hidden">
+                <div className="h-20 w-20 rounded-full bg-teal-50 border-2 border-teal-100 flex items-center justify-center overflow-hidden">
                   {profile?.profileImageUrl ? (
                     <img
                       src={profile.profileImageUrl}
@@ -101,19 +109,19 @@ export default function ProfilePage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <UserRound className="h-8 w-8 text-teal-600" />
+                    <UserRound className="h-9 w-9 text-teal-600" />
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => imgInputRef.current?.click()}
                   disabled={imgUploading}
-                  className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-teal-600 border-2 border-white flex items-center justify-center hover:bg-teal-700 transition disabled:opacity-60"
+                  className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-teal-600 border-2 border-white flex items-center justify-center hover:bg-teal-700 transition disabled:opacity-60 shadow"
                   title="Change photo"
                 >
                   {imgUploading
-                    ? <Loader2 size={10} className="animate-spin text-white" />
-                    : <Camera size={10} className="text-white" />}
+                    ? <Loader2 size={12} className="animate-spin text-white" />
+                    : <Camera size={12} className="text-white" />}
                 </button>
                 <input
                   ref={imgInputRef}
@@ -125,8 +133,21 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-lg font-bold text-slate-800">{profile?.fullName ?? "—"}</p>
-                <p className="text-sm text-slate-500">{profile?.email ?? profile?.phoneNumber ?? "—"}</p>
+                <p className="text-sm text-slate-500">{profile?.email ?? "—"}</p>
+                {profile?.phoneNumber && (
+                  <p className="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
+                    <Phone size={12} /> {profile.phoneNumber}
+                  </p>
+                )}
                 {imgError && <p className="text-xs text-rose-600 mt-1">{imgError}</p>}
+                <button
+                  type="button"
+                  onClick={() => imgInputRef.current?.click()}
+                  disabled={imgUploading}
+                  className="mt-2 text-xs font-semibold text-teal-600 hover:text-teal-800 transition"
+                >
+                  {imgUploading ? "Uploading…" : "Change photo"}
+                </button>
               </div>
             </div>
 
@@ -148,8 +169,22 @@ export default function ProfilePage() {
                   <input
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Your full name"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Phone Number <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="+250 700 000 000"
+                    type="tel"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Required for delivery and OTP verification.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date of Birth</label>
@@ -193,7 +228,17 @@ export default function ProfilePage() {
                   value={allergies}
                   onChange={(e) => setAllergies(e.target.value)}
                   placeholder="List any known allergies (medications, foods, etc.)"
-                  rows={3}
+                  rows={2}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Medical Notes</label>
+                <textarea
+                  value={medicalNotes}
+                  onChange={(e) => setMedicalNotes(e.target.value)}
+                  placeholder="Chronic conditions, ongoing treatments, or notes for the pharmacist…"
+                  rows={2}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none"
                 />
               </div>

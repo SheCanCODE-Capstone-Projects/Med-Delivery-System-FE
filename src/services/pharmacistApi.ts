@@ -4,6 +4,7 @@ import type {
   DispensingOrderResponse,
   SubstitutionResponse,
   ActionLogResponse,
+  PharmacistResponse,
 } from '@/types/api';
 
 interface ValidatePrescriptionRequest {
@@ -19,6 +20,13 @@ interface SuggestSubstitutionRequest {
 
 interface DispenseMedicineRequest {
   notes?: string;
+}
+
+export async function getMyProfile(): Promise<PharmacistResponse> {
+  const res = await apiClient<ApiResponse<PharmacistResponse>>(
+    '/api/pharmacist/dispensing/me'
+  );
+  return res.data;
 }
 
 export async function getAssignedOrders(): Promise<DispensingOrderResponse[]> {

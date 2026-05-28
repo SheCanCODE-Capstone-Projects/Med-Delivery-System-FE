@@ -282,15 +282,15 @@ export default function InsurancePage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0 mt-0.5">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                      card.verified
+                      card.status === "VERIFIED"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                         : card.status === "REJECTED"
                         ? "bg-rose-50 text-rose-700 border-rose-100"
                         : "bg-amber-50 text-amber-700 border-amber-100"
                     }`}>
-                      {card.verified ? "Verified" : card.status ?? "Pending"}
+                      {card.status === "VERIFIED" ? "Verified" : card.status === "REJECTED" ? "Rejected" : "Pending"}
                     </span>
-                    {!card.verified && (
+                    {card.status !== "VERIFIED" && (
                       <button
                         onClick={() => openEdit(card)}
                         className="p-1.5 text-slate-400 hover:text-teal-600 transition"

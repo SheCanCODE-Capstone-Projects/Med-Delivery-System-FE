@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, MapPin } from "lucide-react";
 import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
 import { registerPharmacy, getInsuranceProviders } from "@/services/pharmacyApi";
 import type { InsuranceProvider } from "@/types/api";
@@ -28,6 +28,8 @@ interface PharmacyForm {
   contactPhone: string;
   contactEmail: string;
   selectedProviderIds: number[];
+  latitude?: number;
+  longitude?: number;
 }
 
 interface ManagerForm {
@@ -125,10 +127,14 @@ export default function PharmacySignup() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("pharmacy");
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [insuranceProviders, setInsuranceProviders] = useState<InsuranceProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
+  const [providersError, setProvidersError] = useState(false);
+
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState("");
 
   const [pharmacy, setPharmacy] = useState<PharmacyForm>({
     name: "", pharmacyCode: "", licenseNumber: "",
@@ -141,7 +147,12 @@ export default function PharmacySignup() {
   });
 
   useEffect(() => {
-    getInsuranceProviders().then(setInsuranceProviders).catch(() => {});
+    setProvidersLoading(true);
+    setProvidersError(false);
+    getInsuranceProviders()
+      .then(setInsuranceProviders)
+      .catch(() => setProvidersError(true))
+      .finally(() => setProvidersLoading(false));
   }, []);
 
   const setP = (field: keyof PharmacyForm, value: string) => {
@@ -164,6 +175,23 @@ export default function PharmacySignup() {
     if (errors.insuranceProviders) setErrors((e) => ({ ...e, insuranceProviders: undefined }));
   };
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) { setGpsError("Geolocation is not supported by your browser."); return; }
+    setGpsLoading(true);
+    setGpsError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPharmacy((p) => ({ ...p, latitude: pos.coords.latitude, longitude: pos.coords.longitude }));
+        setGpsLoading(false);
+      },
+      () => {
+        setGpsError("Could not detect location. Please allow location access and try again.");
+        setGpsLoading(false);
+      },
+      { timeout: 10000 }
+    );
+  };
+
   const validatePharmacy = (): boolean => {
     const e: FormErrors = {};
     if (!pharmacy.name.trim()) e.name = "Pharmacy name is required.";
@@ -177,8 +205,7 @@ export default function PharmacySignup() {
       e.contactPhone = "Enter a valid phone number.";
     if (!pharmacy.contactEmail.trim()) e.contactEmail = "Email is required.";
     else if (!emailRe.test(pharmacy.contactEmail)) e.contactEmail = "Enter a valid email.";
-    if (pharmacy.selectedProviderIds.length === 0)
-      e.insuranceProviders = "Select at least one insurance provider.";
+    // Insurance providers are optional — they can be assigned after approval
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -206,39 +233,18 @@ export default function PharmacySignup() {
         managerName: manager.managerName,
         managerEmail: manager.managerEmail,
         insuranceProviderIds: pharmacy.selectedProviderIds,
+        ...(pharmacy.latitude != null && { latitude: pharmacy.latitude }),
+        ...(pharmacy.longitude != null && { longitude: pharmacy.longitude }),
       });
-      setSubmitted(true);
+      router.push(
+        `/auth/verify-otp?username=${encodeURIComponent(manager.managerEmail)}&after=pharmacy-submitted`
+      );
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  // ── Success screen ─────────────────────────────────────────────────────────
-  if (submitted) {
-    return (
-      <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.1),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)] flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white/85 backdrop-blur-xl rounded-3xl border border-white/70 shadow-[0_24px_56px_rgba(11,19,39,0.16)] p-10 text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-teal-50">
-            <CheckCircle2 className="h-8 w-8 text-teal-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900">Application submitted!</h2>
-          <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-            <span className="font-semibold text-slate-700">{pharmacy.name}</span> is pending review by the Super Admin.
-            Once approved, the manager will receive an activation email at{" "}
-            <span className="font-semibold text-slate-700">{manager.managerEmail}</span>.
-          </p>
-          <button
-            onClick={() => router.push("/auth/login")}
-            className="mt-6 w-full h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] hover:-translate-y-0.5 transition"
-          >
-            Back to sign in
-          </button>
-        </div>
-      </main>
-    );
-  }
 
   // ── Main layout ────────────────────────────────────────────────────────────
   return (
@@ -317,25 +323,70 @@ export default function PharmacySignup() {
                   <Field id="contactEmail" label="Email" type="email" placeholder="pharmacy@example.com" value={pharmacy.contactEmail} onChange={(v) => setP("contactEmail", v)} error={errors.contactEmail} required />
                 </div>
 
+                {/* GPS Location */}
                 <div className="grid gap-1.5">
-                  <span className="text-sm font-bold text-slate-600">
-                    Insurance providers <span className="text-rose-500">*</span>
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {insuranceProviders.length === 0 && (
-                      <p className="text-xs text-slate-400">Loading providers…</p>
+                  <span className="text-sm font-bold text-slate-600">GPS Location <span className="text-slate-400 font-normal">(optional)</span></span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleGetLocation}
+                      disabled={gpsLoading}
+                      className="flex items-center gap-2 h-10 px-4 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 hover:border-teal-400 hover:text-teal-700 transition disabled:opacity-60"
+                    >
+                      {gpsLoading
+                        ? <Loader2 size={15} className="animate-spin" />
+                        : <MapPin size={15} />}
+                      {gpsLoading ? "Detecting…" : pharmacy.latitude ? "Update location" : "Use my location"}
+                    </button>
+                    {pharmacy.latitude != null && pharmacy.longitude != null && (
+                      <span className="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-xl">
+                        {pharmacy.latitude.toFixed(5)}, {pharmacy.longitude.toFixed(5)}
+                      </span>
                     )}
-                    {insuranceProviders.map((p) => {
-                      const selected = pharmacy.selectedProviderIds.includes(p.id);
+                  </div>
+                  {gpsError && <p className="text-xs text-rose-600">{gpsError}</p>}
+                  <p className="text-xs text-slate-400">Helps patients find your pharmacy on the map accurately.</p>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-600">Insurance providers <span className="text-slate-400 font-normal">(optional)</span></span>
+                    {pharmacy.selectedProviderIds.length > 0 && (
+                      <span className="text-xs text-teal-600 font-semibold">{pharmacy.selectedProviderIds.length} selected</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {providersLoading && (
+                      <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                        <Loader2 size={12} className="animate-spin" /> Loading providers…
+                      </p>
+                    )}
+                    {!providersLoading && providersError && (
+                      <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+                        <p className="text-xs text-amber-700 font-semibold">Insurance providers could not be loaded.</p>
+                        <p className="text-xs text-amber-600 mt-0.5">You can still register — providers can be assigned after approval.</p>
+                      </div>
+                    )}
+                    {!providersLoading && !providersError && insuranceProviders.map((prov) => {
+                      const isSelected = pharmacy.selectedProviderIds.includes(prov.id);
                       return (
                         <button
-                          key={p.id} type="button" onClick={() => toggleInsurance(p.id)}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-xl border-2 transition
-                            ${selected
+                          key={prov.id}
+                          type="button"
+                          onClick={() => toggleInsurance(prov.id)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm font-semibold transition ${
+                            isSelected
                               ? "border-teal-500 bg-teal-50 text-teal-700"
-                              : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+                              : "border-slate-200 text-slate-500 hover:border-slate-300"
+                          }`}
                         >
-                          {p.name}
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition ${isSelected ? "border-teal-500 bg-teal-500" : "border-slate-300"}`}>
+                            {isSelected && <CheckCircle2 size={10} className="text-white" />}
+                          </div>
+                          {prov.name}
+                          {prov.coveragePercentage > 0 && (
+                            <span className={`text-xs font-bold ${isSelected ? "text-teal-500" : "text-slate-400"}`}>{prov.coveragePercentage}%</span>
+                          )}
                         </button>
                       );
                     })}
@@ -406,14 +457,21 @@ export default function PharmacySignup() {
                   <ReviewRow label="Address" value={pharmacy.address} />
                   <ReviewRow label="Phone" value={pharmacy.contactPhone} />
                   <ReviewRow label="Email" value={pharmacy.contactEmail} />
+                  {pharmacy.latitude != null && pharmacy.longitude != null && (
+                    <ReviewRow label="GPS" value={`${pharmacy.latitude.toFixed(5)}, ${pharmacy.longitude.toFixed(5)}`} />
+                  )}
                   <div className="flex items-start gap-3">
                     <span className="text-xs text-slate-400 w-20 shrink-0 pt-0.5">Insurance</span>
                     <div className="flex flex-wrap gap-1">
-                      {insuranceProviders
-                        .filter((p) => pharmacy.selectedProviderIds.includes(p.id))
-                        .map((p) => (
-                          <span key={p.id} className="text-xs bg-teal-50 text-teal-700 font-medium px-2 py-0.5 rounded-lg">{p.name}</span>
-                        ))}
+                      {pharmacy.selectedProviderIds.length === 0 ? (
+                        <span className="text-xs text-slate-400 italic">None selected — can be added after approval</span>
+                      ) : insuranceProviders
+                          .filter((p) => pharmacy.selectedProviderIds.includes(p.id))
+                          .map((p) => (
+                            <span key={p.id} className="text-xs bg-teal-50 text-teal-700 font-medium px-2 py-0.5 rounded-lg">
+                              {p.name}{p.coveragePercentage > 0 ? ` — ${p.coveragePercentage}%` : ""}
+                            </span>
+                          ))}
                     </div>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, getToken } from './apiClient';
 import type {
   ApiResponse,
   PharmacyResponse,
@@ -189,4 +189,40 @@ export async function markInsurancePending(insuranceCardId: number): Promise<voi
   await apiClient<ApiResponse<void>>(`/api/insurance/${insuranceCardId}/pending`, {
     method: 'PUT',
   });
+}
+
+// ─── Pharmacy Insurance Providers ─────────────────────────────────────────────
+
+export async function getPharmacyInsuranceProviders(pharmacyId: number): Promise<InsuranceProvider[]> {
+  const res = await apiClient<InsuranceProvider[] | ApiResponse<InsuranceProvider[]>>(
+    `/api/pharmacies/${pharmacyId}/insurance-providers`
+  );
+  if (Array.isArray(res)) return res;
+  return (res as ApiResponse<InsuranceProvider[]>).data ?? [];
+}
+
+export async function addPharmacyInsuranceProvider(pharmacyId: number, providerId: number): Promise<void> {
+  const res = await fetch(`/api/pharmacies/${pharmacyId}/insurance-providers/${providerId}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${getToken() ?? ''}` },
+  });
+  if (!res.ok) throw new Error(`Failed to add provider (${res.status})`);
+}
+
+export async function removePharmacyInsuranceProvider(pharmacyId: number, providerId: number): Promise<void> {
+  const res = await fetch(`/api/pharmacies/${pharmacyId}/insurance-providers/${providerId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${getToken() ?? ''}` },
+  });
+  if (!res.ok) throw new Error(`Failed to remove provider (${res.status})`);
+}
+
+// ─── Update Pharmacy Profile ──────────────────────────────────────────────────
+
+export async function updateMyPharmacy(data: { contactInfo?: string; address?: string }): Promise<PharmacyResponse> {
+  const res = await apiClient<ApiResponse<PharmacyResponse>>('/api/pharmacies/me', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+  return (res as ApiResponse<PharmacyResponse>).data ?? (res as unknown as PharmacyResponse);
 }

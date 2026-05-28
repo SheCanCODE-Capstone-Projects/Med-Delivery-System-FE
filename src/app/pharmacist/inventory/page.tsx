@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { PackageSearch, Loader2, AlertCircle, Search, RefreshCw, AlertTriangle } from 'lucide-react';
 import { getInventory } from '@/services/pharmacyApi';
 import { getPharmacyId } from '@/services/authApi';
+import { getMyProfile } from '@/services/pharmacistApi';
 import type { PharmacyInventoryResponse } from '@/types/api';
 
 export default function PharmacistInventoryPage() {
@@ -11,13 +12,21 @@ export default function PharmacistInventoryPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
-  const pharmacyId = getPharmacyId();
-
   const load = async () => {
-    if (!pharmacyId) { setLoading(false); return; }
     setLoading(true);
     setError('');
     try {
+      let pharmacyId: number | null = getPharmacyId();
+      if (!pharmacyId) {
+        const profile = await getMyProfile();
+        pharmacyId = profile.pharmacyId ?? null;
+        // persist for future loads
+        if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
+      }
+      if (!pharmacyId) {
+        setError('Could not determine your pharmacy. Please log out and log back in.');
+        return;
+      }
       setItems(await getInventory(pharmacyId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load inventory');

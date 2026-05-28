@@ -56,7 +56,7 @@ export async function registerPatient(data: RegisterRequest): Promise<string> {
 export async function sendOtp(username: string): Promise<string> {
   const res = await apiClient<ApiResponse<string>>(
     `/api/auth/send-otp?username=${encodeURIComponent(username)}`,
-    { method: 'POST', skipAuth: true }
+    { method: 'POST', skipAuth: true, timeoutMs: 60000 }
   );
   return res.message;
 }
@@ -66,12 +66,15 @@ export async function verifyOtp(data: OtpVerifyRequest): Promise<AuthResponse> {
     method: 'POST',
     body: JSON.stringify(data),
     skipAuth: true,
+    timeoutMs: 60000,
   });
   const auth = res.data;
+  const role = normalizeRole(auth.role);
   setTokens(auth.accessToken, auth.refreshToken);
-  localStorage.setItem('user_role', auth.role);
+  localStorage.setItem('user_role', role);
   if (auth.fullName) localStorage.setItem('user_name', auth.fullName);
-  return auth;
+  if (auth.pharmacyId) localStorage.setItem('pharmacy_id', String(auth.pharmacyId));
+  return { ...auth, role };
 }
 
 export async function setPassword(data: SetPasswordRequest): Promise<AuthResponse> {
@@ -79,6 +82,7 @@ export async function setPassword(data: SetPasswordRequest): Promise<AuthRespons
     method: 'POST',
     body: JSON.stringify(data),
     skipAuth: true,
+    timeoutMs: 60000,
   });
   const auth = res.data;
   setTokens(auth.accessToken, auth.refreshToken);
@@ -110,14 +114,13 @@ export async function resetPassword(data: ResetPasswordRequest): Promise<AuthRes
 
 export async function logout(): Promise<void> {
   const refreshToken = localStorage.getItem('refresh_token') ?? '';
-  try {
-    await apiClient<ApiResponse<string>>(
-      `/api/auth/logout?refreshToken=${encodeURIComponent(refreshToken)}`,
-      { method: 'POST' }
-    );
-  } finally {
-    clearTokens();
-  }
+  // Clear tokens immediately — UI redirects without waiting for the network
+  clearTokens();
+  // Fire backend logout in background to invalidate the refresh token
+  apiClient<ApiResponse<string>>(
+    `/api/auth/logout?refreshToken=${encodeURIComponent(refreshToken)}`,
+    { method: 'POST' }
+  ).catch(() => {});
 }
 
 export function getUserRole(): string | null {
