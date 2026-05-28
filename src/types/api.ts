@@ -173,6 +173,7 @@ export interface PaymentResponse {
   failureReason?: string;
   createdAt: string;
   paidAt?: string;
+  patientName?: string;
 }
 
 export interface InsuranceCardResponse {

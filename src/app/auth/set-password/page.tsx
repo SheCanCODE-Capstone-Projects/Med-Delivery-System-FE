@@ -38,7 +38,11 @@ function SetPasswordForm() {
 
     setLoading(true);
     try {
-      const auth = await setPassword({ token, password });
+      const auth =await setPassword({
+        username: "",
+        otp: token,
+        password
+      });
       setSuccess(true);
       setTimeout(() => router.push(roleToRoute(auth.role)), 1500);
     } catch (err) {

@@ -41,7 +41,11 @@ function SetPasswordStep({
     setLoading(true);
     setError("");
     try {
-      await setPassword({ username, otp, password });
+      await setPassword({
+        username,
+        otp,
+        password
+      });
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to set password. Please try again.");
