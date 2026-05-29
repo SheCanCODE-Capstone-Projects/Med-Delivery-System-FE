@@ -130,7 +130,7 @@ export default function PharmacistPrescriptionsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <a
-                      href={`${BASE_URL}${order.prescriptionUrl}`}
+                      href={order.prescriptionUrl?.startsWith('http') ? order.prescriptionUrl : `${BASE_URL}${order.prescriptionUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-teal-600 text-xs font-semibold hover:text-teal-700"
