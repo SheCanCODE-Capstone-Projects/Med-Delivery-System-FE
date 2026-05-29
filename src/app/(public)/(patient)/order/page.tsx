@@ -262,14 +262,14 @@ export default function OrderingForm() {
           )}
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {requestType === "prescription" && insuranceCards.length > 0 && (
+            {requestType === "prescription" && insuranceCards.some((c) => c.status === "VERIFIED") && (
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-slate-700">Insurance card</span>
                 <select value={selectedInsuranceId} onChange={(e) => setSelectedInsuranceId(e.target.value ? Number(e.target.value) : "")}
                   className="min-h-12 rounded-2xl border border-slate-200 bg-white px-4 outline-hidden focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15">
                   <option value="">No insurance</option>
-                  {insuranceCards.map((c) => (
-                    <option key={c.id} value={c.id}>{c.providerName} — {c.memberId} {c.verified ? "✓" : "(pending)"}</option>
+                  {insuranceCards.filter((c) => c.status === "VERIFIED").map((c) => (
+                    <option key={c.id} value={c.id}>{c.providerName} — {c.memberId} ✓ ({c.coveragePercentage}% covered)</option>
                   ))}
                 </select>
               </label>
