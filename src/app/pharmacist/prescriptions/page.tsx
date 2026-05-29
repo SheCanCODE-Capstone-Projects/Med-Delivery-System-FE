@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Pill, Loader2, AlertCircle, RefreshCw, Search, ExternalLink } from 'lucide-react';
 import { getAssignedOrders, validatePrescription } from '@/services/pharmacistApi';
+import { BASE_URL } from '@/services/apiClient';
 import type { DispensingOrderResponse } from '@/types/api';
 
 const VALIDATION_STYLE: Record<string, string> = {
@@ -129,7 +130,7 @@ export default function PharmacistPrescriptionsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <a
-                      href={order.prescriptionUrl}
+                      href={`${BASE_URL}${order.prescriptionUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-teal-600 text-xs font-semibold hover:text-teal-700"
