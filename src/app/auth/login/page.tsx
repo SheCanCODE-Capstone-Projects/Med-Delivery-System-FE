@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Phone, MessageSquare } from "lucide-react";
 import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
-import { login, roleToRoute } from "@/services/authApi";
+import { login, firebasePhoneLogin, roleToRoute } from "@/services/authApi";
 import { BASE_URL } from "@/services/apiClient";
+import { isFirebaseConfigured, sendPhoneOtp, confirmPhoneOtp } from "@/services/firebaseAuth";
+import type { ConfirmationResult } from "firebase/auth";
 
 const trustPoints = [
   "Insurance verification built in",
@@ -24,12 +26,26 @@ function normalizeIdentifier(value: string) {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [tab, setTab] = useState<"password" | "phone">("password");
+
+  // Password-based login state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const isSigningInRef = useRef(false);
+
+  // Phone OTP (Firebase) state
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+  const confirmationRef = useRef<ConfirmationResult | null>(null);
+
+  const firebaseReady = isFirebaseConfigured();
 
   const normalizedUsername = useMemo(() => normalizeIdentifier(username), [username]);
 
@@ -67,8 +83,42 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = () => {
-    // Spring Security OAuth2 authorization endpoint
     window.location.href = `${BASE_URL}/oauth2/authorization/google`;
+  };
+
+  const handleSendOtp = async () => {
+    setPhoneError("");
+    const phone = phoneNumber.trim();
+    if (!phonePattern.test(phone)) {
+      setPhoneError("Enter a valid phone number starting with + and country code (e.g. +1234567890).");
+      return;
+    }
+    setSendingOtp(true);
+    try {
+      const result = await sendPhoneOtp(phone, "recaptcha-container");
+      confirmationRef.current = result;
+      setOtpSent(true);
+    } catch (e) {
+      setPhoneError(e instanceof Error ? e.message : "Failed to send OTP. Check the phone number and try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setPhoneError("");
+    if (!confirmationRef.current) { setPhoneError("Send OTP first."); return; }
+    if (otp.trim().length < 6) { setPhoneError("Enter the 6-digit OTP."); return; }
+    setVerifyingOtp(true);
+    try {
+      const firebaseToken = await confirmPhoneOtp(confirmationRef.current, otp.trim());
+      const response = await firebasePhoneLogin(firebaseToken);
+      router.push(roleToRoute(response.role));
+    } catch (e) {
+      setPhoneError(e instanceof Error ? e.message : "OTP verification failed. Please try again.");
+    } finally {
+      setVerifyingOtp(false);
+    }
   };
 
   return (
@@ -119,82 +169,141 @@ export default function LoginPage() {
               <h2 className="mt-2 text-[2rem] leading-none font-semibold tracking-tighter text-slate-900">
                 Welcome back
               </h2>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Sign in with your email/phone and password, or use Google.
-              </p>
             </div>
 
-            {error && (
-              <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {error}
-              </p>
+            {/* Tab switcher */}
+            <div className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1">
+              {[
+                { id: "password", label: "Email / password" },
+                { id: "phone", label: "Phone OTP" },
+              ].map((t) => (
+                <button key={t.id} type="button"
+                  onClick={() => { setTab(t.id as "password" | "phone"); setError(""); setPhoneError(""); }}
+                  className={`min-h-10 rounded-xl text-sm font-bold transition ${tab === t.id ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* ── Password tab ── */}
+            {tab === "password" && (
+              <>
+                {error && (
+                  <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {error}
+                  </p>
+                )}
+
+                <form className="mt-4 grid gap-4" onSubmit={handleSubmit} autoComplete="on">
+                  <label className="grid gap-1.5">
+                    <span className="text-sm font-bold text-slate-600">Username</span>
+                    <input type="text" name="username" value={username}
+                      onChange={(e) => { setUsername(e.target.value); if (error) setError(""); }}
+                      autoComplete="username" spellCheck={false} disabled={isSigningIn}
+                      placeholder="Phone number or email"
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60" />
+                  </label>
+
+                  <label className="grid gap-1.5">
+                    <span className="text-sm font-bold text-slate-600">Password</span>
+                    <div className="relative">
+                      <input type={showPassword ? "text" : "password"} name="password" value={password}
+                        onChange={(e) => { setPassword(e.target.value); if (error) setError(""); }}
+                        autoComplete="current-password" spellCheck={false} disabled={isSigningIn}
+                        placeholder="••••••••"
+                        className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60" />
+                      <button type="button" onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1">
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </label>
+
+                  <div className="flex items-center justify-end">
+                    <Link href="/auth/forgot-password" className="text-xs font-semibold text-teal-700 hover:text-teal-900">
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  <button type="submit" disabled={isSigningIn}
+                    className="h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70">
+                    {isSigningIn ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="animate-spin" size={16} /> Signing in…
+                      </span>
+                    ) : "Sign in"}
+                  </button>
+                </form>
+              </>
             )}
 
-            <form className="mt-5 grid gap-4" onSubmit={handleSubmit} autoComplete="on">
-              <label className="grid gap-1.5">
-                <span className="text-sm font-bold text-slate-600">Username</span>
-                <input
-                  type="text"
-                  name="username"
-                  value={username}
-                  onChange={(e) => { setUsername(e.target.value); if (error) setError(""); }}
-                  autoComplete="username"
-                  spellCheck={false}
-                  disabled={isSigningIn}
-                  placeholder="Phone number or email"
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
-                />
-              </label>
-
-              <label className="grid gap-1.5">
-                <span className="text-sm font-bold text-slate-600">Password</span>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); if (error) setError(""); }}
-                    autoComplete="current-password"
-                    spellCheck={false}
-                    disabled={isSigningIn}
-                    placeholder="••••••••"
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 pr-12 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </label>
-
-              <div className="flex items-center justify-between">
-                <span />
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-xs font-semibold text-teal-700 hover:text-teal-900"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSigningIn}
-                className="h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isSigningIn ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="animate-spin" size={16} /> Signing in…
-                  </span>
-                ) : (
-                  "Sign in"
+            {/* ── Phone OTP tab ── */}
+            {tab === "phone" && (
+              <div className="mt-4 grid gap-4">
+                {!firebaseReady && (
+                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    Phone sign-in is not configured. Set Firebase environment variables to enable it.
+                  </p>
                 )}
-              </button>
-            </form>
+
+                {phoneError && (
+                  <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {phoneError}
+                  </p>
+                )}
+
+                {/* Invisible reCAPTCHA mount point */}
+                <div id="recaptcha-container" />
+
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-bold text-slate-600">Phone number</span>
+                  <div className="relative">
+                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input type="tel" value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={otpSent || !firebaseReady}
+                      placeholder="+1 234 567 8900"
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 disabled:opacity-60" />
+                  </div>
+                </label>
+
+                {!otpSent ? (
+                  <button type="button" onClick={handleSendOtp}
+                    disabled={sendingOtp || !firebaseReady}
+                    className="h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70">
+                    {sendingOtp ? (
+                      <span className="flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={16} /> Sending…</span>
+                    ) : "Send OTP"}
+                  </button>
+                ) : (
+                  <>
+                    <label className="grid gap-1.5">
+                      <span className="text-sm font-bold text-slate-600">Enter OTP</span>
+                      <div className="relative">
+                        <MessageSquare className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <input type="text" inputMode="numeric" value={otp}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="6-digit code"
+                          className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 font-mono text-slate-900 tracking-widest outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+                      </div>
+                    </label>
+
+                    <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp}
+                      className="h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70">
+                      {verifyingOtp ? (
+                        <span className="flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={16} /> Verifying…</span>
+                      ) : "Verify & Sign in"}
+                    </button>
+
+                    <button type="button" onClick={() => { setOtpSent(false); setOtp(""); setPhoneError(""); }}
+                      className="text-center text-sm font-semibold text-teal-700 hover:text-teal-900">
+                      Change number
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <span className="h-px bg-slate-200" />
@@ -202,7 +311,7 @@ export default function LoginPage() {
               <span className="h-px bg-slate-200" />
             </div>
 
-            {/* Google Only */}
+            {/* Google */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
