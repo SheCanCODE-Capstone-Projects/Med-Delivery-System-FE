@@ -1,17 +1,13 @@
 import React from 'react';
-import MainLayout from "@/components/layout/MainLayout";
 
 /**
- * PublicMainLayout wraps the main public pages (landing, signup, etc.) with the
- * generic MainLayout header and footer.
- * 
- * @param children - The page content.
- * @returns The layout wrapper.
+ * PublicMainLayout wraps the main public pages (landing, signup, etc.).
+ * The landing page has its own Navbar and Footer, so no shared wrapper is needed.
  */
 export default function PublicMainLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <MainLayout>{children}</MainLayout>;
+  return <>{children}</>;
 }

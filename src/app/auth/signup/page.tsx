@@ -53,11 +53,12 @@ export default function Signup() {
   };
 
   return (
-    <main className="h-[100dvh] overflow-hidden text-slate-950 flex">
-      {/* Left panel — dark branding */}
-      <section className="hidden lg:flex flex-col justify-between w-[400px] xl:w-[440px] shrink-0 relative overflow-hidden bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,160,0.30),transparent_32%),linear-gradient(160deg,#0a1628_0%,#0d1f3c_55%,#091422_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white">
-        <div className="pointer-events-none absolute -left-20 bottom-0 h-80 w-80 rounded-full bg-[rgba(14,165,160,0.18)] blur-2xl" />
-        <div className="pointer-events-none absolute right-0 top-20 h-56 w-56 rounded-full bg-[rgba(14,165,160,0.08)] blur-xl" />
+    <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+      <div className="grid h-full min-h-0 lg:grid-cols-[minmax(480px,0.9fr)_minmax(560px,1.1fr)]">
+        {/* Left panel — dark branding */}
+        <section className="relative hidden min-h-0 overflow-hidden bg-[#013B41] py-[clamp(1rem,3vh,2.5rem)] pl-[clamp(2.5rem,6vw,5rem)] pr-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
+          <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
+          <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
         <div className="relative z-10">
           <MedDeliveryLogo href="/" theme="dark" size="sm" />
@@ -89,10 +90,9 @@ export default function Signup() {
         </p>
       </section>
 
-      {/* Right panel — form */}
-      <section className="flex-1 min-w-0 overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.08),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)]">
-        <div className="flex min-h-full items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-        <div className="w-full max-w-[460px] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.4rem,3.5vh,2.2rem)] shadow-[0_24px_56px_rgba(11,19,39,0.14)] backdrop-blur-xl">
+        {/* Right panel — form */}
+        <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
+          <div className="my-auto w-full max-w-[42rem] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
           <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
 
           <div>
@@ -248,8 +248,8 @@ export default function Signup() {
             </Link>
           </p>
         </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

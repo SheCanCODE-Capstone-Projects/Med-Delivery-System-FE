@@ -2,233 +2,233 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import heroImage from '@/assets/image.png';
+import MedDeliveryLogo from "@/components/brand/MedDeliveryLogo";
 
-interface NavLink {
-  label: string;
-  href: string;
-}
+/* ─── Types ─────────────────────────────────────────────────────────────── */
 
-interface StatItem {
-  value: string;
-  label: string;
+interface NavLink { label: string; href: string }
+interface StepItem { icon: React.ReactNode; title: string; description: string }
+interface FeatureItem { icon: React.ReactNode; title: string; description: string }
+interface TestimonialItem {
+  stars: number; quote: string;
+  name: string; role: string; initial: string; color: string;
 }
+interface FooterColumn { heading: string; links: { label: string; href: string }[] }
 
-interface MockupStat {
-  value: string;
-  label: string;
-}
-
-interface OrderItem {
-  initial: string;
-  name: string;
-  orderId: string;
-  status: 'NEW' | 'VALIDATED';
-}
-
-interface FeatureItem {
-  title: string;
-  description: string;
-  iconPath: string;
-}
-
-interface StepItem {
-  number: number;
-  title: string;
-  description: string;
-}
-
-interface PortalItem {
-  number: string;
-  name: string;
-  description: string;
-}
-
-interface FooterColumn {
-  heading: string;
-  links: { label: string; href: string }[];
-}
+/* ─── Data ──────────────────────────────────────────────────────────────── */
 
 const navLinks: NavLink[] = [
-  { label: 'Features',       href: '#features'   },
-  { label: 'Portals',        href: '#portals'    },
-  { label: 'How it works',   href: '#how'        },
-  { label: 'For pharmacies', href: '#pharmacies' },
-];
-
-const stats: StatItem[] = [
-  { value: '48+',   label: 'Partner Pharmacies' },
-  { value: '2.8K',  label: 'Active Patients'    },
-  { value: '14K',   label: 'Orders Monthly'     },
-  { value: '99.4%', label: 'Fulfillment SLA'    },
-];
-
-const mockupStats: MockupStat[] = [
-  { value: '23',  label: "Today's Orders" },
-  { value: '94%', label: 'Fulfillment'    },
-  { value: '4',   label: 'On Shift'       },
-];
-
-const barHeights: string[] = ['44%','62%','50%','78%','92%','65%','72%'];
-
-const orders: OrderItem[] = [
-  { initial: 'S', name: 'Sarah J.', orderId: 'ORD-2847', status: 'NEW'       },
-  { initial: 'M', name: 'Mike R.',  orderId: 'ORD-2846', status: 'VALIDATED' },
-];
-
-const avatars: { initials: string; bg: string }[] = [
-  { initials: 'SJ', bg: 'bg-[#0ABFBC]' },
-  { initials: 'MR', bg: 'bg-[#0E7490]' },
-  { initials: 'AK', bg: 'bg-[#155E75]' },
-  { initials: '+',  bg: 'bg-[#1E4A5A]' },
-];
-
-const features: FeatureItem[] = [
-  {
-    title: 'Location-aware routing',
-    description: 'Parallel matching across nearby pharmacies with live coverage windows.',
-    iconPath: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
-  },
-  {
-    title: 'Insurance verification',
-    description: 'Card upload, eligibility checks, copay handling — built into the flow.',
-    iconPath: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  },
-  {
-    title: 'Real-time tracking',
-    description: 'From prescription upload to courier pickup, visible at every step.',
-    iconPath: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z M12 6v6l4 2',
-  },
-  {
-    title: 'Pharmacist validation',
-    description: 'Licensed reviewers approve, substitute, or escalate every prescription safely.',
-    iconPath: 'M22 12h-4l-3 9L9 3l-3 9H2',
-  },
-  {
-    title: 'Multi-pharmacy network',
-    description: 'Smart fan-out to multiple stores; first-to-confirm wins the order automatically.',
-    iconPath: 'M2 3h20v14H2z M8 21h8 M12 17v4',
-  },
-  {
-    title: 'Audit & compliance',
-    description: 'Complete action log per prescription with pharmacist ID, timestamps, and history.',
-    iconPath: 'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
-  },
+  { label: 'Home', href: '/' },
+  { label: 'Benefits', href: '#features' },
+  { label: 'Reviews', href: '#reviews' },
 ];
 
 const steps: StepItem[] = [
   {
-    number: 1,
-    title: 'Request',
-    description: 'Upload your prescription or shop privately. Add your insurance details if you have them.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+    title: 'Register',
+    description: 'Create your account and set up your patient profile quickly.',
   },
   {
-    number: 2,
-    title: 'Validate',
-    description: 'A licensed pharmacist reviews, validates and prepares the order at the nearest store.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M16 8H8M16 12H8M12 16H8" />
+      </svg>
+    ),
+    title: 'Upload Prescription',
+    description: 'Snap a photo or upload your prescription directly in the app.',
   },
   {
-    number: 3,
-    title: 'Deliver',
-    description: 'Track your order in real time, all the way from pickup to your door.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+    title: 'Choose Pharmacy',
+    description: 'Pick from nearby verified pharmacies that carry your medication.',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    title: 'Pharmacist Confirms',
+    description: 'A licensed pharmacist reviews your order and confirms it safely.',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+        <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
+      </svg>
+    ),
+    title: 'Delivered',
+    description: 'Your medication arrives at your door, tracked every step of the way.',
   },
 ];
 
-const portals: PortalItem[] = [
-  { number: '01', name: 'Patient',     description: 'Order, track and manage your prescriptions from anywhere.'           },
-  { number: '02', name: 'Pharmacy',    description: 'Run your store, dispatch orders, manage staff and inventory.'        },
-  { number: '03', name: 'Pharmacist',  description: 'Validate prescriptions and dispense safely with a full audit trail.' },
-  { number: '04', name: 'Super Admin', description: 'Approve pharmacies and oversee the entire network at a glance.'     },
+const features: FeatureItem[] = [
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+    title: '100% Verified',
+    description: 'Every single order is thoroughly reviewed and approved by experienced, certified pharmacists before it dispatches from our partner pharmacies.',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    title: '24/7 Available',
+    description: 'Upload your prescription at any time of the day or night. We process your requests around the clock for maximum convenience.',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+    title: 'Private & Discreet',
+    description: 'Your medical information is kept strictly confidential, and all deliveries are made in discreetly branded packaging for your privacy.',
+  },
+];
+
+const testimonials: TestimonialItem[] = [
+  {
+    stars: 5,
+    quote: '"MedDelivery has been an absolute lifesaver. Uploading my prescription is so easy, and the delivery is always exactly on time. I never have to wait in line again."',
+    name: 'Sarah Jenkins',
+    role: 'Verified Patient',
+    initial: 'SJ',
+    color: '#0abfbc',
+  },
+  {
+    stars: 4,
+    quote: '"I love that I can choose my preferred local pharmacy and have it delivered right to my door. Highly recommended this app to all my friends and family who struggle with errands."',
+    name: 'Michael Ethan',
+    role: 'Verified Patient',
+    initial: 'ME',
+    color: '#089A97',
+  },
+  {
+    stars: 5,
+    quote: '"MedDelivery has given me the healthcare delivery I need. It is fast, secure, and extremely convenient service that I will definitely continue using."',
+    name: 'Emily Rodriguez',
+    role: 'Verified Patient',
+    initial: 'ER',
+    color: '#0abfbc',
+  },
 ];
 
 const footerColumns: FooterColumn[] = [
   {
     heading: 'Product',
     links: [
-      { label: 'Features',     href: '#features' },
-      { label: 'How it works', href: '#how'      },
-      { label: 'Security',     href: '#'         },
-    ],
-  },
-  {
-    heading: 'Portals',
-    links: [
-      { label: 'Patient portal',    href: '#portals' },
-      { label: 'Pharmacy portal',   href: '#portals' },
-      { label: 'Pharmacist portal', href: '#portals' },
-      { label: 'Admin portal',      href: '#portals' },
+      { label: 'How it Works', href: '#how' },
+      { label: 'Pharmacies', href: '#pharmacies' },
+      { label: 'Pricing', href: '#' },
+      { label: 'Security', href: '#' },
     ],
   },
   {
     heading: 'Company',
     links: [
-      { label: 'About',            href: '#' },
-      { label: 'Contact',          href: '#' },
-      { label: 'Privacy policy',   href: '#' },
-      { label: 'Terms of service', href: '#' },
+      { label: 'About Us', href: '#' },
+      { label: 'Careers', href: '#' },
+      { label: 'Contact', href: '#' },
+      { label: 'Partners', href: '#' },
+    ],
+  },
+  {
+    heading: 'Legal',
+    links: [
+      { label: 'Privacy Policy', href: '#' },
+      { label: 'Terms of Service', href: '#' },
+      { label: 'Cookie Policy', href: '#' },
     ],
   },
 ];
 
-function LogoIcon(): React.JSX.Element {
+/* ─── Sub-components ─────────────────────────────────────────────────────── */
+
+function StarRating({ count }: { count: number }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-      <rect x="1" y="9" width="13" height="8" rx="1.5"
-        fill="rgba(255,255,255,0.12)" stroke="white" strokeWidth="1.4" />
-      <path d="M14 12h4l2.5 3V17H14V12z"
-        stroke="white" strokeWidth="1.4" strokeLinejoin="round"
-        fill="rgba(255,255,255,0.08)" />
-      <circle cx="5"  cy="17" r="1.5" fill="#0ABFBC" />
-      <circle cx="17" cy="17" r="1.5" fill="#0ABFBC" />
-      <path d="M6.5 12v2.5M5.2 13.2h2.6"
-        stroke="#0ABFBC" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
+    <div className="flex gap-[2px] mb-3">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <svg key={i} viewBox="0 0 20 20" className="w-4 h-4" fill={i < count ? '#F59E0B' : '#d1d5db'}>
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
   );
 }
 
-function SectionTag({ label }: { label: string }): React.JSX.Element {
-  return (
-    <span className="inline-block bg-[rgba(10,191,188,0.12)] border border-[rgba(10,191,188,0.28)] rounded-full px-4 py-1 text-[0.72rem] font-semibold uppercase tracking-widest text-[#089A97] mb-5">
-      {label}
-    </span>
-  );
-}
+
+
+/* ─── Navbar ─────────────────────────────────────────────────────────────── */
 
 function Navbar(): React.JSX.Element {
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const closeMenu = (): void => setMenuOpen(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[6%] h-[72px] bg-[rgba(4,15,26,0.90)] backdrop-blur-xl border-b border-[rgba(10,191,188,0.10)]">
-        <Link href="/" className="flex items-center gap-3 no-underline group">
-          <div className="w-10 h-10 flex-shrink-0 bg-[#0F172A] rounded-[9px] border border-[rgba(10,191,188,0.28)] shadow-[0_0_14px_rgba(10,191,188,0.15)] flex items-center justify-center transition-shadow group-hover:shadow-[0_0_22px_rgba(10,191,188,0.40)]">
-            <LogoIcon />
-          </div>
-          <div className="flex flex-col gap-0">
-            <span className="font-bold text-base text-white leading-tight tracking-tight">MedDelivery</span>
-            <span className="text-[0.6rem] text-[#7AABB0] leading-none whitespace-nowrap">Your Pharmacy, Delivered to Your Door</span>
-          </div>
-        </Link>
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[6%] h-[68px]"
+        style={{ background: '#e2fff2ff', borderBottom: '1px solid #e8f5f3', boxShadow: '0 1px 8px rgba(2,195,154,0.07)' }}
+      >
+        {/* Logo */}
+        <MedDeliveryLogo theme="light" size="sm" showTagline={false} />
 
-        <ul className="hidden md:flex flex-row items-center gap-8 list-none p-0 m-0">
+        {/* Centre nav */}
+        <ul className="hidden md:flex items-center gap-9 list-none p-0 m-0">
           {navLinks.map((link) => (
             <li key={link.href}>
-              <a href={link.href} className="text-[#7AABB0] no-underline text-sm font-medium transition-colors hover:text-white">
+              <a
+                href={link.href}
+                className="text-sm font-medium no-underline transition-colors"
+                style={{ color: '#4B5563' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#02C39A')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#4B5563')}
+              >
                 {link.label}
               </a>
             </li>
           ))}
         </ul>
 
+        {/* CTA buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/auth/login" className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline transition-all hover:border-[#0ABFBC] hover:text-white hover:bg-[rgba(10,191,188,0.07)]">
-            Sign in
+          <Link
+            href="/auth/login"
+            className="text-sm font-medium no-underline px-5 py-2 rounded-lg transition-all"
+            style={{ color: '#374151', background: 'transparent', border: '1px solid #e5e7eb' }}
+          >
+            Log In
           </Link>
-          <Link href="/signup" className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_22px_rgba(10,191,188,0.45)]">
-            Get started →
+          <Link
+            href="/signup"
+            className="text-sm font-bold no-underline px-5 py-2 rounded-lg transition-all"
+            style={{ background: '#02C39A', color: '#fff' }}
+          >
+            Sign Up
           </Link>
         </div>
 
+        {/* Mobile burger */}
         <button
           type="button"
           aria-label="Toggle menu"
@@ -236,26 +236,39 @@ function Navbar(): React.JSX.Element {
           onClick={() => setMenuOpen(!menuOpen)}
           className="flex md:hidden flex-col gap-[5px] bg-transparent border-none cursor-pointer p-1"
         >
-          <span className="block w-[22px] h-[2px] bg-white rounded-sm" />
-          <span className="block w-[22px] h-[2px] bg-white rounded-sm" />
-          <span className="block w-[22px] h-[2px] bg-white rounded-sm" />
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="block w-[22px] h-[2px] rounded-sm" style={{ background: '#374151' }} />
+          ))}
         </button>
       </nav>
 
+      {/* Mobile menu */}
       {menuOpen && (
-        <div className="fixed top-[72px] left-0 right-0 z-40 bg-[rgba(4,15,26,0.97)] backdrop-blur-xl border-b border-[rgba(10,191,188,0.10)] flex flex-col px-[6%] pb-8 pt-4">
+        <div
+          className="fixed top-[68px] left-0 right-0 z-40 flex flex-col px-[6%] pb-6 pt-3"
+          style={{ background: '#fff', borderBottom: '1px solid #e8f5f3' }}
+        >
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} onClick={closeMenu}
-              className="text-[#7AABB0] no-underline text-base font-medium py-4 border-b border-[rgba(10,191,188,0.07)] transition-colors hover:text-[#5EDEDD]">
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="no-underline text-base font-medium py-4 transition-colors"
+              style={{ color: '#4B5563', borderBottom: '1px solid #f3f4f6' }}
+            >
               {link.label}
             </a>
           ))}
-          <div className="flex gap-3 mt-5">
-            <Link href="/auth/login" onClick={closeMenu} className="text-[#7AABB0] text-sm font-medium border border-[rgba(10,191,188,0.30)] px-4 py-2 rounded-lg no-underline hover:border-[#0ABFBC] hover:text-white">
-              Sign in
+          <div className="flex gap-3 mt-4">
+            <Link href="/auth/login" onClick={() => setMenuOpen(false)}
+              className="text-sm font-medium no-underline px-4 py-2 rounded-lg border"
+              style={{ color: '#374151', borderColor: '#e5e7eb' }}>
+              Log In
             </Link>
-            <Link href="/signup" onClick={closeMenu} className="bg-[#0ABFBC] text-[#040F1A] text-sm font-bold px-4 py-2 rounded-lg no-underline hover:bg-[#5EDEDD]">
-              Get started →
+            <Link href="/signup" onClick={() => setMenuOpen(false)}
+              className="text-sm font-bold no-underline px-4 py-2 rounded-lg"
+              style={{ background: '#02C39A', color: '#fff' }}>
+              Sign Up
             </Link>
           </div>
         </div>
@@ -264,121 +277,63 @@ function Navbar(): React.JSX.Element {
   );
 }
 
+/* ─── Hero ───────────────────────────────────────────────────────────────── */
+
 function Hero(): React.JSX.Element {
   return (
-    <section className="relative min-h-screen flex flex-col md:flex-row items-center px-[6%] pt-[120px] pb-[80px] gap-[5%] bg-[#040F1A]">
-      <div className="absolute -left-[8%] top-[10%] w-[680px] h-[680px] rounded-full bg-[radial-gradient(ellipse,rgba(10,191,188,0.13)_0%,transparent_68%)] pointer-events-none z-0" />
-
-      <div className="flex-1 max-w-[560px] relative z-10">
-        <div className="inline-flex items-center gap-2 bg-[rgba(10,191,188,0.10)] border border-[rgba(10,191,188,0.25)] rounded-full px-4 py-[6px] mb-7 text-[0.8rem] text-[#5EDEDD]">
-          <span className="w-[6px] h-[6px] rounded-full bg-[#0ABFBC] animate-pulse" />
-          Now serving 48 partner pharmacies
-        </div>
-
-        <h1 className="font-bold text-[clamp(2.4rem,4.5vw,3.6rem)] leading-[1.1] tracking-tight mb-6 text-white">
-          Healthcare delivery,<br />
-          <span className="text-[#0ABFBC]">reimagined</span><br />
-          for everyone.
+    <section
+      className="flex flex-col md:flex-row items-center px-[6%] pt-[100px] pb-[72px] gap-10"
+      style={{ background: '#fff', minHeight: '100vh' }}
+    >
+      {/* Left – Copy */}
+      <div className="flex-1 max-w-[520px]">
+        <h1 className="font-bold leading-[1.15] tracking-tight mb-5" style={{ fontSize: 'clamp(2rem,4vw,2.8rem)', color: '#0F172A' }}>
+          Your Pharmacy, Delivered<br />to Your Door
         </h1>
-
-        <p className="text-[1.05rem] text-[#7AABB0] leading-[1.75] max-w-[470px] mb-9">
-          MedDelivery connects patients, pharmacies and licensed pharmacists
-          in one safe, fast, insurance-ready platform — from prescription
-          upload to your front door.
+        <p className="leading-[1.75] mb-8 max-w-[440px]" style={{ color: '#6B7280', fontSize: '1rem' }}>
+          Order your prescription medicines online safely and securely. Our licensed pharmacists review every order before it gets dispatched directly to you.
         </p>
-
-        <div className="flex gap-4 flex-wrap">
-          <Link href="/signup" className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#5EDEDD] hover:shadow-[0_0_32px_rgba(10,191,188,0.5)] hover:-translate-y-[2px]">
-            Order medicine →
+        <div className="flex gap-3 flex-wrap">
+          <Link
+            href="/signup"
+            className="font-bold no-underline px-7 py-3 rounded-lg transition-all inline-flex items-center"
+            style={{ background: '#02C39A', color: '#fff', fontSize: '0.95rem' }}
+          >
+            Order Now
           </Link>
-          <a href="#pharmacies" className="bg-transparent border border-[rgba(10,191,188,0.35)] text-white font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.07)] hover:-translate-y-[2px]">
-            Register a pharmacy
+          <a
+            href="/auth/pharmacy-signup"
+            className="font-medium no-underline px-7 py-3 rounded-lg transition-all inline-flex items-center border"
+            style={{ color: '#02C39A', borderColor: '#02C39A', background: 'transparent', fontSize: '0.95rem' }}
+          >
+            Pharmacy
           </a>
         </div>
-
-        <div className="flex items-center gap-4 mt-11">
-          <div className="flex">
-            {avatars.map((av, i) => (
-              <span key={av.initials}
-                className={`w-[34px] h-[34px] rounded-full border-2 border-[#040F1A] flex items-center justify-center text-[0.68rem] font-bold text-white ${av.bg} ${i === 0 ? 'ml-0' : '-ml-[9px]'}`}>
-                {av.initials}
-              </span>
-            ))}
-          </div>
-          <div className="text-[0.84rem] text-[#7AABB0]">
-            <div className="text-[#F59E0B]">★★★★★</div>
-            <span className="text-[#5EDEDD] font-semibold">4.9</span>
-            {' · trusted by '}
-            <span className="text-[#5EDEDD] font-semibold">2,800+</span> patients
-          </div>
-        </div>
       </div>
 
-      <div className="flex-[1.1] max-w-[560px] relative z-10 flex items-center justify-end pb-9 mt-12 md:mt-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] rounded-full bg-[radial-gradient(ellipse,rgba(10,191,188,0.18)_0%,rgba(10,191,188,0.06)_45%,transparent_72%)] pointer-events-none z-0" />
-
-        <div className="relative z-10 w-full">
-          <div className="bg-[#0C2233] border border-[rgba(10,191,188,0.22)] rounded-[18px] overflow-hidden shadow-[0_0_0_1px_rgba(10,191,188,0.10),0_8px_32px_rgba(10,191,188,0.12),0_32px_80px_rgba(0,0,0,0.6)]">
-            <div className="bg-[rgba(4,15,26,0.9)] px-4 py-3 flex items-center gap-2 border-b border-[rgba(10,191,188,0.08)]">
-              <span className="w-[10px] h-[10px] rounded-full bg-[#FF5F57]" />
-              <span className="w-[10px] h-[10px] rounded-full bg-[#FEBC2E]" />
-              <span className="w-[10px] h-[10px] rounded-full bg-[#28C840]" />
-              <span className="flex-1 text-center text-[0.7rem] text-[#3A6670]">app.meddelivery.io/pharmacy</span>
-            </div>
-
-            <div className="p-[18px]">
-              <div className="grid grid-cols-3 gap-[10px] mb-[14px]">
-                {mockupStats.map((s) => (
-                  <div key={s.label} className="bg-[rgba(10,191,188,0.07)] border border-[rgba(10,191,188,0.13)] rounded-[10px] p-[13px]">
-                    <div className="text-[1.45rem] font-bold text-[#0ABFBC]">{s.value}</div>
-                    <div className="text-[0.62rem] text-[#7AABB0] mt-[2px] uppercase tracking-wide">{s.label}</div>
-                  </div>
-                ))}
+      {/* Right – Image */}
+      <div className="flex-1 max-w-[520px] flex items-center justify-center">
+        <div className="rounded-2xl overflow-hidden w-full" style={{ maxHeight: '480px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroImage.src}
+            alt="Pharmacy delivery person handing a package"
+            className="w-full h-full object-cover"
+            style={{ maxHeight: '480px' }}
+          />
+          {/* Fallback placeholder if image fails */}
+          <div
+            className="hidden items-center justify-center rounded-2xl"
+            style={{ background: 'linear-gradient(135deg, #e6fdf8 0%, #b2f0e4 100%)', minHeight: '380px' }}
+          >
+            <div className="text-center">
+              <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: '#02C39A' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12">
+                  <rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                  <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
               </div>
-
-              <div className="bg-[rgba(4,15,26,0.5)] border border-[rgba(10,191,188,0.08)] rounded-[10px] p-[14px] mb-[12px]">
-                <div className="flex justify-between mb-3">
-                  <span className="text-[0.78rem] font-semibold text-white">Weekly orders</span>
-                  <span className="text-[0.68rem] text-[#7AABB0]">Apr 8 – Apr 14</span>
-                </div>
-                <div className="flex items-end gap-[7px] h-[56px]">
-                  {barHeights.map((h, i) => (
-                    <div key={i}
-                      style={{ height: h, background: 'linear-gradient(to top, #089A97, #5EDEDD)' }}
-                      className="flex-1 rounded-t-[4px] opacity-90"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-[7px]">
-                {orders.map((order) => (
-                  <div key={order.orderId} className="flex items-center gap-[10px] bg-[rgba(4,15,26,0.5)] border border-[rgba(10,191,188,0.08)] rounded-[8px] px-3 py-[9px]">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[0.68rem] font-bold ${order.initial === 'S' ? 'bg-[rgba(10,191,188,0.18)] text-[#0ABFBC]' : 'bg-[rgba(14,116,144,0.25)] text-[#22D3EE]'}`}>
-                      {order.initial}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[0.76rem] font-semibold text-white">{order.name}</div>
-                      <div className="text-[0.62rem] text-[#7AABB0]">{order.orderId}</div>
-                    </div>
-                    <span className={`text-[0.62rem] font-bold px-2 py-[3px] rounded-full uppercase tracking-wide ${order.status === 'NEW' ? 'bg-[rgba(10,191,188,0.15)] text-[#5EDEDD]' : 'bg-[rgba(34,197,94,0.15)] text-[#4ADE80]'}`}>
-                      {order.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute -bottom-5 -left-7 flex items-center gap-[10px] bg-[rgba(10,191,188,0.15)] border border-[rgba(10,191,188,0.35)] rounded-[10px] px-[13px] py-[10px] backdrop-blur-md shadow-[0_8px_32px_rgba(10,191,188,0.2)] min-w-[210px] z-20 animate-[float-toast_3s_ease-in-out_infinite]">
-            <div className="w-[22px] h-[22px] rounded-full bg-[#0ABFBC] flex items-center justify-center flex-shrink-0">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </div>
-            <div>
-              <strong className="block text-[0.73rem] text-[#5EDEDD]">Prescription validated</strong>
-              <span className="text-[0.65rem] text-[#7AABB0]">RX-4820 · 20s ago</span>
+              <p className="font-semibold" style={{ color: '#02C39A' }}>Fast Pharmacy Delivery</p>
             </div>
           </div>
         </div>
@@ -387,91 +342,38 @@ function Hero(): React.JSX.Element {
   );
 }
 
-function StatsStrip(): React.JSX.Element {
-  return (
-    <div className="bg-[#071828] border-t border-b border-[rgba(10,191,188,0.09)] px-[6%] py-11 grid grid-cols-2 md:grid-cols-4 gap-8">
-      {stats.map((stat) => (
-        <div key={stat.label}>
-          <div className="font-bold text-[2.4rem] text-[#0ABFBC] leading-none tracking-tight">{stat.value}</div>
-          <div className="text-[0.72rem] text-[#7AABB0] mt-[6px] uppercase tracking-widest font-medium">{stat.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Features(): React.JSX.Element {
-  return (
-    <section id="features" className="bg-[#F6FAFA] px-[6%] py-[100px] border-t border-[#DFF0F0]">
-      <SectionTag label="Platform" />
-      <h2 className="font-bold text-[clamp(2.4rem,4.5vw,3.6rem)] leading-[1.1] tracking-tight mb-4 text-[#0F172A]">
-        Built for every step of<br />the prescription journey.
-      </h2>
-      <p className="text-base text-[#4A7A80] leading-[1.75] max-w-[500px] mb-14">
-        One platform, four portals. Each one purpose-built for the people who use it every day.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {features.map((feat) => (
-          <div key={feat.title}
-            className="bg-white border border-[#DFF0F0] rounded-2xl p-8 transition-all duration-300 hover:border-[#0ABFBC] hover:-translate-y-[6px] hover:shadow-[0_18px_50px_rgba(10,191,188,0.12)] group">
-            <div className="w-[46px] h-[46px] rounded-xl bg-[rgba(10,191,188,0.10)] flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-[rgba(10,191,188,0.22)] group-hover:scale-110">
-              <svg viewBox="0 0 24 24" className="w-[22px] h-[22px]" fill="none" stroke="#0ABFBC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d={feat.iconPath} />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-[#0F172A] mb-[10px]">{feat.title}</h3>
-            <p className="text-[0.875rem] text-[#4A7A80] leading-[1.65]">{feat.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
+/* ─── How It Works ────────────────────────────────────────────────────────── */
 
 function HowItWorks(): React.JSX.Element {
   return (
-    <section id="how" className="bg-[#EFF9F9] px-[6%] py-[100px] border-t border-[#D5ECEC]">
-      <SectionTag label="How it works" />
-      <h2 className="font-bold text-[clamp(2.4rem,4.5vw,3.6rem)] leading-[1.1] tracking-tight mb-14 text-[#0F172A]">
-        From prescription to<br />doorstep, in three steps.
-      </h2>
-      <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-0">
-        <div className="hidden md:block absolute top-7 left-[17%] right-[17%] h-[2px] bg-gradient-to-r from-transparent via-[#0ABFBC] to-transparent z-0" />
-        {steps.map((step) => (
-          <div key={step.number} className="text-center px-6 relative z-10 group">
-            <div className="w-14 h-14 rounded-full bg-white border-2 border-[#0ABFBC] flex items-center justify-center font-bold text-base text-[#0ABFBC] mx-auto mb-5 shadow-[0_0_22px_rgba(10,191,188,0.18)] transition-all duration-300 group-hover:bg-[#0ABFBC] group-hover:text-white group-hover:shadow-[0_0_32px_rgba(10,191,188,0.4)] group-hover:scale-110">
-              0{step.number}
-            </div>
-            <h3 className="text-[0.9rem] font-bold text-[#0F172A] mb-2 transition-colors group-hover:text-[#0ABFBC]">{step.title}</h3>
-            <p className="text-[0.8rem] text-[#4A7A80] leading-[1.65]">{step.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Portals(): React.JSX.Element {
-  return (
-    <section id="portals" className="bg-white px-[6%] py-[100px] border-t border-[#DFF0F0]">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
-        <div>
-          <SectionTag label="Portals" />
-          <h2 className="font-bold text-[clamp(2.4rem,4.5vw,3.6rem)] leading-[1.1] tracking-tight text-[#0F172A]">
-            Four experiences,<br />one network.
-          </h2>
-        </div>
-        <p className="text-base text-[#4A7A80] leading-[1.75] max-w-[340px] md:text-right">
-          Pick the portal that matches how you&#39;ll use MedDelivery. Each one is tailored end-to-end.
+    <section id="how" className="px-[6%] py-[80px]" style={{ background: '#02C39A' }}>
+      <div className="text-center mb-14">
+        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#fff' }}>
+          How It Works
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.82)', fontSize: '1rem' }}>
+          Receive your medication safely and securely in a few simple steps.
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {portals.map((portal) => (
-          <div key={portal.number}
-            className="bg-[#F6FAFA] border border-[#DFF0F0] rounded-2xl p-7 transition-all duration-300 hover:border-[#0ABFBC] hover:-translate-y-[6px] hover:shadow-[0_18px_50px_rgba(10,191,188,0.12)] hover:bg-white">
-            <div className="text-[0.72rem] font-bold text-[#089A97] mb-4 tracking-wide">{portal.number}</div>
-            <h3 className="font-bold text-[1.15rem] text-[#0F172A] mb-[10px]">{portal.name}</h3>
-            <p className="text-[0.84rem] text-[#4A7A80] leading-[1.65]">{portal.description}</p>
+
+      {/* Step row */}
+      <div className="relative flex flex-col md:flex-row items-start justify-center gap-6">
+        {/* Dotted connector – desktop only */}
+        <div className="hidden md:block absolute top-[28px] left-[12%] right-[12%] h-[2px] z-0"
+          style={{ borderTop: '2px dashed rgba(255,255,255,0.35)' }}
+        />
+
+        {steps.map((step, idx) => (
+          <div key={idx} className="flex flex-col items-center text-center z-10 flex-1" style={{ maxWidth: '180px', margin: '0 auto' }}>
+            {/* Icon circle */}
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
+              style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', border: '2px solid rgba(255,255,255,0.35)' }}
+            >
+              {step.icon}
+            </div>
+            <h3 className="font-bold text-sm mb-1" style={{ color: '#fff' }}>{step.title}</h3>
+            <p className="text-xs leading-[1.6]" style={{ color: 'rgba(255,255,255,0.78)' }}>{step.description}</p>
           </div>
         ))}
       </div>
@@ -479,53 +381,120 @@ function Portals(): React.JSX.Element {
   );
 }
 
-function CTA(): React.JSX.Element {
+/* ─── Why Choose ─────────────────────────────────────────────────────────── */
+
+function WhyChoose(): React.JSX.Element {
   return (
-    <section id="pharmacies" className="bg-[#E4F8F8] border-t border-[#C8E8E8] px-[6%] py-[110px] text-center">
-      <SectionTag label="Get started" />
-      <h2 className="font-bold text-[clamp(2.4rem,4.5vw,3.6rem)] leading-[1.1] tracking-tight text-[#0F172A] max-w-[620px] mx-auto mb-4">
-        Ready to modernise your<br />pharmacy workflow?
-      </h2>
-      <p className="text-base text-[#4A7A80] leading-[1.75] max-w-[500px] mx-auto mb-11">
-        Join 48 partner pharmacies already serving thousands of patients on MedDelivery.
-      </p>
-      <div className="flex gap-4 justify-center flex-wrap">
-        <Link href="/signup" className="bg-[#0ABFBC] text-[#040F1A] font-bold text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:bg-[#089A97] hover:shadow-[0_0_28px_rgba(10,191,188,0.4)] hover:-translate-y-[2px]">
-          Sign up free →
-        </Link>
-        <Link href="/auth/login" className="bg-transparent border border-[rgba(8,154,151,0.5)] text-[#0F172A] font-medium text-base px-8 py-[0.9rem] rounded-xl no-underline inline-flex items-center gap-2 transition-all hover:border-[#0ABFBC] hover:bg-[rgba(10,191,188,0.10)] hover:-translate-y-[2px]">
-          Log in
-        </Link>
+    <section id="features" className="px-[6%] py-[90px]" style={{ background: '#fff' }}>
+      <div className="text-center mb-12">
+        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#0F172A' }}>
+          Why Choose MedDelivery?
+        </h2>
+        <p style={{ color: '#6B7280', fontSize: '1rem' }}>
+          We prioritize your health, privacy, and convenience.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {features.map((feat, idx) => (
+          <div
+            key={idx}
+            className="rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1"
+            style={{ background: '#f8fffe', border: '1px solid #d8f5ef' }}
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+              style={{ background: 'rgba(2,195,154,0.12)', color: '#02C39A' }}
+            >
+              {feat.icon}
+            </div>
+            <h3 className="font-bold text-base mb-3" style={{ color: '#0F172A' }}>{feat.title}</h3>
+            <p className="text-sm leading-[1.7]" style={{ color: '#6B7280' }}>{feat.description}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
 }
+
+/* ─── Testimonials ───────────────────────────────────────────────────────── */
+
+function Testimonials(): React.JSX.Element {
+  return (
+    <section id="reviews" className="px-[6%] py-[90px]" style={{ background: '#02C39A' }}>
+      <div className="text-center mb-12">
+        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#fff' }}>
+          Patient Success Stories
+        </h2>
+        <div className="flex items-center justify-center gap-1">
+          {[0, 1, 2, 3, 4].map(i => (
+            <svg key={i} viewBox="0 0 20 20" fill="#FCD34D" className="w-4 h-4">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+          <span className="ml-2 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>5.0 · 200+ reviews</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {testimonials.map((t, idx) => (
+          <div
+            key={idx}
+            className="rounded-2xl p-6 flex flex-col justify-between"
+            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)' }}
+          >
+            <div>
+              <StarRating count={t.stars} />
+              <p className="text-sm leading-[1.75] mb-6" style={{ color: 'rgba(255,255,255,0.92)' }}>{t.quote}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                style={{ background: 'rgba(255,255,255,0.3)' }}
+              >
+                {t.initial}
+              </div>
+              <div>
+                <div className="text-sm font-semibold" style={{ color: '#fff' }}>{t.name}</div>
+                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>{t.role}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
 
 function Footer(): React.JSX.Element {
   return (
-    <footer className="bg-[#050E1A] border-t border-[rgba(10,191,188,0.10)] px-[6%] pt-16 pb-8">
-      <div className="flex flex-wrap justify-between gap-12 mb-14">
-        <div className="max-w-[270px]">
-          <Link href="/" className="flex items-center gap-3 no-underline mb-4">
-            <div className="w-10 h-10 bg-[#0F172A] rounded-[9px] border border-[rgba(10,191,188,0.28)] flex items-center justify-center">
-              <LogoIcon />
-            </div>
-            <div>
-              <span className="font-bold text-base text-white block leading-tight">MedDelivery</span>
-              <span className="text-[0.6rem] text-[#7AABB0]">Your Pharmacy, Delivered to Your Door</span>
-            </div>
-          </Link>
-          <p className="text-[0.875rem] text-[#7AABB0] leading-[1.7]">
-            Healthcare delivery, reimagined for everyone. Safe, fast, and insurance-ready.
+    <footer className="px-[6%] pt-14 pb-8" style={{ background: '#fff', borderTop: '1px solid #e8f5f3' }}>
+      <div className="flex flex-wrap justify-between gap-10 mb-12">
+        {/* Brand */}
+        <div className="max-w-[260px]">
+          <MedDeliveryLogo theme="light" size="sm" showTagline={false} className="mb-4" />
+          <p className="text-sm leading-[1.75]" style={{ color: '#6B7280' }}>
+            Your Pharmacy, Delivered to Your Door. <br />Safe, secure, and completely discreet.
           </p>
         </div>
 
+        {/* Link columns */}
         {footerColumns.map((col) => (
           <div key={col.heading}>
-            <h4 className="text-[0.8rem] font-bold text-white uppercase tracking-widest mb-4">{col.heading}</h4>
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#111827' }}>
+              {col.heading}
+            </h4>
             {col.links.map((link) => (
-              <a key={link.label} href={link.href}
-                className="block text-[0.84rem] text-[#7AABB0] no-underline mb-3 transition-all hover:text-[#5EDEDD] hover:pl-[5px]">
+              <a
+                key={link.label}
+                href={link.href}
+                className="block text-sm no-underline mb-3 transition-colors"
+                style={{ color: '#6B7280' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#02C39A')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#6B7280')}
+              >
                 {link.label}
               </a>
             ))}
@@ -533,25 +502,27 @@ function Footer(): React.JSX.Element {
         ))}
       </div>
 
-      <div className="border-t border-[rgba(10,191,188,0.07)] pt-6 flex flex-wrap justify-between gap-4 text-[0.78rem] text-[#3A6670]">
-        <span>© 2025 MedDelivery. All rights reserved.</span>
-        <span>Built for patients, pharmacies &amp; pharmacists.</span>
+      <div
+        className="pt-6 flex flex-wrap justify-between gap-4 text-xs"
+        style={{ borderTop: '1px solid #f3f4f6', color: '#9CA3AF' }}
+      >
+        <span>© 2026 MedDelivery. All rights reserved.</span>
       </div>
     </footer>
   );
 }
 
+/* ─── Page ───────────────────────────────────────────────────────────────── */
+
 export default function LandingPage(): React.JSX.Element {
   return (
-    <div className="min-h-screen bg-[#040F1A] text-white overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden" style={{ background: '#fff', color: '#0F172A' }}>
       <Navbar />
       <main>
         <Hero />
-        <StatsStrip />
-        <Features />
         <HowItWorks />
-        <Portals />
-        <CTA />
+        <WhyChoose />
+        <Testimonials />
       </main>
       <Footer />
     </div>

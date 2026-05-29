@@ -68,8 +68,8 @@ function StepDots({ current }: { current: Step }) {
                   ${done
                     ? "border-teal-500 bg-teal-50 text-teal-600"
                     : active
-                    ? "border-teal-500 bg-teal-500 text-white"
-                    : "border-slate-200 text-slate-400"}`}
+                      ? "border-teal-500 bg-teal-500 text-white"
+                      : "border-slate-200 text-slate-400"}`}
               >
                 {done ? <CheckCircle2 size={14} /> : <span>{i + 1}</span>}
               </div>
@@ -248,51 +248,51 @@ export default function PharmacySignup() {
 
   // ── Main layout ────────────────────────────────────────────────────────────
   return (
-    <main className="h-[100dvh] overflow-hidden text-slate-950 flex">
-      {/* Left panel */}
-      <section className="hidden lg:flex flex-col justify-between w-[420px] xl:w-[460px] shrink-0 relative overflow-hidden bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,160,0.30),transparent_32%),linear-gradient(160deg,#0a1628_0%,#0d1f3c_55%,#091422_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white">
-        <div className="pointer-events-none absolute -left-20 bottom-0 h-80 w-80 rounded-full bg-[rgba(14,165,160,0.18)] blur-2xl" />
-        <div className="pointer-events-none absolute right-0 top-20 h-56 w-56 rounded-full bg-[rgba(14,165,160,0.08)] blur-xl" />
+    <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
+      <div className="grid h-full min-h-0 lg:grid-cols-[minmax(480px,0.9fr)_minmax(600px,1.1fr)]">
+        {/* Left panel */}
+        <section className="relative hidden min-h-0 overflow-hidden bg-[#013B41] py-[clamp(1rem,3vh,2.5rem)] pl-[clamp(2.5rem,6vw,5rem)] pr-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
+          <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
+          <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
-        <div className="relative z-10">
-          <MedDeliveryLogo href="/" theme="dark" size="sm" />
-          <div className="mt-8 max-w-xs">
-            <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[11px] text-white/70">
-              Pharmacy Registration
-            </span>
-            <h1 className="mt-3 text-[2.3rem] leading-[1] font-semibold tracking-tighter">
-              Bring your pharmacy
-              <br />
-              <span className="text-teal-400">online today.</span>
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-white/60 max-w-[260px]">
-              Partner with MedDelivery to reach patients, automate prescriptions, and grow your business.
-            </p>
+          <div className="relative z-10">
+            <MedDeliveryLogo href="/" theme="dark" size="sm" />
+            <div className="relative z-10 mt-6 max-w-xl lg:mt-8">
+              <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-4 text-[11px] text-white/75 sm:text-xs">
+                Pharmacy Registration
+              </span>
+              <h1 className="mt-3 text-[2.05rem] leading-[0.98] font-semibold tracking-tighter sm:text-[2.45rem] lg:text-[2.9rem] xl:text-[3.1rem]">
+                Bring your pharmacy
+                <br />
+                <span className="text-teal-400">online today.</span>
+              </h1>
+              <p className="mt-2 max-w-md text-xs leading-5 text-white/70 sm:text-sm">
+                Partner with MedDelivery to reach patients, automate prescriptions, and grow your business.
+              </p>
+            </div>
+            <ul className="relative z-10 mt-5 grid gap-2">
+              {benefits.map((b) => (
+                <li key={b} className="flex items-center gap-3 text-xs text-white/85 sm:text-sm">
+                  <span className="h-4 w-4 rounded-full border border-teal-300/80 shadow-[inset_0_0_0_4px_rgba(26,196,189,0.18)]" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="mt-8 grid gap-3">
-            {benefits.map((b) => (
-              <li key={b} className="flex items-start gap-3 text-sm text-white/80">
-                <CheckCircle2 size={15} className="text-teal-400 shrink-0 mt-0.5" />
-                <span>{b}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
 
-        <p className="relative z-10 text-xs text-white/35">
-          {copyrightYear} MedDelivery. Safe delivery, verified every step.
-        </p>
-      </section>
+          <p className="relative z-10 mt-4 text-xs text-white/40 sm:text-sm lg:mt-5">
+            {copyrightYear} MedDelivery. Safe delivery, verified every step.
+          </p>
+        </section>
 
-      {/* Right panel — scrollable */}
-      <section className="flex-1 min-w-0 overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.08),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)]">
-        <div className="flex min-h-full items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-          <div className="w-full max-w-[520px] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.4rem,3.5vh,2.2rem)] shadow-[0_24px_56px_rgba(11,19,39,0.14)] backdrop-blur-xl">
+        {/* Right panel — scrollable */}
+        <section className="grid h-full min-h-0 place-items-center overflow-y-auto pl-0 pr-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:pr-6 lg:pr-8 xl:pr-10">
+          <div className="my-auto w-full max-w-[42rem] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
             <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
 
             <div className="mb-5">
               <p className="text-xs font-bold tracking-[0.14em] text-teal-700 uppercase">Partner with us</p>
-              <h2 className="mt-1.5 text-[1.75rem] leading-none font-semibold tracking-tighter text-slate-900">
+              <h2 className="mt-2 text-[2rem] leading-none font-semibold tracking-tighter text-slate-900">
                 Register Your Pharmacy
               </h2>
               <p className="mt-1.5 text-sm text-slate-500">
@@ -374,11 +374,10 @@ export default function PharmacySignup() {
                           key={prov.id}
                           type="button"
                           onClick={() => toggleInsurance(prov.id)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm font-semibold transition ${
-                            isSelected
-                              ? "border-teal-500 bg-teal-50 text-teal-700"
-                              : "border-slate-200 text-slate-500 hover:border-slate-300"
-                          }`}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm font-semibold transition ${isSelected
+                            ? "border-teal-500 bg-teal-50 text-teal-700"
+                            : "border-slate-200 text-slate-500 hover:border-slate-300"
+                            }`}
                         >
                           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition ${isSelected ? "border-teal-500 bg-teal-500" : "border-slate-300"}`}>
                             {isSelected && <CheckCircle2 size={10} className="text-white" />}
@@ -466,12 +465,12 @@ export default function PharmacySignup() {
                       {pharmacy.selectedProviderIds.length === 0 ? (
                         <span className="text-xs text-slate-400 italic">None selected — can be added after approval</span>
                       ) : insuranceProviders
-                          .filter((p) => pharmacy.selectedProviderIds.includes(p.id))
-                          .map((p) => (
-                            <span key={p.id} className="text-xs bg-teal-50 text-teal-700 font-medium px-2 py-0.5 rounded-lg">
-                              {p.name}{p.coveragePercentage > 0 ? ` — ${p.coveragePercentage}%` : ""}
-                            </span>
-                          ))}
+                        .filter((p) => pharmacy.selectedProviderIds.includes(p.id))
+                        .map((p) => (
+                          <span key={p.id} className="text-xs bg-teal-50 text-teal-700 font-medium px-2 py-0.5 rounded-lg">
+                            {p.name}{p.coveragePercentage > 0 ? ` — ${p.coveragePercentage}%` : ""}
+                          </span>
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -521,8 +520,8 @@ export default function PharmacySignup() {
               </Link>
             </p>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

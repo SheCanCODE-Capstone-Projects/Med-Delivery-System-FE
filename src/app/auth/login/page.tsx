@@ -73,9 +73,9 @@ export default function LoginPage() {
 
   return (
     <main className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,160,0.12),transparent_34%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_45%,#eef6f7_100%)] text-slate-950">
-      <div className="grid h-full min-h-0 lg:grid-cols-[minmax(420px,0.8fr)_minmax(560px,1fr)]">
+      <div className="grid h-full min-h-0 lg:grid-cols-[minmax(480px,0.9fr)_minmax(560px,1.1fr)]">
         {/* Left panel */}
-        <section className="relative hidden min-h-0 overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.28),transparent_28%),linear-gradient(180deg,#11192f_0%,#0b1326_100%)] p-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
+        <section className="relative hidden min-h-0 overflow-hidden bg-[#013B41] py-[clamp(1rem,3vh,2.5rem)] pl-[clamp(2.5rem,6vw,5rem)] pr-[clamp(1rem,3vh,2.5rem)] text-white lg:flex lg:h-full lg:flex-col lg:justify-between">
           <div className="pointer-events-none absolute -right-16 -top-24 h-76 w-76 rounded-full bg-[rgba(14,165,160,0.22)] blur-xl" />
           <div className="pointer-events-none absolute -left-16 bottom-12 h-64 w-64 rounded-full bg-[rgba(14,165,160,0.12)] blur-xl" />
 
