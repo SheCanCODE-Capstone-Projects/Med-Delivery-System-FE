@@ -24,7 +24,7 @@ const NavItem = ({ href, icon: Icon, label, exact = false, onClick }: NavItemPro
       onClick={onClick}
       className={`flex items-center gap-3 px-6 py-3 rounded-lg text-sm font-medium transition-colors mx-4 mb-1 ${
         isActive
-          ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20'
+          ? 'bg-pharmacy-500 text-white shadow-lg shadow-pharmacy-500/20'
           : 'text-slate-400 hover:text-white hover:bg-white/5'
       }`}
     >
@@ -73,7 +73,7 @@ export default function PharmacistLayout({ children }: { children: React.ReactNo
       <div className="p-4 border-t border-slate-700/50">
         <div className="px-2 mb-3">
           <p className="text-sm font-semibold text-white leading-tight">{userName ?? 'Pharmacist'}</p>
-          <p className="text-xs text-teal-400 font-medium">Pharmacist</p>
+          <p className="text-xs text-pharmacy-400 font-medium">Pharmacist</p>
         </div>
         <button
           onClick={handleLogout}

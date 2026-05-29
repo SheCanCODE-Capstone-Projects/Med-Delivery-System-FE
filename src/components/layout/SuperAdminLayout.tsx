@@ -41,7 +41,7 @@ const NavItem = ({
       onClick={onClick}
       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
         isActive
-          ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20'
+          ? 'bg-super-500 text-white shadow-lg shadow-super-500/20'
           : 'text-slate-400 hover:text-white hover:bg-white/5'
       }`}
     >
@@ -75,7 +75,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       </div>
 
       <div className="px-6 mb-4">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold border border-teal-500/20">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-super-500/10 text-super-400 text-xs font-semibold border border-super-500/20">
           <ShieldCheck size={12} />
           Super Admin
         </span>
@@ -98,7 +98,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           <p className="text-sm font-semibold text-white leading-tight truncate">
             {userName ?? 'Super Admin'}
           </p>
-          <p className="text-xs text-teal-400 font-medium">super admin</p>
+          <p className="text-xs text-super-400 font-medium">super admin</p>
         </div>
         <button
           onClick={handleLogout}
@@ -154,8 +154,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           <div className="flex items-center gap-3 sm:gap-4">
             <NotificationBell />
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-teal-500/10 flex items-center justify-center border border-teal-500/20 shrink-0">
-                <span className="text-xs font-bold text-teal-600">
+              <div className="w-9 h-9 rounded-full bg-super-500/10 flex items-center justify-center border border-super-500/20 shrink-0">
+                <span className="text-xs font-bold text-super-600">
                   {userName ? userName.slice(0, 2).toUpperCase() : 'SA'}
                 </span>
               </div>
@@ -163,7 +163,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                 <span className="text-sm font-semibold text-slate-800 leading-tight">
                   {userName?.split(' ')[0] ?? 'Admin'}
                 </span>
-                <span className="text-xs text-teal-600 font-medium">super admin</span>
+                <span className="text-xs text-super-600 font-medium">super admin</span>
               </div>
             </div>
           </div>

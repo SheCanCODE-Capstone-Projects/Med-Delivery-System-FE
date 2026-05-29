@@ -36,7 +36,7 @@ const NavItem = ({ href, icon: Icon, label, exact = false, onClick }: NavItemPro
       onClick={onClick}
       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
         isActive
-          ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20'
+          ? 'bg-pharmacy-500 text-white shadow-lg shadow-pharmacy-500/20'
           : 'text-slate-400 hover:text-white hover:bg-white/5'
       }`}
     >
@@ -82,7 +82,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
       </div>
 
       <div className="px-6 mb-4">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold border border-teal-500/20">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pharmacy-500/10 text-pharmacy-400 text-xs font-semibold border border-pharmacy-500/20">
           Pharmacy Admin
         </span>
       </div>
@@ -94,7 +94,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
           <p className="text-sm font-semibold text-white leading-tight truncate">
             {userName ?? 'Pharmacy Admin'}
           </p>
-          <p className="text-xs text-teal-400 font-medium">pharmacy manager</p>
+          <p className="text-xs text-pharmacy-400 font-medium">pharmacy manager</p>
         </div>
         <button
           onClick={handleLogout}
@@ -148,8 +148,8 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell />
-            <div className="w-9 h-9 rounded-full bg-teal-500/10 flex items-center justify-center border border-teal-500/20 shrink-0">
-              <span className="text-xs font-bold text-teal-600">
+            <div className="w-9 h-9 rounded-full bg-pharmacy-500/10 flex items-center justify-center border border-pharmacy-500/20 shrink-0">
+              <span className="text-xs font-bold text-pharmacy-600">
                 {userName ? userName.slice(0, 2).toUpperCase() : 'PA'}
               </span>
             </div>
@@ -157,7 +157,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
               <span className="text-sm font-semibold text-slate-800 leading-tight">
                 {userName?.split(' ')[0] ?? 'Admin'}
               </span>
-              <span className="text-xs text-teal-600 font-medium">pharmacy manager</span>
+              <span className="text-xs text-pharmacy-600 font-medium">pharmacy manager</span>
             </div>
           </div>
         </header>
