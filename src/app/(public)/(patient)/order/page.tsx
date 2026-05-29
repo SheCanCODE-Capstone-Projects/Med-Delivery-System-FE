@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
+  CreditCard,
   FileUp,
   Loader2,
+  Lock,
   MapPin,
   Minus,
   Pill,
@@ -17,7 +19,7 @@ import {
   X
 } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
-import { createOrder, uploadPrescription, getMyInsuranceCards, getAllLocations } from "@/services/patientApi";
+import { createOrder, uploadPrescription, getMyInsuranceCards, getAllLocations, confirmPayment } from "@/services/patientApi";
 import type { InsuranceCardResponse, PatientLocationResponse } from "@/types/api";
 
 type MedicineItem = { id: string; medicine: string; quantity: number };
@@ -38,6 +40,16 @@ export default function OrderingForm() {
   const [submitted, setSubmitted] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
   const [formError, setFormError] = useState("");
+
+  // Payment modal state
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentDone, setPaymentDone] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
 
   const prescriptionInputRef = useRef<HTMLInputElement | null>(null);
   const nextIdRef = useRef(2);
@@ -97,10 +109,41 @@ export default function OrderingForm() {
 
       setOrderId(order.id);
       setSubmitted(true);
+      setShowPayment(true);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to submit order. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const formatCardNumber = (v: string) =>
+    v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+
+  const formatExpiry = (v: string) => {
+    const digits = v.replace(/\D/g, "").slice(0, 4);
+    return digits.length >= 3 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
+  };
+
+  const handlePayNow = async () => {
+    if (!orderId) return;
+    if (!cardNumber.replace(/\s/g, "") || cardNumber.replace(/\s/g, "").length < 16) {
+      setPaymentError("Enter a valid 16-digit card number.");
+      return;
+    }
+    if (!cardName.trim()) { setPaymentError("Enter the name on card."); return; }
+    if (!cardExpiry || cardExpiry.length < 5) { setPaymentError("Enter a valid expiry date."); return; }
+    if (!cardCvv || cardCvv.length < 3) { setPaymentError("Enter a valid CVV."); return; }
+
+    setPaying(true);
+    setPaymentError("");
+    try {
+      await confirmPayment(orderId);
+      setPaymentDone(true);
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+    } finally {
+      setPaying(false);
     }
   };
 
@@ -149,12 +192,19 @@ export default function OrderingForm() {
           {submitted && orderId && (
             <div role="status" className="mt-5 grid gap-3 rounded-3xl border border-teal-100 bg-teal-50 px-4 py-4 text-sm text-teal-900 sm:grid-cols-[1fr_auto] sm:items-center">
               <div>
-                <p className="font-bold">Order submitted successfully!</p>
-                <p className="mt-1 text-teal-700">Order <span className="font-bold">#{orderId}</span> is being processed.</p>
+                <p className="font-bold">Order #{orderId} submitted!</p>
+                <p className="mt-1 text-teal-700">{paymentDone ? "Payment confirmed. Your order is being processed." : "Complete payment to confirm your order."}</p>
               </div>
-              <Link href="/tracking" className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-teal-600 px-4 font-bold text-white">
-                Track order
-              </Link>
+              {paymentDone ? (
+                <Link href="/tracking" className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-teal-600 px-4 font-bold text-white">
+                  Track order
+                </Link>
+              ) : (
+                <button type="button" onClick={() => setShowPayment(true)}
+                  className="inline-flex min-h-11 items-center gap-2 justify-center rounded-2xl bg-teal-600 px-4 font-bold text-white">
+                  <CreditCard className="h-4 w-4" /> Pay now
+                </button>
+              )}
             </div>
           )}
 
@@ -318,6 +368,113 @@ export default function OrderingForm() {
           </div>
         </form>
       </div>
+      {/* Payment Modal */}
+      {showPayment && !paymentDone && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-50 text-teal-600">
+                  <CreditCard className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-bold text-slate-900">Secure payment</p>
+                  <p className="text-xs text-slate-500">Order #{orderId}</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowPayment(false)}
+                className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 hover:bg-slate-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4">
+              {/* Card number */}
+              <label className="grid gap-1.5">
+                <span className="text-sm font-bold text-slate-600">Card number</span>
+                <div className="relative">
+                  <CreditCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text" inputMode="numeric" placeholder="1234 5678 9012 3456"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 font-mono outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+                </div>
+              </label>
+
+              {/* Name on card */}
+              <label className="grid gap-1.5">
+                <span className="text-sm font-bold text-slate-600">Name on card</span>
+                <input type="text" placeholder="JOHN DOE"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 font-mono uppercase outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+              </label>
+
+              {/* Expiry + CVV */}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-bold text-slate-600">Expiry</span>
+                  <input type="text" inputMode="numeric" placeholder="MM/YY"
+                    value={cardExpiry}
+                    onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 font-mono outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+                </label>
+                <label className="grid gap-1.5">
+                  <span className="text-sm font-bold text-slate-600">CVV</span>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input type="password" inputMode="numeric" placeholder="•••" maxLength={4}
+                      value={cardCvv}
+                      onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 font-mono outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15" />
+                  </div>
+                </label>
+              </div>
+
+              {paymentError && (
+                <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700">
+                  {paymentError}
+                </p>
+              )}
+
+              <button type="button" onClick={handlePayNow} disabled={paying}
+                className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_14px_28px_rgba(14,165,160,0.22)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
+                {paying ? <Loader2 className="h-5 w-5 animate-spin" /> : <Lock className="h-5 w-5" />}
+                {paying ? "Processing…" : "Pay now"}
+              </button>
+
+              <p className="text-center text-xs text-slate-400">
+                <Lock className="inline h-3 w-3" /> SSL encrypted · Demo only · No real charge
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment success overlay */}
+      {paymentDone && showPayment && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-sm rounded-3xl border border-teal-100 bg-white p-8 text-center shadow-2xl">
+            <span className="inline-grid h-16 w-16 place-items-center rounded-full bg-teal-50">
+              <CheckCircle2 className="h-9 w-9 text-teal-600" />
+            </span>
+            <h3 className="mt-4 text-2xl font-bold text-slate-900">Payment confirmed!</h3>
+            <p className="mt-2 text-sm text-slate-500">Order #{orderId} is now being prepared by your matched pharmacy.</p>
+            <div className="mt-6 grid gap-3">
+              <Link href="/tracking"
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-teal-600 font-bold text-white">
+                Track your order
+              </Link>
+              <button type="button" onClick={() => setShowPayment(false)}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 font-bold text-slate-600">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PatientAppShell>
   );
 }

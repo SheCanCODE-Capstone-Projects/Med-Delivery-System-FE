@@ -112,6 +112,20 @@ export async function resetPassword(data: ResetPasswordRequest): Promise<AuthRes
   return auth;
 }
 
+export async function firebasePhoneLogin(firebaseToken: string): Promise<AuthResponse> {
+  const res = await apiClient<ApiResponse<AuthResponse>>(
+    `/api/auth/firebase-phone-login?firebaseToken=${encodeURIComponent(firebaseToken)}`,
+    { method: 'POST', skipAuth: true, timeoutMs: 30000 }
+  );
+  const auth = res.data;
+  const role = normalizeRole(auth.role);
+  setTokens(auth.accessToken, auth.refreshToken);
+  localStorage.setItem('user_role', role);
+  if (auth.fullName) localStorage.setItem('user_name', auth.fullName);
+  if (auth.pharmacyId) localStorage.setItem('pharmacy_id', String(auth.pharmacyId));
+  return { ...auth, role };
+}
+
 export async function logout(): Promise<void> {
   const refreshToken = localStorage.getItem('refresh_token') ?? '';
   // Clear tokens immediately — UI redirects without waiting for the network
