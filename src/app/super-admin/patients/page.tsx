@@ -1,14 +1,11 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Mail, Phone, Users, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { searchUsers, updateUserStatus } from '@/services/adminApi';
 import type { AdminUserResponse } from '@/types/api';
 
-const STATUS_STYLE: Record<string, string> = {
-  ACTIVE: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-  INACTIVE: 'bg-slate-100 text-slate-500 border-slate-200',
-  SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
-};
+const activeStyle  = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+const inactiveStyle = 'bg-slate-100 text-slate-500 border-slate-200';
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState<AdminUserResponse[]>([]);
@@ -38,9 +35,9 @@ export default function PatientsPage() {
   const handleToggle = async (patient: AdminUserResponse) => {
     setToggling(patient.id);
     try {
-      const newStatus = patient.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-      await updateUserStatus(patient.id, { status: newStatus });
-      setPatients((prev) => prev.map((p) => p.id === patient.id ? { ...p, status: newStatus } : p));
+      const newActive = !patient.isActive;
+      await updateUserStatus(patient.id, { isActive: newActive });
+      setPatients((prev) => prev.map((p) => p.id === patient.id ? { ...p, isActive: newActive } : p));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update patient');
     } finally {
@@ -91,7 +88,7 @@ export default function PatientsPage() {
                   <th className="px-6 py-4">Phone</th>
                   <th className="px-6 py-4">Joined</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-center">Toggle</th>
+                  <th className="px-6 py-4 text-center">Activate / Deactivate</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -99,7 +96,7 @@ export default function PatientsPage() {
                   <tr key={p.id} className="hover:bg-slate-50/80 transition text-sm">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-violet-50 text-violet-700 font-bold flex items-center justify-center text-sm border border-violet-100">
+                        <div className="w-9 h-9 rounded-full bg-teal-50 text-teal-700 font-bold flex items-center justify-center text-sm border border-teal-100">
                           {p.fullName?.charAt(0) ?? '?'}
                         </div>
                         <div>
@@ -119,20 +116,20 @@ export default function PatientsPage() {
                       {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[p.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                        {p.status}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${p.isActive ? activeStyle : inactiveStyle}`}>
+                        {p.isActive ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleToggle(p)}
                         disabled={toggling === p.id}
-                        title={p.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        title={p.isActive ? 'Deactivate' : 'Activate'}
                         className="text-slate-400 hover:text-teal-600 transition disabled:opacity-50"
                       >
                         {toggling === p.id
                           ? <Loader2 size={18} className="animate-spin" />
-                          : p.status === 'ACTIVE'
+                          : p.isActive
                             ? <ToggleRight size={22} className="text-teal-600" />
                             : <ToggleLeft size={22} />}
                       </button>
