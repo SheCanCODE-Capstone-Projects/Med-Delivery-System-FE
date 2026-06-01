@@ -28,6 +28,7 @@ export default defineConfig([
         },
       ],
       'preserve-caught-error': 'off',
+      '@next/next/no-img-element': 'off',
     },
   },
   {

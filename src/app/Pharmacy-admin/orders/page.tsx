@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ClipboardList, Loader2, AlertCircle, RefreshCw, Search } from 'lucide-react';
 import { getMyPharmacyOrders } from '@/services/pharmacyApi';
 import { getPharmacyId } from '@/services/authApi';
@@ -27,7 +27,7 @@ export default function OrderOversightPage() {
 
   const pharmacyId = getPharmacyId();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!pharmacyId) {
       setError('Pharmacy ID not found. Please log out and log in again.');
       setLoading(false);
@@ -43,9 +43,9 @@ export default function OrderOversightPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pharmacyId]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return orders;
