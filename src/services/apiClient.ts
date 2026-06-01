@@ -1,7 +1,7 @@
 // Full Railway URL — used for OAuth navigation (window.location.href) and server-side fetches
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'https://med-delivery-system-be-production.up.railway.app';
+  'https://meddelivery.up.railway.app';
 
 // Browser fetches go through the Next.js /api proxy (same origin → no CORS, 302→401 conversion).
 // Server-side fetches (SSR) hit Railway directly — no CORS concern there.
