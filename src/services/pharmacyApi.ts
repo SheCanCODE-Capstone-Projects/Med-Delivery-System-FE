@@ -99,9 +99,12 @@ export async function removePharmacist(pharmacyId: number, id: number): Promise<
 export async function getMyPharmacyOrders(
   pharmacyId: number
 ): Promise<OrderResponse[]> {
-  return apiClient<OrderResponse[]>(
+  const res = await apiClient<OrderResponse[] | { data: OrderResponse[] }>(
     `/api/pharmacies/${pharmacyId}/orders`
   );
+  // Unwrap ApiResponse wrapper if present, otherwise use directly
+  if (res && !Array.isArray(res) && 'data' in res) return res.data ?? [];
+  return (res as OrderResponse[]) ?? [];
 }
 
 export async function updatePharmacistOrderStatus(
