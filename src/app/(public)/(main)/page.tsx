@@ -191,7 +191,7 @@ function Navbar(): React.JSX.Element {
         style={{ background: '#0E9384', borderBottom: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 1px 8px rgba(0,0,0,0.12)' }}
       >
         {/* Logo */}
-        <MedDeliveryLogo theme="dark" size="sm" showTagline={false} />
+        <MedDeliveryLogo theme="dark" size="sm" showTagline={true} />
 
         {/* Centre nav */}
         <ul className="hidden md:flex items-center gap-9 list-none p-0 m-0">
@@ -345,7 +345,7 @@ function Hero(): React.JSX.Element {
 
 function HowItWorks(): React.JSX.Element {
   return (
-    <section id="how" className="px-[6%] py-[80px]" style={{ background: '#02C39A' }}>
+    <section id="how" className="px-[6%] py-[80px]" style={{ background: '#0E9384' }}>
       <div className="text-center mb-14">
         <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#fff' }}>
           How It Works
@@ -420,7 +420,7 @@ function WhyChoose(): React.JSX.Element {
 
 function Testimonials(): React.JSX.Element {
   return (
-    <section id="reviews" className="px-[6%] py-[90px]" style={{ background: '#02C39A' }}>
+    <section id="reviews" className="px-[6%] py-[90px]" style={{ background: '#0E9384' }}>
       <div className="text-center mb-12">
         <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#fff' }}>
           Patient Success Stories
