@@ -79,7 +79,7 @@ export interface AdminUserResponse {
   email: string;
   phoneNumber?: string;
   role: string;
-  status: string;
+  isActive: boolean;
   createdAt: string;
 }
 
@@ -92,8 +92,7 @@ export interface AdminUserSearchRequest {
 }
 
 export interface UserStatusUpdateRequest {
-  status: string;
-  reason?: string;
+  isActive: boolean;
 }
 
 export interface PharmacyApprovalDetailResponse {
@@ -401,11 +400,15 @@ export interface DispensingOrderResponse {
 export interface SubstitutionResponse {
   id: number;
   orderId: number;
-  originalMedicine: string;
-  substituteMedicine: string;
-  reason: string;
+  originalMedicineId?: number;
+  originalMedicineName: string;
+  substituteMedicineId?: number;
+  substituteMedicineName: string;
+  pharmacistReason?: string;
+  patientReason?: string;
   status: string;
-  createdAt: string;
+  requestedAt: string;
+  respondedAt?: string;
 }
 
 export interface ActionLogResponse {

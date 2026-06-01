@@ -212,12 +212,12 @@ export default function TrackingPage() {
                   <div>
                     <p className="text-sm font-bold text-slate-800">Order #{sub.orderId}</p>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      <span className="line-through text-rose-500">{sub.originalMedicine}</span>
+                      <span className="line-through text-rose-500">{sub.originalMedicineName}</span>
                       {" → "}
-                      <span className="text-emerald-700 font-semibold">{sub.substituteMedicine}</span>
+                      <span className="text-emerald-700 font-semibold">{sub.substituteMedicineName}</span>
                     </p>
-                    {sub.reason && (
-                      <p className="text-xs text-slate-400 mt-1 italic">&ldquo;{sub.reason}&rdquo;</p>
+                    {sub.pharmacistReason && (
+                      <p className="text-xs text-slate-400 mt-1 italic">&ldquo;{sub.pharmacistReason}&rdquo;</p>
                     )}
                   </div>
                   <Pill className="h-5 w-5 text-violet-400 shrink-0" />

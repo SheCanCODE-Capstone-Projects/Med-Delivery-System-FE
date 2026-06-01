@@ -9,12 +9,8 @@ import { searchUsers, updateUserStatus } from '@/services/adminApi';
 import { getAllPharmacies, getPharmacistsByPharmacy } from '@/services/pharmacyApi';
 import type { AdminUserResponse, PharmacyResponse } from '@/types/api';
 
-const STATUS_STYLE: Record<string, string> = {
-  ACTIVE: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-  INACTIVE: 'bg-slate-100 text-slate-500 border-slate-200',
-  SUSPENDED: 'bg-rose-50 text-rose-600 border-rose-100',
-  PENDING: 'bg-amber-50 text-amber-700 border-amber-100',
-};
+const activeStyle  = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+const inactiveStyle = 'bg-slate-100 text-slate-500 border-slate-200';
 
 const ROLE_STYLE: Record<string, string> = {
   SUPER_ADMIN: 'bg-violet-50 text-violet-700',
@@ -93,8 +89,8 @@ function ProfileModal({
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${ROLE_STYLE[user.role] ?? 'bg-slate-100 text-slate-600'}`}>
                 {user.role.replace('_', ' ')}
               </span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_STYLE[user.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                {user.status}
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${user.isActive ? activeStyle : inactiveStyle}`}>
+                {user.isActive ? 'ACTIVE' : 'INACTIVE'}
               </span>
             </div>
             <div className="mt-2 space-y-1">
@@ -149,7 +145,11 @@ function ProfileModal({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold text-slate-800 text-sm">{pharmacy.name}</p>
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_STYLE[pharmacy.status] ?? 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${
+                        pharmacy.status === 'ACTIVE' ? activeStyle :
+                        pharmacy.status === 'INACTIVE' ? inactiveStyle :
+                        'bg-amber-50 text-amber-700 border-amber-100'
+                      }`}>
                         {pharmacy.status}
                       </span>
                     </div>
@@ -236,9 +236,9 @@ export default function AdminsPage() {
   const handleToggleStatus = async (user: AdminUserResponse) => {
     setToggling(user.id);
     try {
-      const newStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-      await updateUserStatus(user.id, { status: newStatus });
-      setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, status: newStatus } : u));
+      const newActive = !user.isActive;
+      await updateUserStatus(user.id, { isActive: newActive });
+      setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, isActive: newActive } : u));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
     } finally {
@@ -339,20 +339,20 @@ export default function AdminsPage() {
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[user.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                        {user.status}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${user.isActive ? activeStyle : inactiveStyle}`}>
+                        {user.isActive ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleToggleStatus(user)}
                         disabled={toggling === user.id}
-                        title={user.status === 'ACTIVE' ? 'Deactivate user' : 'Activate user'}
+                        title={user.isActive ? 'Deactivate user' : 'Activate user'}
                         className="text-slate-400 hover:text-teal-600 transition disabled:opacity-50"
                       >
                         {toggling === user.id
                           ? <Loader2 size={18} className="animate-spin" />
-                          : user.status === 'ACTIVE'
+                          : user.isActive
                             ? <ToggleRight size={22} className="text-teal-600" />
                             : <ToggleLeft size={22} />}
                       </button>
