@@ -73,7 +73,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
   const sidebarContent = (
     <>
       <div className="px-6 mb-8 flex items-center justify-between">
-        <MedDeliveryLogo href="/Pharmacy-admin" theme="dark" size="sm" showTagline={false} />
+        <MedDeliveryLogo href="/Pharmacy-admin" theme="dark" size="sm" showTagline={true} />
         <button onClick={closeSidebar} className="lg:hidden text-slate-400 hover:text-white p-1">
           <X size={20} />
         </button>

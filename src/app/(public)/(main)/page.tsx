@@ -282,7 +282,7 @@ function Navbar(): React.JSX.Element {
 function Hero(): React.JSX.Element {
   return (
     <section
-      className="flex flex-col md:flex-row items-center justify-center px-[6%] pt-[100px] pb-[72px] gap-10"
+      className="flex flex-col md:flex-row items-center justify-between px-[6%] pt-[100px] pb-[72px] gap-10"
       style={{ background: '#fff', minHeight: '100vh' }}
     >
       {/* Left – Copy */}
@@ -312,7 +312,7 @@ function Hero(): React.JSX.Element {
       </div>
 
       {/* Right – Image */}
-      <div className="flex-1 max-w-[520px] flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <div className="rounded-2xl overflow-hidden w-full" style={{ maxHeight: '480px' }}>
           <img
             src={heroImage.src}
