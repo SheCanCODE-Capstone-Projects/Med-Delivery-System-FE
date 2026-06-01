@@ -314,7 +314,6 @@ function Hero(): React.JSX.Element {
       {/* Right – Image */}
       <div className="flex-1 max-w-[520px] flex items-center justify-center">
         <div className="rounded-2xl overflow-hidden w-full" style={{ maxHeight: '480px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={heroImage.src}
             alt="Pharmacy delivery person handing a package"
