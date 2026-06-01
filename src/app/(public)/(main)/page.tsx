@@ -111,25 +111,25 @@ const testimonials: TestimonialItem[] = [
   {
     stars: 5,
     quote: '"MedDelivery has been an absolute lifesaver. Uploading my prescription is so easy, and the delivery is always exactly on time. I never have to wait in line again."',
-    name: 'Sarah Jenkins',
+    name: 'Amina Uwase',
     role: 'Verified Patient',
-    initial: 'SJ',
+    initial: 'AU',
     color: '#0abfbc',
   },
   {
     stars: 4,
     quote: '"I love that I can choose my preferred local pharmacy and have it delivered right to my door. Highly recommended this app to all my friends and family who struggle with errands."',
-    name: 'Michael Ethan',
+    name: 'Jean-Pierre Habimana',
     role: 'Verified Patient',
-    initial: 'ME',
+    initial: 'JH',
     color: '#089A97',
   },
   {
     stars: 5,
     quote: '"MedDelivery has given me the healthcare delivery I need. It is fast, secure, and extremely convenient service that I will definitely continue using."',
-    name: 'Emily Rodriguez',
+    name: 'Marie-Claire Mukamana',
     role: 'Verified Patient',
-    initial: 'ER',
+    initial: 'MC',
     color: '#0abfbc',
   },
 ];
@@ -188,10 +188,10 @@ function Navbar(): React.JSX.Element {
     <>
       <nav
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[6%] h-[68px]"
-        style={{ background: '#e2fff2ff', borderBottom: '1px solid #e8f5f3', boxShadow: '0 1px 8px rgba(2,195,154,0.07)' }}
+        style={{ background: '#0E9384', borderBottom: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 1px 8px rgba(0,0,0,0.12)' }}
       >
         {/* Logo */}
-        <MedDeliveryLogo theme="light" size="sm" showTagline={false} />
+        <MedDeliveryLogo theme="dark" size="sm" showTagline={false} />
 
         {/* Centre nav */}
         <ul className="hidden md:flex items-center gap-9 list-none p-0 m-0">
@@ -200,9 +200,9 @@ function Navbar(): React.JSX.Element {
               <a
                 href={link.href}
                 className="text-sm font-medium no-underline transition-colors"
-                style={{ color: '#4B5563' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#02C39A')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#4B5563')}
+                style={{ color: 'rgba(255,255,255,0.85)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
               >
                 {link.label}
               </a>
@@ -215,14 +215,14 @@ function Navbar(): React.JSX.Element {
           <Link
             href="/auth/login"
             className="text-sm font-medium no-underline px-5 py-2 rounded-lg transition-all"
-            style={{ color: '#374151', background: 'transparent', border: '1px solid #e5e7eb' }}
+            style={{ color: '#fff', background: 'transparent', border: '1px solid rgba(255,255,255,0.45)' }}
           >
             Log In
           </Link>
           <Link
             href="/signup"
             className="text-sm font-bold no-underline px-5 py-2 rounded-lg transition-all"
-            style={{ background: '#02C39A', color: '#fff' }}
+            style={{ background: '#fff', color: '#0E9384' }}
           >
             Sign Up
           </Link>
@@ -237,7 +237,7 @@ function Navbar(): React.JSX.Element {
           className="flex md:hidden flex-col gap-[5px] bg-transparent border-none cursor-pointer p-1"
         >
           {[0, 1, 2].map((i) => (
-            <span key={i} className="block w-[22px] h-[2px] rounded-sm" style={{ background: '#374151' }} />
+            <span key={i} className="block w-[22px] h-[2px] rounded-sm" style={{ background: '#fff' }} />
           ))}
         </button>
       </nav>
@@ -282,7 +282,7 @@ function Navbar(): React.JSX.Element {
 function Hero(): React.JSX.Element {
   return (
     <section
-      className="flex flex-col md:flex-row items-center px-[6%] pt-[100px] pb-[72px] gap-10"
+      className="flex flex-col md:flex-row items-center justify-center px-[6%] pt-[100px] pb-[72px] gap-10"
       style={{ background: '#fff', minHeight: '100vh' }}
     >
       {/* Left – Copy */}

@@ -209,7 +209,13 @@ export default function AnalyticsPage() {
 
   const totalUsers = userSegments.reduce((s, x) => s + x.value, 0);
 
-  const ordersMax = Math.max(report?.totalOrders ?? 0, 1);
+  const ordersMax = Math.max(
+    report?.totalOrders ?? 0,
+    report?.completedOrders ?? 0,
+    report?.cancelledOrders ?? 0,
+    report?.newPatients ?? 0,
+    1
+  );
   const orderBars = [
     { label: 'Total',       value: report?.totalOrders ?? 0,    color: 'bg-teal-500' },
     { label: 'Completed',   value: report?.completedOrders ?? 0, color: 'bg-emerald-500' },

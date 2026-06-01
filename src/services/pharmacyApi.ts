@@ -100,7 +100,7 @@ export async function getMyPharmacyOrders(
   pharmacyId: number
 ): Promise<OrderResponse[]> {
   return apiClient<OrderResponse[]>(
-    `/api/pharmacies/${pharmacyId}/pharmacists/my-orders`
+    `/api/pharmacies/${pharmacyId}/orders`
   );
 }
 

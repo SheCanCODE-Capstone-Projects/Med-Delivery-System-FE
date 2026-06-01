@@ -171,18 +171,20 @@ export default function LoginPage() {
               </h2>
             </div>
 
-            {/* Tab switcher */}
-            <div className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1">
-              {[
-                { id: "password", label: "Email / password" },
-                { id: "phone", label: "Phone OTP" },
-              ].map((t) => (
-                <button key={t.id} type="button"
-                  onClick={() => { setTab(t.id as "password" | "phone"); setError(""); setPhoneError(""); }}
-                  className={`min-h-10 rounded-xl text-sm font-bold transition ${tab === t.id ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
-                  {t.label}
+            {/* Tab switcher — only show Phone OTP tab when Firebase is configured */}
+            <div className={`mt-4 gap-1 rounded-2xl bg-slate-100 p-1 ${firebaseReady ? 'grid grid-cols-2' : 'flex'}`}>
+              <button type="button"
+                onClick={() => { setTab("password"); setError(""); setPhoneError(""); }}
+                className={`min-h-10 rounded-xl text-sm font-bold transition ${tab === "password" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"} ${!firebaseReady ? 'flex-1' : ''}`}>
+                Email / password
+              </button>
+              {firebaseReady && (
+                <button type="button"
+                  onClick={() => { setTab("phone"); setError(""); setPhoneError(""); }}
+                  className={`min-h-10 rounded-xl text-sm font-bold transition ${tab === "phone" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+                  Phone OTP
                 </button>
-              ))}
+              )}
             </div>
 
             {/* ── Password tab ── */}
@@ -239,13 +241,8 @@ export default function LoginPage() {
             )}
 
             {/* ── Phone OTP tab ── */}
-            {tab === "phone" && (
+            {tab === "phone" && firebaseReady && (
               <div className="mt-4 grid gap-4">
-                {!firebaseReady && (
-                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                    Phone sign-in is not configured. Set Firebase environment variables to enable it.
-                  </p>
-                )}
 
                 {phoneError && (
                   <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

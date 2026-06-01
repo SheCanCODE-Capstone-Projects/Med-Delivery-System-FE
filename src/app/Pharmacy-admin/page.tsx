@@ -80,10 +80,10 @@ export default function PharmacyAdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Hero banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-7 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 via-teal-700 to-cyan-800 p-7 text-white shadow-lg">
         <div className="absolute inset-0 opacity-10" style={{backgroundImage:'radial-gradient(circle at 80% 20%, white 0%, transparent 50%)'}} />
         <div className="relative">
-          <p className="text-indigo-200 text-sm font-medium mb-1">
+          <p className="text-teal-200 text-sm font-medium mb-1">
             Welcome back, {managerName ?? pharmacy?.managerName ?? 'Manager'}
           </p>
           <h1 className="text-3xl font-extrabold tracking-tight">{pharmacy?.name ?? 'My Pharmacy'}</h1>
@@ -103,7 +103,7 @@ export default function PharmacyAdminDashboard() {
               {pharmacy?.status ?? '—'}
             </span>
             {pharmacy?.status !== 'ACTIVE' && (
-              <span className="text-xs text-indigo-300">Pending admin approval</span>
+              <span className="text-xs text-teal-300">Pending admin approval</span>
             )}
           </div>
         </div>
