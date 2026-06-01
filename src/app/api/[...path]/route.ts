@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND = 'https://meddelivery.up.railway.app';
+const BACKEND = 'https://med-delivery-system-be-production.up.railway.app';
 
 // Headers that must not be forwarded to the backend
 const DROP_REQ_HEADERS = new Set([
