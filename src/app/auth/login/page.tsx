@@ -99,7 +99,12 @@ export default function LoginPage() {
       confirmationRef.current = result;
       setOtpSent(true);
     } catch (e) {
-      setPhoneError(e instanceof Error ? e.message : "Failed to send OTP. Check the phone number and try again.");
+      const msg = e instanceof Error ? e.message : "";
+      if (msg.includes("billing-not-enabled") || msg.includes("auth/billing-not-enabled")) {
+        setPhoneError("Phone OTP is currently unavailable. Please use the Email / Password tab to sign in.");
+      } else {
+        setPhoneError(msg || "Failed to send OTP. Check the phone number and try again.");
+      }
     } finally {
       setSendingOtp(false);
     }

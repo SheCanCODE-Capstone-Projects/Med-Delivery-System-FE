@@ -113,7 +113,6 @@ export default function OrderingForm() {
 
       setOrderId(order.id);
       setSubmitted(true);
-      setShowPayment(true);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to submit order. Please try again.");
     } finally {
@@ -197,18 +196,15 @@ export default function OrderingForm() {
             <div role="status" className="mt-5 grid gap-3 rounded-3xl border border-teal-100 bg-teal-50 px-4 py-4 text-sm text-teal-900 sm:grid-cols-[1fr_auto] sm:items-center">
               <div>
                 <p className="font-bold">Order #{orderId} submitted!</p>
-                <p className="mt-1 text-teal-700">{paymentDone ? "Payment confirmed. Your order is being processed." : "Complete payment to confirm your order."}</p>
+                <p className="mt-1 text-teal-700">
+                  {paymentDone
+                    ? "Payment confirmed. Your order is being processed."
+                    : "The pharmacist will confirm stock availability. You will be prompted to pay from the tracking page."}
+                </p>
               </div>
-              {paymentDone ? (
-                <Link href="/tracking" className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-teal-600 px-4 font-bold text-white">
-                  Track order
-                </Link>
-              ) : (
-                <button type="button" onClick={() => setShowPayment(true)}
-                  className="inline-flex min-h-11 items-center gap-2 justify-center rounded-2xl bg-teal-600 px-4 font-bold text-white">
-                  <CreditCard className="h-4 w-4" /> Pay now
-                </button>
-              )}
+              <Link href="/tracking" className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-teal-600 px-4 font-bold text-white">
+                Track order
+              </Link>
             </div>
           )}
 
