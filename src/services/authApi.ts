@@ -62,34 +62,48 @@ export async function sendOtp(username: string): Promise<string> {
 }
 
 export async function verifyOtp(data: OtpVerifyRequest): Promise<AuthResponse> {
-  const res = await apiClient<ApiResponse<AuthResponse>>('/api/auth/verify-otp', {
+  const res = await apiClient<ApiResponse<Record<string, unknown>>>('/api/auth/verify-otp', {
     method: 'POST',
     body: JSON.stringify(data),
     skipAuth: true,
     timeoutMs: 60000,
   });
-  const auth = res.data;
-  const role = normalizeRole(auth.role);
-  setTokens(auth.accessToken, auth.refreshToken);
+  const raw = res.data as Record<string, unknown>;
+  const accessToken = (raw.accessToken ?? raw.token ?? '') as string;
+  const refreshToken = (raw.refreshToken ?? '') as string;
+  const role = normalizeRole((raw.role ?? '') as string);
+  const fullName = (raw.fullName ?? '') as string;
+  const pharmacyId = raw.pharmacyId as number | undefined;
+  const userId = (raw.userId ?? 0) as number;
+
+  if (!accessToken) throw new Error('Verification response missing access token.');
+
+  setTokens(accessToken, refreshToken);
   localStorage.setItem('user_role', role);
-  if (auth.fullName) localStorage.setItem('user_name', auth.fullName);
-  if (auth.pharmacyId) localStorage.setItem('pharmacy_id', String(auth.pharmacyId));
-  return { ...auth, role };
+  if (fullName) localStorage.setItem('user_name', fullName);
+  if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
+  return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
 }
 
 export async function setPassword(data: SetPasswordRequest): Promise<AuthResponse> {
-  const res = await apiClient<ApiResponse<AuthResponse>>('/api/auth/set-password', {
+  const res = await apiClient<ApiResponse<Record<string, unknown>>>('/api/auth/set-password', {
     method: 'POST',
     body: JSON.stringify(data),
     skipAuth: true,
     timeoutMs: 60000,
   });
-  const auth = res.data;
-  setTokens(auth.accessToken, auth.refreshToken);
-  localStorage.setItem('user_role', auth.role);
-  if (auth.fullName) localStorage.setItem('user_name', auth.fullName);
-  if (auth.pharmacyId) localStorage.setItem('pharmacy_id', String(auth.pharmacyId));
-  return auth;
+  const raw = res.data as Record<string, unknown>;
+  const accessToken = (raw.accessToken ?? raw.token ?? '') as string;
+  const refreshToken = (raw.refreshToken ?? '') as string;
+  const role = normalizeRole((raw.role ?? '') as string);
+  const fullName = (raw.fullName ?? '') as string;
+  const pharmacyId = raw.pharmacyId as number | undefined;
+  const userId = (raw.userId ?? 0) as number;
+  setTokens(accessToken, refreshToken);
+  localStorage.setItem('user_role', role);
+  if (fullName) localStorage.setItem('user_name', fullName);
+  if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
+  return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
 }
 
 export async function forgotPassword(data: ForgotPasswordRequest): Promise<void> {
@@ -101,15 +115,22 @@ export async function forgotPassword(data: ForgotPasswordRequest): Promise<void>
 }
 
 export async function resetPassword(data: ResetPasswordRequest): Promise<AuthResponse> {
-  const res = await apiClient<ApiResponse<AuthResponse>>('/api/auth/reset-password', {
+  const res = await apiClient<ApiResponse<Record<string, unknown>>>('/api/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify(data),
     skipAuth: true,
   });
-  const auth = res.data;
-  setTokens(auth.accessToken, auth.refreshToken);
-  localStorage.setItem('user_role', auth.role);
-  return auth;
+  const raw = res.data as Record<string, unknown>;
+  const accessToken = (raw.accessToken ?? raw.token ?? '') as string;
+  const refreshToken = (raw.refreshToken ?? '') as string;
+  const role = normalizeRole((raw.role ?? '') as string);
+  const fullName = (raw.fullName ?? '') as string;
+  const pharmacyId = raw.pharmacyId as number | undefined;
+  const userId = (raw.userId ?? 0) as number;
+  setTokens(accessToken, refreshToken);
+  localStorage.setItem('user_role', role);
+  if (fullName) localStorage.setItem('user_name', fullName);
+  return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
 }
 
 export async function firebasePhoneLogin(firebaseToken: string): Promise<AuthResponse> {
