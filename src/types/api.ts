@@ -115,6 +115,7 @@ export interface PharmacyApprovalRequest {
 
 export interface ManagerUpdateRequest {
   newManagerEmail: string;
+  newManagerName: string;
 }
 
 export interface AdminOrderResponse {

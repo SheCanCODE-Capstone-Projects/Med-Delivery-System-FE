@@ -42,6 +42,7 @@ export default function PharmacyDetailsPage() {
   const [suspendReason, setSuspendReason] = useState('');
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [newManagerEmail, setNewManagerEmail] = useState('');
+  const [newManagerName, setNewManagerName] = useState('');
   const [replaceManagerLoading, setReplaceManagerLoading] = useState(false);
   const [replaceManagerMsg, setReplaceManagerMsg] = useState('');
 
@@ -106,10 +107,14 @@ export default function PharmacyDetailsPage() {
     setReplaceManagerLoading(true);
     setReplaceManagerMsg('');
     try {
-      await replacePharmacyManager(pharmacy.id, { newManagerEmail: newManagerEmail.trim() });
-      setReplaceManagerMsg(`Manager updated to ${newManagerEmail}.`);
+      await replacePharmacyManager(pharmacy.id, { 
+        newManagerEmail: newManagerEmail.trim(), 
+        newManagerName: newManagerName.trim() 
+      });
+      setReplaceManagerMsg(`Manager updated to ${newManagerName.trim()}.`);
       setNewManagerEmail('');
-      setPharmacy((p) => p ? { ...p, managerEmail: newManagerEmail.trim() } : p);
+      setNewManagerName('');
+      setPharmacy((p) => p ? { ...p, managerEmail: newManagerEmail.trim(), managerName: newManagerName.trim() } : p);
     } catch (err) {
       setReplaceManagerMsg(err instanceof Error ? err.message : 'Failed to replace manager.');
     } finally {
@@ -296,6 +301,14 @@ export default function PharmacyDetailsPage() {
                 </p>
               )}
               <form onSubmit={handleReplaceManager} className="space-y-3">
+                <input
+                  type="text"
+                  required
+                  value={newManagerName}
+                  onChange={(e) => setNewManagerName(e.target.value)}
+                  placeholder="New Manager Full Name"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
                 <input
                   type="email"
                   required

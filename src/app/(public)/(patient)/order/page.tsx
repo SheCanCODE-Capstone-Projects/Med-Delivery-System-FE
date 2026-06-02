@@ -80,6 +80,10 @@ export default function OrderingForm() {
       setFormError("Enter at least one medicine name or add notes.");
       return;
     }
+    if (fulfillment === "DELIVERY" && !selectedLocationId) {
+      setFormError("Delivery address is required for delivery orders. Please select a location from the dropdown or add one in your settings.");
+      return;
+    }
 
     setSubmitting(true);
     try {

@@ -519,6 +519,26 @@ export default function PharmacySignup() {
                 Sign in
               </Link>
             </p>
+
+            <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <span className="h-px bg-slate-200" />
+              <p className="text-sm font-semibold text-slate-400">or</p>
+              <span className="h-px bg-slate-200" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => { window.location.href = `https://med-delivery-system-be-production.up.railway.app/oauth2/authorization/google`; }}
+              className="mt-4 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md disabled:opacity-60"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+                <path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.95H12v3.69h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" />
+                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.43l-3.24-2.5c-.9.6-2.06.96-3.37.96-2.59 0-4.79-1.75-5.57-4.1H3.08v2.58A9.99 9.99 0 0 0 12 22Z" />
+                <path fill="#FBBC05" d="M6.43 13.93A5.98 5.98 0 0 1 6.12 12c0-.67.11-1.31.31-1.93V7.49H3.08A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.08 4.51l3.35-2.58Z" />
+                <path fill="#EA4335" d="M12 5.97c1.47 0 2.8.5 3.84 1.49l2.88-2.88C16.95 2.94 14.69 2 12 2a9.99 9.99 0 0 0-8.92 5.49l3.35 2.58c.78-2.35 2.98-4.1 5.57-4.1Z" />
+              </svg>
+              Continue with Google
+            </button>
           </div>
         </section>
       </div>
