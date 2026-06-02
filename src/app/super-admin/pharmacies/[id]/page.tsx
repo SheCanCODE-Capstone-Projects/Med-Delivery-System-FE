@@ -107,9 +107,9 @@ export default function PharmacyDetailsPage() {
     setReplaceManagerLoading(true);
     setReplaceManagerMsg('');
     try {
-      await replacePharmacyManager(pharmacy.id, { 
-        newManagerEmail: newManagerEmail.trim(), 
-        newManagerName: newManagerName.trim() 
+      await replacePharmacyManager(pharmacy.id, {
+        managerEmail: newManagerEmail.trim(),
+        managerName: newManagerName.trim()
       });
       setReplaceManagerMsg(`Manager updated to ${newManagerName.trim()}.`);
       setNewManagerEmail('');

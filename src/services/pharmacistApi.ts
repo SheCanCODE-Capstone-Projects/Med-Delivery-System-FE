@@ -84,6 +84,17 @@ export async function dispenseMedicine(
   return res.data;
 }
 
+export async function fillFromPrescription(
+  orderId: number,
+  items: Array<{ medicineName: string; quantity: number }>
+): Promise<DispensingOrderResponse> {
+  const res = await apiClient<ApiResponse<DispensingOrderResponse>>(
+    `/api/pharmacist/dispensing/orders/${orderId}/fill`,
+    { method: 'POST', body: JSON.stringify({ items }) }
+  );
+  return res.data;
+}
+
 export async function getActionLogs(orderId: number): Promise<ActionLogResponse[]> {
   const res = await apiClient<ApiResponse<ActionLogResponse[]>>(
     `/api/pharmacist/dispensing/orders/${orderId}/logs`

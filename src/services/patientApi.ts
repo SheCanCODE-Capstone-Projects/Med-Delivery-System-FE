@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, BASE_URL } from './apiClient';
 import type {
   ApiResponse,
   PagedResponse,
@@ -17,6 +17,19 @@ import type {
   ChatbotResponse,
   ChatbotRequest,
 } from '@/types/api';
+
+function toAbsoluteUrl(url?: string): string | undefined {
+  if (!url) return url;
+  return url.startsWith('/') ? `${BASE_URL}${url}` : url;
+}
+
+function normalizeProfile(p: PatientProfileResponse): PatientProfileResponse {
+  return { ...p, profileImageUrl: toAbsoluteUrl(p.profileImageUrl) };
+}
+
+function normalizeInsuranceCard(c: InsuranceCardResponse): InsuranceCardResponse {
+  return { ...c, frontImageUrl: toAbsoluteUrl(c.frontImageUrl), backImageUrl: toAbsoluteUrl(c.backImageUrl) };
+}
 
 interface InsuranceCardRequest {
   providerName: string;
@@ -117,7 +130,7 @@ export async function deletePrescription(id: number): Promise<void> {
 
 export async function getMyProfile(): Promise<PatientProfileResponse> {
   const res = await apiClient<ApiResponse<PatientProfileResponse>>('/api/patient/profile');
-  return res.data;
+  return normalizeProfile(res.data);
 }
 
 export async function updateProfile(
@@ -127,7 +140,7 @@ export async function updateProfile(
     method: 'PATCH',
     body: JSON.stringify(data),
   });
-  return res.data;
+  return normalizeProfile(res.data);
 }
 
 export async function uploadProfileImage(file: File): Promise<PatientProfileResponse> {
@@ -137,7 +150,7 @@ export async function uploadProfileImage(file: File): Promise<PatientProfileResp
     '/api/patient/profile/image',
     { method: 'POST', body: form }
   );
-  return res.data;
+  return normalizeProfile(res.data);
 }
 
 // ─── Insurance Cards ──────────────────────────────────────────────────────────
@@ -149,21 +162,21 @@ export async function addInsuranceCard(
     '/api/patient/profile/insurance',
     { method: 'POST', body: JSON.stringify(data) }
   );
-  return res.data;
+  return normalizeInsuranceCard(res.data);
 }
 
 export async function getMyInsuranceCards(): Promise<InsuranceCardResponse[]> {
   const res = await apiClient<ApiResponse<InsuranceCardResponse[]>>(
     '/api/patient/profile/insurance'
   );
-  return res.data;
+  return res.data.map(normalizeInsuranceCard);
 }
 
 export async function getInsuranceCardById(id: number): Promise<InsuranceCardResponse> {
   const res = await apiClient<ApiResponse<InsuranceCardResponse>>(
     `/api/patient/profile/insurance/${id}`
   );
-  return res.data;
+  return normalizeInsuranceCard(res.data);
 }
 
 export async function updateInsuranceCard(
@@ -174,7 +187,7 @@ export async function updateInsuranceCard(
     `/api/patient/profile/insurance/${id}`,
     { method: 'PUT', body: JSON.stringify(data) }
   );
-  return res.data;
+  return normalizeInsuranceCard(res.data);
 }
 
 export async function deleteInsuranceCard(id: number): Promise<void> {
@@ -198,7 +211,7 @@ export async function uploadInsuranceCard(
     '/api/patient/profile/insurance/upload',
     { method: 'POST', body: form }
   );
-  return res.data;
+  return normalizeInsuranceCard(res.data);
 }
 
 // ─── Locations ────────────────────────────────────────────────────────────────

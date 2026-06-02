@@ -51,7 +51,7 @@ export interface SetPasswordRequest {
 }
 
 export interface ForgotPasswordRequest {
-  email: string;
+  username: string;
 }
 
 export interface ResetPasswordRequest {
@@ -114,8 +114,9 @@ export interface PharmacyApprovalRequest {
 }
 
 export interface ManagerUpdateRequest {
-  newManagerEmail: string;
-  newManagerName: string;
+  managerEmail: string;
+  managerName: string;
+  managerPhone?: string;
 }
 
 export interface AdminOrderResponse {

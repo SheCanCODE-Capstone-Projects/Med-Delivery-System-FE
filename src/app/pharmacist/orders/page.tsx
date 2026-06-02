@@ -7,6 +7,7 @@ import {
   confirmStock,
   dispenseMedicine,
   suggestSubstitution,
+  fillFromPrescription,
   getActionLogs,
 } from '@/services/pharmacistApi';
 import type { DispensingOrderResponse, ActionLogResponse } from '@/types/api';
@@ -32,6 +33,7 @@ export default function PharmacistOrdersPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [logs, setLogs] = useState<Record<number, ActionLogResponse[]>>({});
   const [subForm, setSubForm] = useState<{ orderId: number; original: string; substitute: string; reason: string } | null>(null);
+  const [fillForm, setFillForm] = useState<{ orderId: number; prescriptionUrl?: string; items: Array<{ medicineName: string; quantity: string }> } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -67,6 +69,22 @@ export default function PharmacistOrdersPage() {
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Action failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleFill = async () => {
+    if (!fillForm) return;
+    const validItems = fillForm.items.filter(i => i.medicineName.trim() && Number(i.quantity) > 0);
+    if (validItems.length === 0) return;
+    setActionLoading(fillForm.orderId);
+    try {
+      await fillFromPrescription(fillForm.orderId, validItems.map(i => ({ medicineName: i.medicineName.trim(), quantity: Number(i.quantity) })));
+      setFillForm(null);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fill order');
     } finally {
       setActionLoading(null);
     }
@@ -143,6 +161,59 @@ export default function PharmacistOrdersPage() {
         </div>
       </div>
 
+      {/* Fill from Prescription modal */}
+      {fillForm && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-bold text-slate-800">Fill from Prescription</h2>
+              <button onClick={() => setFillForm(null)}><X size={20} className="text-slate-400" /></button>
+            </div>
+            {fillForm.prescriptionUrl && (
+              <a href={fillForm.prescriptionUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm font-semibold text-violet-600 hover:text-violet-800">
+                <FileText size={15} /> View Prescription
+              </a>
+            )}
+            <p className="text-xs text-slate-500">Enter the medicines from the prescription. Only medicines in your pharmacy's inventory can be added.</p>
+            <div className="space-y-3">
+              {fillForm.items.map((item, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input
+                    value={item.medicineName}
+                    onChange={(e) => setFillForm(f => f && { ...f, items: f.items.map((it, i) => i === idx ? { ...it, medicineName: e.target.value } : it) })}
+                    placeholder="Medicine name (must match inventory)"
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.quantity}
+                    onChange={(e) => setFillForm(f => f && { ...f, items: f.items.map((it, i) => i === idx ? { ...it, quantity: e.target.value } : it) })}
+                    placeholder="Qty"
+                    className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  {fillForm.items.length > 1 && (
+                    <button onClick={() => setFillForm(f => f && { ...f, items: f.items.filter((_, i) => i !== idx) })}
+                      className="text-slate-400 hover:text-rose-500"><X size={16} /></button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setFillForm(f => f && { ...f, items: [...f.items, { medicineName: '', quantity: '1' }] })}
+              className="text-sm font-semibold text-teal-600 hover:text-teal-800">+ Add Medicine</button>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setFillForm(null)} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600">Cancel</button>
+              <button onClick={handleFill} disabled={actionLoading !== null}
+                className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                {actionLoading !== null && <Loader2 size={14} className="animate-spin" />}
+                Fill Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Substitution modal */}
       {subForm && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
@@ -217,11 +288,20 @@ export default function PharmacistOrdersPage() {
                     </span>
 
                     {order.status === 'PENDING' && (
-                      <button onClick={() => handleAction(order, 'validate')} disabled={actionLoading === order.id}
-                        className="px-3 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 disabled:opacity-50 flex items-center gap-1">
-                        {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
-                        Validate Rx
-                      </button>
+                      <>
+                        {order.prescriptionUrl && (
+                          <button
+                            onClick={() => setFillForm({ orderId: order.id, prescriptionUrl: order.prescriptionUrl, items: [{ medicineName: '', quantity: '1' }] })}
+                            className="px-3 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-lg hover:bg-violet-700 flex items-center gap-1">
+                            <FileText size={11} /> Fill Rx
+                          </button>
+                        )}
+                        <button onClick={() => handleAction(order, 'validate')} disabled={actionLoading === order.id}
+                          className="px-3 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 disabled:opacity-50 flex items-center gap-1">
+                          {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
+                          Validate Rx
+                        </button>
+                      </>
                     )}
                     {order.status === 'CONFIRMED' && !order.stockConfirmed && (
                       <>
