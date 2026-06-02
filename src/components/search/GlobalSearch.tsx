@@ -5,6 +5,7 @@ import { Search, X, Loader2, ClipboardList, Package2, Users, Building2, UserRoun
 import { getMyPharmacy, getMyPharmacyOrders, getInventory, getPharmacistsByPharmacy } from "@/services/pharmacyApi";
 import { getAssignedOrders } from "@/services/pharmacistApi";
 import { searchUsers, getAllPharmaciesAdmin } from "@/services/adminApi";
+import type { OrderResponse, PharmacyInventoryResponse, PharmacistResponse, DispensingOrderResponse, PharmacyResponse, AdminUserResponse } from "@/types/api";
 
 export type SearchRole = "PHARMACY_ADMIN" | "PHARMACIST" | "SUPER_ADMIN" | "PATIENT";
 
@@ -55,9 +56,9 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
           const ph = await getMyPharmacy().catch(() => null);
           if (ph) {
             const [orders, inv, staff] = await Promise.all([
-              getMyPharmacyOrders(ph.id).catch(() => []),
-              getInventory(ph.id).catch(() => []),
-              getPharmacistsByPharmacy(ph.id).catch(() => []),
+              getMyPharmacyOrders(ph.id).catch((): OrderResponse[] => []),
+              getInventory(ph.id).catch((): PharmacyInventoryResponse[] => []),
+              getPharmacistsByPharmacy(ph.id).catch((): PharmacistResponse[] => []),
             ]);
             orders.filter(o =>
               o.patientName?.toLowerCase().includes(lc) ||
@@ -80,11 +81,11 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
                 href: "/Pharmacy-admin/inventory",
                 color: "text-amber-600",
               }));
-            staff.filter(s => s.fullName?.toLowerCase().includes(lc) || s.pharmacistUID?.toLowerCase().includes(lc))
+            staff.filter(s => s.fullName?.toLowerCase().includes(lc) || s.pharmacistUniqueId?.toLowerCase().includes(lc))
               .slice(0, 3).forEach(s => items.push({
                 id: `staff-${s.id}`,
                 label: s.fullName ?? "Pharmacist",
-                sub: `UID: ${s.pharmacistUID ?? "—"}`,
+                sub: `UID: ${s.pharmacistUniqueId ?? "—"}`,
                 icon: Users,
                 href: "/Pharmacy-admin/employees",
                 color: "text-violet-600",
@@ -93,7 +94,7 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
         }
 
         if (role === "PHARMACIST") {
-          const orders = await getAssignedOrders().catch(() => []);
+          const orders = await getAssignedOrders().catch((): DispensingOrderResponse[] => []);
           orders.filter(o =>
             o.patientName?.toLowerCase().includes(lc) ||
             String(o.id).includes(lc) ||
@@ -110,8 +111,8 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
 
         if (role === "SUPER_ADMIN") {
           const [users, pharmacies] = await Promise.all([
-            searchUsers({ query: q, page: 0, size: 5 }).catch(() => ({ content: [] })),
-            getAllPharmaciesAdmin().catch(() => []),
+            searchUsers({ query: q, page: 0, size: 5 }).catch(() => ({ content: [] as AdminUserResponse[] })),
+            getAllPharmaciesAdmin().catch((): PharmacyResponse[] => []),
           ]);
           (users.content ?? []).forEach(u => items.push({
             id: `user-${u.id}`,
