@@ -173,7 +173,7 @@ export default function LocationsPage() {
 
   return (
     <PatientAppShell>
-      <div className="max-w-3xl">
+      <div className="w-full">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Delivery Locations</h1>

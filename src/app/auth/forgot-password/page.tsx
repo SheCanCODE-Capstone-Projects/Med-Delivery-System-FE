@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      await forgotPassword({ email: trimmed });
+      await forgotPassword({ username: trimmed });
       setSent(true);
       setTimeout(() => router.push(`/auth/reset-password?email=${encodeURIComponent(trimmed)}`), 2000);
     } catch (err) {

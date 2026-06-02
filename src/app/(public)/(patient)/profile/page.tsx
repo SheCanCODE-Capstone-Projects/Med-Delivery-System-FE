@@ -83,7 +83,7 @@ export default function ProfilePage() {
 
   return (
     <PatientAppShell>
-      <div className="max-w-2xl">
+      <div className="w-full">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-800">My Profile</h1>
           <p className="text-slate-500 mt-1 text-sm">

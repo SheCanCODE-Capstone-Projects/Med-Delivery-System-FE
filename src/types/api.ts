@@ -51,7 +51,7 @@ export interface SetPasswordRequest {
 }
 
 export interface ForgotPasswordRequest {
-  email: string;
+  username: string;
 }
 
 export interface ResetPasswordRequest {
