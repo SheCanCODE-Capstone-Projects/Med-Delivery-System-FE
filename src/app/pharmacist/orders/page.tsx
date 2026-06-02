@@ -9,6 +9,7 @@ import {
   suggestSubstitution,
   fillFromPrescription,
   getActionLogs,
+  completeOrder,
 } from '@/services/pharmacistApi';
 import type { DispensingOrderResponse, ActionLogResponse } from '@/types/api';
 
@@ -59,13 +60,14 @@ export default function PharmacistOrdersPage() {
     return list;
   }, [orders, statusFilter, search]);
 
-  const handleAction = async (order: DispensingOrderResponse, action: 'validate' | 'stock' | 'dispense') => {
+  const handleAction = async (order: DispensingOrderResponse, action: 'validate' | 'stock' | 'dispense' | 'complete') => {
     setActionLoading(order.id);
     setError('');
     try {
       if (action === 'validate') await validatePrescription(order.id);
       else if (action === 'stock') await confirmStock(order.id);
-      else await dispenseMedicine(order.id);
+      else if (action === 'dispense') await dispenseMedicine(order.id);
+      else await completeOrder(order.id);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Action failed');
@@ -321,6 +323,13 @@ export default function PharmacistOrdersPage() {
                         className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-1">
                         {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
                         Dispense
+                      </button>
+                    )}
+                    {order.status === 'DISPENSED' && (
+                      <button onClick={() => handleAction(order, 'complete')} disabled={actionLoading === order.id}
+                        className="px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center gap-1">
+                        {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
+                        Mark Delivered
                       </button>
                     )}
 
