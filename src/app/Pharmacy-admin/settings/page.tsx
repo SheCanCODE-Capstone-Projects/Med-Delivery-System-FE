@@ -19,6 +19,7 @@ export default function SettingsPage() {
 
   // Transfer manager
   const [transferEmail, setTransferEmail] = useState('');
+  const [transferName, setTransferName] = useState('');
   const [transferLoading, setTransferLoading] = useState(false);
   const [transferMsg, setTransferMsg] = useState('');
   const [transferError, setTransferError] = useState('');
@@ -62,7 +63,7 @@ export default function SettingsPage() {
     setTransferMsg('');
     setTransferError('');
     try {
-      await transferManager({ newManagerEmail: transferEmail });
+      await transferManager({ newManagerEmail: transferEmail, newManagerName: transferName });
       setTransferMsg('Manager role transferred. You will be redirected to login.');
       setTimeout(() => { window.location.href = '/auth/login'; }, 3000);
     } catch (err) {
@@ -237,18 +238,28 @@ export default function SettingsPage() {
               <AlertCircle size={16} /> {transferError}
             </div>
           )}
-          <form onSubmit={handleTransfer} className="flex gap-3">
-            <input
-              required
-              type="email"
-              value={transferEmail}
-              onChange={(e) => setTransferEmail(e.target.value)}
-              placeholder="new.manager@email.com"
-              className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
+          <form onSubmit={handleTransfer} className="space-y-3">
+            <div className="flex gap-3">
+              <input
+                required
+                type="text"
+                value={transferName}
+                onChange={(e) => setTransferName(e.target.value)}
+                placeholder="New manager's full name"
+                className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              <input
+                required
+                type="email"
+                value={transferEmail}
+                onChange={(e) => setTransferEmail(e.target.value)}
+                placeholder="new.manager@email.com"
+                className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
             <button
               type="submit"
-              disabled={transferLoading || !transferEmail.trim()}
+              disabled={transferLoading || !transferEmail.trim() || !transferName.trim()}
               className="px-5 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-50 transition flex items-center gap-2"
             >
               {transferLoading && <Loader2 size={14} className="animate-spin" />}
