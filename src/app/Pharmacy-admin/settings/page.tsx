@@ -63,7 +63,7 @@ export default function SettingsPage() {
     setTransferMsg('');
     setTransferError('');
     try {
-      await transferManager({ newManagerEmail: transferEmail, newManagerName: transferName });
+      await transferManager({ managerEmail: transferEmail, managerName: transferName });
       setTransferMsg('Manager role transferred. You will be redirected to login.');
       setTimeout(() => { window.location.href = '/auth/login'; }, 3000);
     } catch (err) {

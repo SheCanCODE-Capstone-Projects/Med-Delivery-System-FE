@@ -112,8 +112,11 @@ export async function deleteInsuranceProvider(id: number): Promise<void> {
   await apiClient<ApiResponse<void>>(`/api/admin/insurance-providers/${id}`, { method: 'DELETE' });
 }
 
-export async function getAllPharmaciesAdmin(): Promise<import('@/types/api').PharmacyResponse[]> {
-  const res = await apiClient<import('@/types/api').PharmacyResponse[]>('/api/pharmacies');
+export async function getAllPharmaciesAdmin(
+  status?: string
+): Promise<import('@/types/api').PharmacyResponse[]> {
+  const params = status ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await apiClient<import('@/types/api').PharmacyResponse[]>(`/api/pharmacies${params}`);
   return Array.isArray(res) ? res : [];
 }
 
