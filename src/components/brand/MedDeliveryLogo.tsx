@@ -88,7 +88,7 @@ export default function MedDeliveryLogo({
             MedDelivery
           </span>
           {showTagline && (
-            <span className={cn("leading-none whitespace-nowrap", sizes.tagline, taglineText)}>
+            <span className={cn("leading-snug", sizes.tagline, taglineText)}>
               {label ?? "Your Pharmacy, Delivered to Your Door"}
             </span>
           )}

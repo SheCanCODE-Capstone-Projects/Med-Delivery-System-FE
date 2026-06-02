@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, FileText, Pill, PackageSearch, Truck, History, LogOut, Menu, UserRound, X } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import GlobalSearch from '@/components/search/GlobalSearch';
 import { logout, getUserName } from '@/services/authApi';
 
 interface NavItemProps {
@@ -128,6 +129,7 @@ export default function PharmacistLayout({ children }: { children: React.ReactNo
             </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
+            <GlobalSearch role="PHARMACIST" />
             <NotificationBell />
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-pharmacy-500/10 flex items-center justify-center border border-pharmacy-500/20 shrink-0">

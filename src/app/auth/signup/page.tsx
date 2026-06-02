@@ -32,7 +32,7 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     if (!fullName.trim()) { setError("Full name is required."); return; }
-    if (!email.trim() && !phoneNumber.trim()) { setError("Email or phone number is required."); return; }
+    if (!email.trim()) { setError("Email address is required for account verification."); return; }
     if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     setLoading(true);
@@ -140,7 +140,7 @@ export default function Signup() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5">
-                <span className="text-sm font-bold text-slate-600">Email</span>
+                <span className="text-sm font-bold text-slate-600">Email <span className="text-rose-500">*</span></span>
                 <input
                   type="email"
                   autoComplete="email"
@@ -164,7 +164,7 @@ export default function Signup() {
                 />
               </label>
             </div>
-            <p className="-mt-1.5 text-xs text-slate-400">Provide email, phone, or both.</p>
+            <p className="-mt-1.5 text-xs text-slate-400">Email is required for verification. Phone is optional.</p>
 
             <label className="grid gap-1.5">
               <span className="text-sm font-bold text-slate-600">

@@ -12,9 +12,11 @@ import {
   UserRound,
   Menu,
   X,
+  BarChart2,
 } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import GlobalSearch from '@/components/search/GlobalSearch';
 import { logout, getUserName } from '@/services/authApi';
 
 interface NavItemProps {
@@ -66,6 +68,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
       <NavItem href="/Pharmacy-admin/patients" label="Patients" icon={UserRound} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/orders" label="Order Oversight" icon={ClipboardCheck} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/inventory" label="Inventory" icon={Package2} onClick={closeSidebar} />
+      <NavItem href="/Pharmacy-admin/reports" label="Reports" icon={BarChart2} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/settings" label="System Settings" icon={Settings} onClick={closeSidebar} />
     </nav>
   );
@@ -145,6 +148,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <GlobalSearch role="PHARMACY_ADMIN" />
             <NotificationBell />
             <div className="w-9 h-9 rounded-full bg-pharmacy-500/10 flex items-center justify-center border border-pharmacy-500/20 shrink-0">
               <span className="text-xs font-bold text-pharmacy-600">
