@@ -3,8 +3,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import {
   Store, CheckCircle2, XCircle, Clock, AlertCircle,
-  Building2, Phone, MapPin, FileText, User, Mail, Loader2,
-  RefreshCw, ChevronDown,
+  Building2, Phone, MapPin, User, Mail, Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { getAllPharmaciesAdmin, approvePharmacy } from '@/services/adminApi';
 import type { PharmacyResponse } from '@/types/api';
