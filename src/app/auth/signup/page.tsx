@@ -46,7 +46,17 @@ export default function Signup() {
       const identifier = email.trim() || phoneNumber.trim();
       router.push(`/auth/verify-otp?username=${encodeURIComponent(identifier)}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      const msg = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      const identifier = email.trim() || phoneNumber.trim();
+      if (msg.toLowerCase().includes("email already registered") && identifier) {
+        setError("This email is already registered but may not be verified yet. Redirecting you to verify…");
+        setTimeout(() => router.push(`/auth/verify-otp?username=${encodeURIComponent(identifier)}`), 2000);
+      } else if (msg.toLowerCase().includes("phone number already registered") && identifier) {
+        setError("This phone number is already registered but may not be verified yet. Redirecting you to verify…");
+        setTimeout(() => router.push(`/auth/verify-otp?username=${encodeURIComponent(identifier)}`), 2000);
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -91,8 +101,8 @@ export default function Signup() {
       </section>
 
         {/* Right panel — form */}
-        <section className="grid h-full min-h-0 place-items-center overflow-hidden px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
-          <div className="my-auto w-full max-w-[42rem] rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
+        <section className="flex h-full min-h-0 flex-col overflow-y-auto px-4 py-[clamp(0.75rem,3vh,1.25rem)] sm:px-6 lg:px-8 xl:px-10">
+          <div className="my-auto w-full max-w-[42rem] mx-auto rounded-3xl border border-white/70 bg-white/85 p-[clamp(1.45rem,3.6vh,2.35rem)] shadow-[0_24px_56px_rgba(11,19,39,0.16)] backdrop-blur-xl">
           <MedDeliveryLogo href="/" theme="light" size="sm" className="mb-5 lg:hidden" />
 
           <div>
