@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Loader2, ClipboardList, Package2, Users, Building2, UserRound } from "lucide-react";
 import { getMyPharmacy, getMyPharmacyOrders, getInventory, getPharmacistsByPharmacy } from "@/services/pharmacyApi";
@@ -28,6 +28,7 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const debouncedSearchRef = useRef<((q: string) => void) | null>(null);
   const router = useRouter();
 
   // keyboard shortcut Ctrl+K / Cmd+K
@@ -42,9 +43,8 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
 
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 50); }, [open]);
 
-  const doSearch = useCallback(
-    debounce(async (...args: unknown[]) => {
-      const q = args[0] as string;
+  useEffect(() => {
+    debouncedSearchRef.current = debounce(async (q: string) => {
       if (!q.trim()) { setResults([]); setLoading(false); return; }
       setLoading(true);
       try {
@@ -140,14 +140,13 @@ export default function GlobalSearch({ role }: { role: SearchRole }) {
       } finally {
         setLoading(false);
       }
-    }, 350) as (...args: unknown[]) => void,
-    [role]
-  );
+    }, 350);
+  }, [role]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     setQuery(v);
-    if (v.trim()) { setLoading(true); doSearch(v); }
+    if (v.trim()) { setLoading(true); debouncedSearchRef.current?.(v); }
     else { setResults([]); setLoading(false); }
   };
 
