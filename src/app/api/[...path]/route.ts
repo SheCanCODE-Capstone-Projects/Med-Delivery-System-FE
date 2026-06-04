@@ -15,6 +15,10 @@ const DROP_REQ_HEADERS = new Set([
 // Headers that must not be forwarded back to the browser
 const DROP_RES_HEADERS = new Set([
   'connection', 'transfer-encoding', 'keep-alive',
+  // Node.js fetch auto-decompresses gzip/br from the backend, so the body
+  // arriving here is already plain text. Forwarding Content-Encoding would
+  // tell the browser to decompress an already-decompressed body → ERR_CONTENT_DECODING_FAILED.
+  'content-encoding',
 ]);
 
 async function proxy(
