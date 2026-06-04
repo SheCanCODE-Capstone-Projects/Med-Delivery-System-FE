@@ -140,7 +140,7 @@ export default function OrderOversightPage() {
                   </td>
                   <td className="px-6 py-4 text-slate-700 font-semibold text-xs">
                     {order.totalAmount != null
-                      ? `$${order.totalAmount.toFixed(2)}`
+                      ? `RWF ${order.totalAmount.toLocaleString()}`
                       : '—'}
                   </td>
                   <td className="px-6 py-4 text-xs font-semibold">

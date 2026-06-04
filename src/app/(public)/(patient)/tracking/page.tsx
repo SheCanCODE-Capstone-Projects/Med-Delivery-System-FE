@@ -368,32 +368,66 @@ export default function TrackingPage() {
                       </a>
                     )}
 
-                    {order.status === "READY_FOR_PICKUP" && order.totalAmount != null && (
-                      <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                        <div className="flex items-center justify-between gap-4 flex-wrap">
-                          <div>
-                            <p className="text-sm font-bold text-emerald-900">Payment Due</p>
-                            <p className="text-xl font-bold text-emerald-700 mt-0.5">
-                              RWF {order.totalAmount.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-emerald-600 mt-0.5">Your medicines are ready — confirm payment to complete your order.</p>
-                          </div>
-                          <button
-                            onClick={() => handlePay(order.id)}
-                            disabled={payLoading[order.id]}
-                            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60 transition shadow-sm"
-                          >
-                            {payLoading[order.id]
-                              ? <Loader2 className="animate-spin" size={16} />
-                              : <CreditCard size={16} />}
-                            {payLoading[order.id] ? "Processing…" : "Pay Now"}
-                          </button>
+                    {order.status === "READY_FOR_PICKUP" && (() => {
+                      const ps = order.paymentStatus;
+                      const paid = ps === "PAID";
+                      const insurancePending = ps === "INSURANCE_PENDING";
+                      const needsPay = !paid && !insurancePending && order.totalAmount != null;
+                      const payableAmount = order.patientPayableAmount ?? order.totalAmount ?? 0;
+
+                      if (paid) return (
+                        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-center gap-2">
+                          <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                          <p className="text-sm font-semibold text-emerald-700">Payment completed. Your order will be delivered shortly.</p>
                         </div>
-                        {payError[order.id] && (
-                          <p className="mt-2 text-xs text-rose-600 font-semibold">{payError[order.id]}</p>
-                        )}
-                      </div>
-                    )}
+                      );
+
+                      if (insurancePending) return (
+                        <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <ShieldCheck size={16} className="text-sky-600 shrink-0" />
+                            <p className="text-sm font-bold text-sky-800">Insurance claim in progress</p>
+                          </div>
+                          <p className="text-xs text-sky-700">
+                            Your insurance provider is processing the claim for this order. No payment action is required from you right now.
+                          </p>
+                        </div>
+                      );
+
+                      if (needsPay) return (
+                        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                          <div className="flex items-center justify-between gap-4 flex-wrap">
+                            <div>
+                              <p className="text-sm font-bold text-emerald-900">Payment Due</p>
+                              <p className="text-xl font-bold text-emerald-700 mt-0.5">
+                                RWF {payableAmount.toLocaleString()}
+                              </p>
+                              {order.coveragePercentage != null && order.coveragePercentage > 0 && (
+                                <p className="text-xs text-emerald-600 mt-0.5">
+                                  Insurance covers {order.coveragePercentage}% · your share only
+                                </p>
+                              )}
+                              <p className="text-xs text-emerald-600 mt-0.5">Your medicines are ready — confirm payment to complete your order.</p>
+                            </div>
+                            <button
+                              onClick={() => handlePay(order.id)}
+                              disabled={payLoading[order.id]}
+                              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60 transition shadow-sm"
+                            >
+                              {payLoading[order.id]
+                                ? <Loader2 className="animate-spin" size={16} />
+                                : <CreditCard size={16} />}
+                              {payLoading[order.id] ? "Processing…" : "Pay Now"}
+                            </button>
+                          </div>
+                          {payError[order.id] && (
+                            <p className="mt-2 text-xs text-rose-600 font-semibold">{payError[order.id]}</p>
+                          )}
+                        </div>
+                      );
+
+                      return null;
+                    })()}
 
                     {(order.status === "COMPLETED" || order.status === "READY_FOR_PICKUP") && (
                       <button
@@ -408,13 +442,27 @@ export default function TrackingPage() {
                       <div className="mt-2 rounded-xl bg-white border border-slate-100 px-4 py-3 text-sm space-y-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Details</p>
                         <div className="flex justify-between text-slate-600">
-                          <span>Amount</span>
+                          <span>Total Amount</span>
                           <span className="font-semibold text-slate-800">RWF {paymentDetails[order.id].totalAmount.toLocaleString()}</span>
+                        </div>
+                        {paymentDetails[order.id].insuranceAmount > 0 && (
+                          <div className="flex justify-between text-slate-600">
+                            <span>Insurance covers</span>
+                            <span className="font-semibold text-emerald-700">− RWF {paymentDetails[order.id].insuranceAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-slate-600">
+                          <span>Your share</span>
+                          <span className="font-bold text-slate-800">RWF {paymentDetails[order.id].patientAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-slate-600">
                           <span>Status</span>
-                          <span className={`font-bold ${paymentDetails[order.id].status === "PAID" ? "text-emerald-600" : "text-amber-600"}`}>
-                            {paymentDetails[order.id].status}
+                          <span className={`font-bold ${
+                            paymentDetails[order.id].status === "PAID" ? "text-emerald-600" :
+                            paymentDetails[order.id].status === "INSURANCE_PENDING" ? "text-sky-600" :
+                            "text-amber-600"
+                          }`}>
+                            {paymentDetails[order.id].status === "INSURANCE_PENDING" ? "Insurance processing" : paymentDetails[order.id].status}
                           </span>
                         </div>
                         {paymentDetails[order.id].insuranceProvider && (

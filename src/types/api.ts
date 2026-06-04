@@ -131,7 +131,8 @@ export interface AdminOrderResponse {
 
 export interface OrderInterventionRequest {
   reason: string;
-  pharmacyId?: number;
+  newPharmacyId?: number;
+  substitutionAction?: string;
 }
 
 export interface AnalyticsReportResponse {

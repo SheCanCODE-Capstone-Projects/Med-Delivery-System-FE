@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Package, Loader2, Search, AlertCircle, XCircle, RefreshCw, RefreshCcw, ShieldAlert } from 'lucide-react';
 import { getGlobalOrders, forceCancelOrder, reassignOrder, overrideSubstitution } from '@/services/adminApi';
 import type { AdminOrderResponse } from '@/types/api';
@@ -95,7 +95,7 @@ export default function SuperAdminOrdersPage() {
     setActionLoading(orderId);
     setActionMsg('');
     try {
-      await reassignOrder(orderId, { reason: 'Admin reassignment', pharmacyId: Number(pharmacyId) });
+      await reassignOrder(orderId, { reason: 'Admin reassignment', newPharmacyId: Number(pharmacyId) });
       setActionMsg(`Order #${orderId} reassigned to pharmacy #${pharmacyId}.`);
       load();
     } catch (err) {
