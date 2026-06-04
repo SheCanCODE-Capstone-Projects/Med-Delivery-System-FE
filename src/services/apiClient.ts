@@ -3,8 +3,9 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   'https://med-delivery-system-be-production.up.railway.app';
 
-// Both browser and server-side fetches hit the backend directly
-const API_BASE = BASE_URL;
+// Browser fetches go through the Next.js /api proxy (same origin → no CORS, 302→401 conversion).
+// Server-side fetches (SSR) hit Railway directly — no CORS concern there.
+const API_BASE = typeof window !== 'undefined' ? '' : BASE_URL;
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
