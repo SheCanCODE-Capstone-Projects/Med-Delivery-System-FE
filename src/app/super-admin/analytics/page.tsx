@@ -56,15 +56,13 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
       </div>
     );
   }
-  let cumPct = 0;
-  const stops = segments
-    .filter(s => s.value > 0)
-    .map(seg => {
+  const filtered = segments.filter(s => s.value > 0);
+  const stops = filtered
+    .reduce<string[]>((acc, seg, idx) => {
       const pct = (seg.value / total) * 100;
-      const stop = `${seg.color} ${cumPct.toFixed(2)}% ${(cumPct + pct).toFixed(2)}%`;
-      cumPct += pct;
-      return stop;
-    })
+      const cumPct = filtered.slice(0, idx).reduce((sum, s) => sum + (s.value / total) * 100, 0);
+      return [...acc, `${seg.color} ${cumPct.toFixed(2)}% ${(cumPct + pct).toFixed(2)}%`];
+    }, [])
     .join(', ');
 
   return (
