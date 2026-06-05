@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TrendingUp, Package2, Users, ClipboardList,
   DollarSign, AlertTriangle, CheckCircle2, XCircle, Loader2, AlertCircle, Printer,
@@ -17,7 +17,7 @@ function monthLabel(iso: string) {
   return new Date(iso).toLocaleString("en", { month: "short" });
 }
 
-// ── pure-CSS bar chart ────────────────────────────────────────────────────────
+// ── bar chart ─────────────────────────────────────────────────────────────────
 
 function BarChart({ bars, color = "#0E9384" }: {
   bars: { label: string; value: number }[];
@@ -25,18 +25,81 @@ function BarChart({ bars, color = "#0E9384" }: {
 }) {
   const max = Math.max(...bars.map(b => b.value), 1);
   return (
-    <div className="flex items-end gap-2 h-36 w-full">
+    <div className="flex items-end gap-2 h-36 w-full print:hidden">
       {bars.map((b, i) => (
         <div key={i} className="flex flex-col items-center gap-1 flex-1 min-w-0">
           <span className="text-[10px] font-bold text-slate-600">{b.value}</span>
           <div
             className="w-full rounded-t-md transition-all"
-            style={{ height: `${Math.max((b.value / max) * 112, b.value ? 6 : 2)}px`, background: color }}
+            style={{ height: `${Math.max((b.value / max) * 112, b.value ? 6 : 2)}px`, background: color, printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' } as React.CSSProperties}
           />
           <span className="text-[10px] text-slate-500 truncate w-full text-center">{b.label}</span>
         </div>
       ))}
     </div>
+  );
+}
+
+// ── line chart (SVG polyline) ─────────────────────────────────────────────────
+
+function LineChart({ points, color = "#6366f1" }: {
+  points: { label: string; value: number }[];
+  color?: string;
+}) {
+  const W = 300, H = 100;
+  const max = Math.max(...points.map(p => p.value), 1);
+  const n = points.length;
+  if (n === 0) return <p className="text-sm text-slate-400 text-center py-10">No data</p>;
+  const xs = points.map((_, i) => n === 1 ? W / 2 : (i / (n - 1)) * (W - 24) + 12);
+  const ys = points.map(p => H - Math.max((p.value / max) * (H - 20), p.value > 0 ? 6 : 0) - 4);
+  const poly = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full" style={{ height: 136 }}>
+      <polyline points={poly} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      {xs.map((x, i) => (
+        <g key={i}>
+          <circle cx={x} cy={ys[i]} r="4" fill="white" stroke={color} strokeWidth="2" />
+          <text x={x} y={Math.max(ys[i] - 7, 10)} textAnchor="middle" fontSize="9" fontWeight="600" fill={color}>{points[i].value}</text>
+          <text x={x} y={H + 18} textAnchor="middle" fontSize="9" fill="#94a3b8">{points[i].label}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// ── area chart (SVG area) ─────────────────────────────────────────────────────
+
+function AreaChart({ points, color = "#8b5cf6" }: {
+  points: { label: string; value: number }[];
+  color?: string;
+}) {
+  const W = 300, H = 100;
+  const max = Math.max(...points.map(p => p.value), 1);
+  const n = points.length;
+  if (n === 0) return <p className="text-sm text-slate-400 text-center py-10">No data</p>;
+  const xs = points.map((_, i) => n === 1 ? W / 2 : (i / (n - 1)) * (W - 24) + 12);
+  const ys = points.map(p => H - Math.max((p.value / max) * (H - 20), p.value > 0 ? 6 : 0) - 4);
+  const lineStr = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+  const areaStr = `${xs[0]},${H} ${lineStr} ${xs[n - 1]},${H}`;
+  const gradId = `ag${color.replace(/[^a-zA-Z0-9]/g, '')}`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full" style={{ height: 136 }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      <polygon points={areaStr} fill={`url(#${gradId})`} />
+      <polyline points={lineStr} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      {xs.map((x, i) => (
+        <g key={i}>
+          <circle cx={x} cy={ys[i]} r="4" fill="white" stroke={color} strokeWidth="2" />
+          <text x={x} y={Math.max(ys[i] - 7, 10)} textAnchor="middle" fontSize="9" fontWeight="600" fill={color}>{points[i].value}</text>
+          <text x={x} y={H + 18} textAnchor="middle" fontSize="9" fill="#94a3b8">{points[i].label}</text>
+        </g>
+      ))}
+    </svg>
   );
 }
 
@@ -139,8 +202,12 @@ export default function ReportsPage() {
       <style>{`
         @media print {
           nav, aside, header, [data-sidebar], .print\\:hidden { display: none !important; }
-          body { background: white !important; }
-          .shadow-sm { box-shadow: none !important; }
+          .print\\:block { display: block !important; }
+          body { background: white !important; font-size: 12px; }
+          .shadow-sm, .shadow-md { box-shadow: none !important; }
+          .rounded-2xl, .rounded-xl { border-radius: 4px !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { margin: 1.5cm; }
         }
       `}</style>
 
@@ -176,28 +243,44 @@ export default function ReportsPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Orders by status */}
+        {/* Orders by status — Bar Chart */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 col-span-1">
-          <h2 className="text-sm font-semibold text-slate-700 mb-5">Orders by Status</h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">Orders by Status</h2>
+          <p className="text-[10px] text-slate-400 mb-4">Bar chart — order count per status</p>
           {statusBars.length === 0
             ? <p className="text-sm text-slate-400 text-center py-10">No orders yet</p>
             : <BarChart bars={statusBars} color="#0E9384" />}
+          {/* print fallback */}
+          <table className="hidden print:table w-full text-xs mt-2 border-collapse">
+            <thead><tr><th className="text-left border border-slate-200 px-2 py-1">Status</th><th className="text-right border border-slate-200 px-2 py-1">Count</th></tr></thead>
+            <tbody>{statusBars.map(b => <tr key={b.label}><td className="border border-slate-200 px-2 py-1">{b.label}</td><td className="border border-slate-200 px-2 py-1 text-right">{b.value}</td></tr>)}</tbody>
+          </table>
         </div>
 
-        {/* Orders by month */}
+        {/* Orders by month — Line Chart */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 col-span-1">
-          <h2 className="text-sm font-semibold text-slate-700 mb-5">Orders per Month</h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">Orders per Month</h2>
+          <p className="text-[10px] text-slate-400 mb-4">Line chart — monthly order trend</p>
           {monthBars.length === 0
             ? <p className="text-sm text-slate-400 text-center py-10">No orders yet</p>
-            : <BarChart bars={monthBars} color="#6366f1" />}
+            : <LineChart points={monthBars} color="#6366f1" />}
+          <table className="hidden print:table w-full text-xs mt-2 border-collapse">
+            <thead><tr><th className="text-left border border-slate-200 px-2 py-1">Month</th><th className="text-right border border-slate-200 px-2 py-1">Orders</th></tr></thead>
+            <tbody>{monthBars.map(b => <tr key={b.label}><td className="border border-slate-200 px-2 py-1">{b.label}</td><td className="border border-slate-200 px-2 py-1 text-right">{b.value}</td></tr>)}</tbody>
+          </table>
         </div>
 
-        {/* Revenue by month */}
+        {/* Revenue by month — Area Chart */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 col-span-1">
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">Revenue per Month <span className="text-[10px] text-slate-400">(RWF '000)</span></h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">Revenue per Month</h2>
+          <p className="text-[10px] text-slate-400 mb-4">Area chart — revenue in RWF&apos;000</p>
           {revBars.length === 0
             ? <p className="text-sm text-slate-400 text-center py-10">No completed orders</p>
-            : <BarChart bars={revBars} color="#8b5cf6" />}
+            : <AreaChart points={revBars} color="#8b5cf6" />}
+          <table className="hidden print:table w-full text-xs mt-2 border-collapse">
+            <thead><tr><th className="text-left border border-slate-200 px-2 py-1">Month</th><th className="text-right border border-slate-200 px-2 py-1">Revenue (RWF&apos;000)</th></tr></thead>
+            <tbody>{revBars.map(b => <tr key={b.label}><td className="border border-slate-200 px-2 py-1">{b.label}</td><td className="border border-slate-200 px-2 py-1 text-right">{b.value}</td></tr>)}</tbody>
+          </table>
         </div>
       </div>
 
@@ -210,14 +293,14 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {topMeds.map(item => (
                 <div key={item.id} className="flex items-center gap-3">
-                  <span className="text-sm text-slate-700 w-44 truncate flex-shrink-0">{item.medicineName}</span>
-                  <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                  <span className="text-sm text-slate-700 w-36 min-w-0 truncate overflow-hidden flex-shrink-0" title={item.medicineName}>{item.medicineName}</span>
+                  <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden min-w-0">
                     <div
                       className={`h-full rounded-full transition-all ${item.quantity < 10 ? "bg-rose-400" : "bg-[#0E9384]"}`}
-                      style={{ width: `${(item.quantity / maxMedQty) * 100}%` }}
+                      style={{ width: `${(item.quantity / maxMedQty) * 100}%`, printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' } as React.CSSProperties}
                     />
                   </div>
-                  <span className={`text-sm font-semibold w-12 text-right ${item.quantity < 10 ? "text-rose-600" : "text-slate-700"}`}>
+                  <span className={`text-xs font-semibold w-16 text-right flex-shrink-0 ${item.quantity < 10 ? "text-rose-600" : "text-slate-700"}`}>
                     {item.quantity} {item.unit}
                   </span>
                 </div>
