@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { FileText, Loader2, AlertCircle, Search, RefreshCw, ChevronDown, ChevronUp, X } from 'lucide-react';
 import {
   getAssignedOrders,
@@ -33,7 +33,8 @@ export default function PharmacistOrdersPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [logs, setLogs] = useState<Record<number, ActionLogResponse[]>>({});
-  const [subForm, setSubForm] = useState<{ orderId: number; original: string; substitute: string; reason: string } | null>(null);
+  const [subForm, setSubForm] = useState<{ orderId: number; original: string; substitute: string; reason: string; medicines: Array<{ medicineName: string }> } | null>(null);
+  const [declineForm, setDeclineForm] = useState<{ orderId: number; reason: string } | null>(null);
   const [fillForm, setFillForm] = useState<{ orderId: number; prescriptionUrl?: string; items: Array<{ medicineName: string; quantity: string }> } | null>(null);
 
   const load = async () => {
@@ -94,17 +95,37 @@ export default function PharmacistOrdersPage() {
 
   const handleSubstitution = async () => {
     if (!subForm) return;
+    if (!subForm.original.trim() || !subForm.substitute.trim() || !subForm.reason.trim()) {
+      setError('All substitution fields are required.');
+      return;
+    }
     setActionLoading(subForm.orderId);
+    setError('');
     try {
       await suggestSubstitution(subForm.orderId, {
         originalMedicineName: subForm.original,
-        substituteMedicineName: subForm.substitute,
+        suggestedMedicineName: subForm.substitute,
         reason: subForm.reason,
       });
       setSubForm(null);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Substitution failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!declineForm) return;
+    setActionLoading(declineForm.orderId);
+    setError('');
+    try {
+      await validatePrescription(declineForm.orderId, { valid: false, notes: declineForm.reason || 'Prescription declined' });
+      setDeclineForm(null);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to decline prescription');
     } finally {
       setActionLoading(null);
     }
@@ -226,17 +247,38 @@ export default function PharmacistOrdersPage() {
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Original Medicine</label>
-              <input value={subForm.original} onChange={(e) => setSubForm((f) => f && { ...f, original: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              {subForm.medicines.length > 1 ? (
+                <select
+                  value={subForm.original}
+                  onChange={(e) => setSubForm((f) => f && { ...f, original: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                  {subForm.medicines.map((m) => (
+                    <option key={m.medicineName} value={m.medicineName}>{m.medicineName}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={subForm.original}
+                  readOnly
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed" />
+              )}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Substitute Medicine</label>
-              <input value={subForm.substitute} onChange={(e) => setSubForm((f) => f && { ...f, substitute: e.target.value })}
+              <input
+                value={subForm.substitute}
+                onChange={(e) => setSubForm((f) => f && { ...f, substitute: e.target.value })}
+                placeholder="Enter substitute medicine name exactly as in inventory"
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <p className="text-xs text-slate-400 mt-1">Must match an existing medicine name in the system.</p>
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Reason</label>
-              <textarea rows={2} value={subForm.reason} onChange={(e) => setSubForm((f) => f && { ...f, reason: e.target.value })}
+              <textarea
+                rows={2}
+                value={subForm.reason}
+                onChange={(e) => setSubForm((f) => f && { ...f, reason: e.target.value })}
+                placeholder="Explain why this substitution is needed…"
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500" />
             </div>
             <div className="flex gap-3">
@@ -245,6 +287,38 @@ export default function PharmacistOrdersPage() {
                 className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2">
                 {actionLoading !== null && <Loader2 size={14} className="animate-spin" />}
                 Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decline Rx modal */}
+      {declineForm && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-bold text-slate-800">Decline Prescription</h2>
+              <button onClick={() => setDeclineForm(null)}><X size={20} className="text-slate-400" /></button>
+            </div>
+            <p className="text-sm text-slate-500">
+              This will cancel the order and notify the patient. Please provide a reason.
+            </p>
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Reason for Declining</label>
+              <textarea
+                rows={3}
+                value={declineForm.reason}
+                onChange={(e) => setDeclineForm((f) => f && { ...f, reason: e.target.value })}
+                placeholder="e.g. Prescription is invalid, expired, or illegible…"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-rose-500" />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeclineForm(null)} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600">Cancel</button>
+              <button onClick={handleDecline} disabled={actionLoading !== null}
+                className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-bold hover:bg-rose-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                {actionLoading !== null && <Loader2 size={14} className="animate-spin" />}
+                Decline Prescription
               </button>
             </div>
           </div>
@@ -303,6 +377,12 @@ export default function PharmacistOrdersPage() {
                           {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
                           Validate Rx
                         </button>
+                        <button
+                          onClick={() => setDeclineForm({ orderId: order.id, reason: '' })}
+                          disabled={actionLoading === order.id}
+                          className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold rounded-lg hover:bg-rose-100 disabled:opacity-50">
+                          Decline Rx
+                        </button>
                       </>
                     )}
                     {order.status === 'CONFIRMED' && !order.stockConfirmed && (
@@ -312,7 +392,7 @@ export default function PharmacistOrdersPage() {
                           {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
                           Confirm Stock
                         </button>
-                        <button onClick={() => setSubForm({ orderId: order.id, original: '', substitute: '', reason: '' })}
+                        <button onClick={() => setSubForm({ orderId: order.id, original: order.medicines?.[0]?.medicineName ?? '', substitute: '', reason: '', medicines: order.medicines ?? [] })}
                           className="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-lg hover:bg-amber-100">
                           Substitute
                         </button>

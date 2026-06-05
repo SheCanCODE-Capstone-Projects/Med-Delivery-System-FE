@@ -47,51 +47,25 @@ function VerticalBar({ value, max, color, label }: { value: number; max: number;
   );
 }
 
-function DonutChart({ segments }: { segments: { label: string; value: number; color: string }[] }) {
-  const total = segments.reduce((s, x) => s + x.value, 0);
-  const r = 44, cx = 56, cy = 56;
-  const circ = 2 * Math.PI * r;
-  let offset = 0;
-
+function UserDistributionChart({ segments }: { segments: { label: string; value: number; color: string }[] }) {
+  const max = Math.max(...segments.map(s => s.value), 1);
   return (
-    <div className="flex items-center gap-6 flex-wrap">
-      <svg width={112} height={112} viewBox="0 0 112 112" className="shrink-0">
-        {total === 0 ? (
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e2e8f0" strokeWidth={14} />
-        ) : (
-          segments.map((seg) => {
-            const dash = (seg.value / total) * circ;
-            const el = (
-              <circle
-                key={seg.label}
-                cx={cx} cy={cy} r={r}
-                fill="none"
-                stroke={seg.color}
-                strokeWidth={14}
-                strokeDasharray={`${dash} ${circ}`}
-                strokeDashoffset={-offset}
-                style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }}
-              />
-            );
-            offset += dash;
-            return el;
-          })
-        )}
-        <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight="700" fill="#1e293b">
-          {total}
-        </text>
-      </svg>
-      <div className="space-y-2.5 flex-1">
-        {segments.map((seg) => (
-          <div key={seg.label} className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
-              <span className="text-xs text-slate-600">{seg.label}</span>
-            </div>
-            <span className="text-xs font-bold text-slate-800">{seg.value}</span>
+    <div className="space-y-3 w-full">
+      {segments.map((seg) => (
+        <div key={seg.label} className="flex items-center gap-3">
+          <span className="text-xs text-slate-600 w-20 shrink-0">{seg.label}</span>
+          <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden">
+            <div
+              className="h-full rounded-lg transition-all duration-700 flex items-center justify-end pr-2"
+              style={{
+                width: `${Math.max((seg.value / max) * 100, seg.value > 0 ? 8 : 0)}%`,
+                backgroundColor: seg.color,
+              }}
+            />
           </div>
-        ))}
-      </div>
+          <span className="text-xs font-bold text-slate-800 w-10 text-right">{seg.value.toLocaleString()}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -274,7 +248,7 @@ export default function AnalyticsPage() {
           <p className="text-xs text-slate-400 mb-5">
             {totalUsers} registered user{totalUsers !== 1 ? 's' : ''} across all roles.
           </p>
-          <DonutChart segments={userSegments} />
+          <UserDistributionChart segments={userSegments} />
         </div>
       </div>
 

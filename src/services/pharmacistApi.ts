@@ -14,7 +14,7 @@ interface ValidatePrescriptionRequest {
 
 interface SuggestSubstitutionRequest {
   originalMedicineName: string;
-  substituteMedicineName: string;
+  suggestedMedicineName: string;
   reason: string;
 }
 
