@@ -256,11 +256,17 @@ export default function PharmacistOrdersPage() {
                     <option key={m.medicineName} value={m.medicineName}>{m.medicineName}</option>
                   ))}
                 </select>
-              ) : (
+              ) : subForm.medicines.length === 1 ? (
                 <input
                   value={subForm.original}
                   readOnly
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed" />
+              ) : (
+                <input
+                  value={subForm.original}
+                  onChange={(e) => setSubForm((f) => f && { ...f, original: e.target.value })}
+                  placeholder="Enter the medicine name to substitute"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
               )}
             </div>
             <div>
@@ -392,7 +398,7 @@ export default function PharmacistOrdersPage() {
                           {actionLoading === order.id ? <Loader2 size={11} className="animate-spin" /> : null}
                           Confirm Stock
                         </button>
-                        <button onClick={() => setSubForm({ orderId: order.id, original: order.medicines?.[0]?.medicineName ?? '', substitute: '', reason: '', medicines: order.medicines ?? [] })}
+                        <button onClick={() => { setError(''); setSubForm({ orderId: order.id, original: order.medicines?.[0]?.medicineName ?? '', substitute: '', reason: '', medicines: order.medicines ?? [] }); }}
                           className="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-lg hover:bg-amber-100">
                           Substitute
                         </button>
