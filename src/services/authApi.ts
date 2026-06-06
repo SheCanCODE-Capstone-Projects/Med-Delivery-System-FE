@@ -178,6 +178,7 @@ export function roleToRoute(role: string): string {
   const map: Record<string, string> = {
     SUPER_ADMIN: '/super-admin/analytics',
     MANAGER: '/Pharmacy-admin',
+    BRANCH_MANAGER: '/branch-manager',
     PHARMACIST: '/pharmacist',
     PATIENT: '/patient-dashboard',
   };

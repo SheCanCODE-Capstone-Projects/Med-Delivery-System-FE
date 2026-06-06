@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from 'react';
-import { FileText, Loader2, AlertCircle, Search, RefreshCw, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { FileText, Loader2, AlertCircle, Search, RefreshCw, ChevronDown, ChevronUp, X, Eye } from 'lucide-react';
 import {
   getAssignedOrders,
   validatePrescription,
@@ -25,6 +26,7 @@ const STATUS_STYLE: Record<string, string> = {
 const ALL_STATUSES = ['ALL', 'PENDING', 'CONFIRMED', 'PROCESSING', 'DISPENSED', 'COMPLETED', 'CANCELLED'];
 
 export default function PharmacistOrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<DispensingOrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -419,6 +421,13 @@ export default function PharmacistOrdersPage() {
                       </button>
                     )}
 
+                    <button
+                      onClick={() => router.push(`/pharmacist/orders/${order.id}`)}
+                      className="p-1.5 text-slate-400 hover:text-teal-600 transition"
+                      title="View full details"
+                    >
+                      <Eye size={16} />
+                    </button>
                     <button onClick={() => toggleExpand(order.id)} className="p-1.5 text-slate-400 hover:text-slate-600 transition">
                       {expandedId === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>

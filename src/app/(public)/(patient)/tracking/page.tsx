@@ -309,6 +309,9 @@ export default function TrackingPage() {
                     </div>
                     <p className="text-sm text-slate-500">
                       {order.pharmacyName ?? "Awaiting pharmacy assignment"}
+                      {order.branchName && order.branchName !== order.pharmacyName && (
+                        <span className="text-xs text-slate-400 ml-1">— {order.branchName}</span>
+                      )}
                       {" · "}
                       {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
                     </p>

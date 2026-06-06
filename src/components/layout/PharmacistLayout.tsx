@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, Pill, PackageSearch, Truck, History, LogOut, Menu, UserRound, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Pill, PackageSearch, Truck, History, LogOut, Menu, UserRound, X, CreditCard, BarChart2 } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import GlobalSearch from '@/components/search/GlobalSearch';
@@ -71,6 +71,8 @@ export default function PharmacistLayout({ children }: { children: React.ReactNo
         <NavItem href="/pharmacist/inventory" icon={PackageSearch} label="Inventory" onClick={closeSidebar} />
         <NavItem href="/pharmacist/delivery" icon={Truck} label="Delivery" onClick={closeSidebar} />
         <NavItem href="/pharmacist/history" icon={History} label="History" onClick={closeSidebar} />
+        <NavItem href="/pharmacist/reports" icon={BarChart2} label="Reports" onClick={closeSidebar} />
+        <NavItem href="/pharmacist/insurance" icon={CreditCard} label="Insurance" onClick={closeSidebar} />
         <NavItem href="/pharmacist/profile" icon={UserRound} label="My Profile" onClick={closeSidebar} />
       </nav>
 

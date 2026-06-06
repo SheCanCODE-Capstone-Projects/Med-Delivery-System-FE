@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   TrendingUp, Users, Building2, Package, ShieldCheck,
-  Globe, Activity, Loader2, AlertCircle, AlertTriangle,
+  Globe, Activity, Loader2, AlertCircle, AlertTriangle, Printer,
 } from 'lucide-react';
 import {
   getDashboardStats,
@@ -11,7 +11,10 @@ import {
   searchUsers,
 } from '@/services/adminApi';
 import { getAllPharmacies } from '@/services/pharmacyApi';
+import { getSuperAdminReport, type SuperAdminReport } from '@/services/reportService';
 import type { DashboardStatsResponse, AnalyticsReportResponse } from '@/types/api';
+import PrintableReport from '@/components/report/PrintableReport';
+import ReportTable from '@/components/report/ReportTable';
 
 interface LowStockItem {
   id: number;
@@ -117,6 +120,7 @@ function StatCard({ label, value, icon: Icon, color, bg, sub }: {
 export default function AnalyticsPage() {
   const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [report, setReport] = useState<AnalyticsReportResponse | null>(null);
+  const [comprehensiveReport, setComprehensiveReport] = useState<SuperAdminReport | null>(null);
   const [period, setPeriod] = useState<Period>('MONTHLY');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -144,9 +148,11 @@ export default function AnalyticsPage() {
       countByRole('MANAGER'),
       countByRole('SUPER_ADMIN'),
       getAllPharmacies().catch(() => []),
-    ]).then(([s, r, ls, patients, pharmacists, managers, admins, pharmacies]) => {
+      getSuperAdminReport().catch(() => null),
+    ]).then(([s, r, ls, patients, pharmacists, managers, admins, pharmacies, cr]) => {
       setStats(s);
       setReport(r);
+      setComprehensiveReport(cr as SuperAdminReport | null);
       setLowStock(ls as LowStockItem[]);
       setRoleCounts({ patients, pharmacists, managers, admins });
       const pharmList = pharmacies as { status: string }[];
@@ -370,6 +376,72 @@ export default function AnalyticsPage() {
           ))}
         </div>
       </div>
+
+      {/* Comprehensive Printable Report */}
+      {comprehensiveReport && (
+        <div className="mt-8">
+          <PrintableReport
+            title="Super Admin Comprehensive Report"
+            generatedBy={comprehensiveReport.generatedBy}
+            generatedDate={comprehensiveReport.generatedDate}
+          >
+            {/* Summary row */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { label: 'Total Pharmacies',  value: comprehensiveReport.totalPharmacies },
+                { label: 'Total Branches',    value: comprehensiveReport.totalBranches },
+                { label: 'Total Users',       value: comprehensiveReport.totalUsers },
+                { label: 'Total Patients',    value: comprehensiveReport.totalPatients },
+                { label: 'Total Orders',      value: comprehensiveReport.totalOrders },
+                { label: 'Total Revenue',     value: `RWF ${(comprehensiveReport.totalRevenue ?? 0).toLocaleString()}` },
+              ].map((c) => (
+                <div key={c.label} className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{c.label}</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">{c.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <ReportTable
+              title="Pharmacy Performance"
+              columns={['Pharmacy', 'Branches', 'Staff', 'Orders', 'Revenue']}
+              rows={(comprehensiveReport.pharmacyPerformance ?? []).map((r) => [
+                r.pharmacyName, r.branches, r.staff, r.orders,
+                `RWF ${(r.revenue ?? 0).toLocaleString()}`,
+              ])}
+              emptyMessage="No pharmacy data."
+            />
+
+            <ReportTable
+              title="Users by Role"
+              columns={['Role', 'Count']}
+              rows={Object.entries(comprehensiveReport.userStatsByRole ?? {}).map(([role, count]) => [role, count])}
+              emptyMessage="No user data."
+            />
+
+            <ReportTable
+              title="Recent Audit Activities"
+              columns={['User', 'Action', 'IP Address', 'Timestamp']}
+              rows={(comprehensiveReport.recentAuditActivities ?? []).map((r) => [
+                r.userEmail, r.action, r.ipAddress, r.timestamp,
+              ])}
+              emptyMessage="No audit log entries."
+            />
+          </PrintableReport>
+        </div>
+      )}
+
+      {/* Print button for the comprehensive report */}
+      {comprehensiveReport && (
+        <div className="no-print flex justify-end mt-2">
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-sm font-semibold hover:bg-slate-900 transition"
+          >
+            <Printer size={15} /> Print Comprehensive Report
+          </button>
+        </div>
+      )}
 
       {/* Low Stock Alerts */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

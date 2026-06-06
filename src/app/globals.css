@@ -149,3 +149,11 @@ body {
 }
 
 /* Landing / marketing pages that need the dark background set it via their own layout */
+
+/* Reusable form field helpers */
+.field-label {
+  @apply text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1;
+}
+.field-input {
+  @apply w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500;
+}

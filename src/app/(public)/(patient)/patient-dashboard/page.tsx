@@ -184,7 +184,11 @@ export default function PatientDashboard() {
                         : `Order #${order.id}`}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {order.pharmacyName ?? "Awaiting pharmacy"} · {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
+                      {order.pharmacyName ?? "Awaiting pharmacy"}
+                      {order.branchName && order.branchName !== order.pharmacyName && (
+                        <span className="ml-1">— {order.branchName}</span>
+                      )}
+                      {" · "}{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
                     </p>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${STATUS_TONE[order.status] ?? "bg-slate-100 text-slate-600"}`}>

@@ -2,6 +2,7 @@ import { apiClient } from './apiClient';
 import type {
   ApiResponse,
   DispensingOrderResponse,
+  MedicineResponse,
   SubstitutionResponse,
   ActionLogResponse,
   PharmacistResponse,
@@ -20,6 +21,7 @@ interface SuggestSubstitutionRequest {
 
 interface DispenseMedicineRequest {
   notes?: string;
+  medicationNotes?: string;
 }
 
 export async function getMyProfile(): Promise<PharmacistResponse> {
@@ -106,6 +108,20 @@ export async function completeOrder(orderId: number): Promise<DispensingOrderRes
 export async function getActionLogs(orderId: number): Promise<ActionLogResponse[]> {
   const res = await apiClient<ApiResponse<ActionLogResponse[]>>(
     `/api/pharmacist/dispensing/orders/${orderId}/logs`
+  );
+  return res.data;
+}
+
+export async function saveMedicationNotes(orderId: number, notes: string): Promise<void> {
+  await apiClient<ApiResponse<null>>(
+    `/api/pharmacist/dispensing/orders/${orderId}/medication-notes?notes=${encodeURIComponent(notes)}`,
+    { method: 'PUT' }
+  );
+}
+
+export async function getPharmacistInventory(): Promise<MedicineResponse[]> {
+  const res = await apiClient<ApiResponse<MedicineResponse[]>>(
+    '/api/pharmacist/dispensing/inventory'
   );
   return res.data;
 }

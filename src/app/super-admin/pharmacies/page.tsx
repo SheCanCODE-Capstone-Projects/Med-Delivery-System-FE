@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Building2, Loader2, AlertCircle, Search, Filter,
-  CheckCircle2, XCircle, Ban, AlertTriangle, X,
+  CheckCircle2, XCircle, Ban, AlertTriangle, X, Mail,
 } from 'lucide-react';
 import { getAllPharmacies } from '@/services/pharmacyApi';
 import { approvePharmacy, suspendPharmacy } from '@/services/adminApi';
+import { invitePharmacyAdmin } from '@/services/invitationService';
 import type { PharmacyResponse } from '@/types/api';
 
 const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING_APPROVAL', 'SUSPENDED', 'REJECTED'];
@@ -86,6 +87,11 @@ export default function SuperAdminPharmaciesPage() {
   const [actioning, setActioning] = useState<number | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<PharmacyResponse | null>(null);
   const [suspendLoading, setSuspendLoading] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState('');
+  const [inviteError, setInviteError] = useState('');
 
   useEffect(() => {
     getAllPharmacies()
@@ -141,12 +147,71 @@ export default function SuperAdminPharmaciesPage() {
 
   const pendingCount = pharmacies.filter((p) => p.status === 'PENDING_APPROVAL' || p.status === 'PENDING').length;
 
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviting(true); setInviteError('');
+    try {
+      await invitePharmacyAdmin(inviteEmail);
+      setInviteMsg(`Invitation sent to ${inviteEmail}.`);
+      setShowInvite(false);
+      setInviteEmail('');
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Failed to send invitation');
+    } finally { setInviting(false); }
+  };
+
   return (
     <>
+      {showInvite && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Invite Pharmacy Admin</h2>
+              <button onClick={() => setShowInvite(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <p className="text-sm text-slate-500 mb-4">
+              They will receive an email with a link to register their pharmacy.
+            </p>
+            {inviteError && (
+              <div className="mb-3 px-3 py-2 rounded-lg bg-rose-50 text-rose-700 text-sm">{inviteError}</div>
+            )}
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Email *</label>
+                <input required type="email" value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="admin@pharmacy.rw" />
+              </div>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setShowInvite(false)}
+                  className="flex-1 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                  Cancel
+                </button>
+                <button type="submit" disabled={inviting}
+                  className="flex-1 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                  {inviting && <Loader2 size={14} className="animate-spin" />}
+                  Send Invite
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8 flex flex-wrap gap-4 items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Platform Pharmacies</h1>
           <p className="text-slate-500 mt-1">View, approve, reject, or suspend all registered pharmacies.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {inviteMsg && (
+            <span className="text-xs text-teal-700 font-semibold">{inviteMsg}</span>
+          )}
+          <button onClick={() => { setShowInvite(true); setInviteError(''); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition">
+            <Mail size={14} /> Invite Pharmacy Admin
+          </button>
         </div>
         {pendingCount > 0 && (
           <button

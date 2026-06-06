@@ -15,6 +15,7 @@ import {
   HeartHandshake,
   Menu,
   X,
+  ShieldAlert,
 } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -91,6 +92,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         <NavItem href="/super-admin/insurance-providers" icon={HeartHandshake} label="Insurance" onClick={closeSidebar} />
         <NavItem href="/super-admin/insurance-cards" icon={CreditCard} label="Ins. Cards" onClick={closeSidebar} />
         <NavItem href="/super-admin/audit-logs" icon={ScrollText} label="Audit Logs" onClick={closeSidebar} />
+        <NavItem href="/super-admin/security" icon={ShieldAlert} label="Security" onClick={closeSidebar} />
         <NavItem href="/super-admin/settings" icon={Settings} label="Settings" onClick={closeSidebar} />
       </nav>
 

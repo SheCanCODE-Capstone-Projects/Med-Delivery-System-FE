@@ -8,6 +8,7 @@ import { logout, getUserName } from "@/services/authApi";
 import { askChatbot } from "@/services/patientApi";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import {
+  BarChart2,
   ClipboardList,
   LayoutGrid,
   LogOut,
@@ -27,6 +28,7 @@ const navItems = [
   { icon: ClipboardList, label: "Track Orders",      href: "/tracking" },
   { icon: MapPin,        label: "Locations",         href: "/locations" },
   { icon: ShieldCheck,   label: "Insurance",         href: "/insurance" },
+  { icon: BarChart2,     label: "My Report",         href: "/patient-dashboard/report" },
   { icon: Settings,      label: "Settings",          href: "/profile" },
 ];
 

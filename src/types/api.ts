@@ -231,6 +231,8 @@ export interface PharmacistResponse {
   phoneNumber?: string;
   pharmacyId?: number;
   pharmacyName?: string;
+  branchId?: number;
+  branchName?: string;
   isActive: boolean;
   isVerified: boolean;
   createdAt: string;
@@ -267,6 +269,8 @@ export interface OrderResponse {
   id: number;
   patientName: string;
   pharmacyName?: string;
+  branchId?: number;
+  branchName?: string;
   status: string;
   orderType?: string;
   fulfillmentType?: string;
@@ -290,6 +294,7 @@ export interface OrderItemResponse {
   quantity: number;
   unitPrice: number;
   status?: string;
+  inStock?: boolean;
 }
 
 export interface CreateOrderRequest {
@@ -391,13 +396,29 @@ export interface MedicineRequestRequest {
 
 export interface DispensingOrderResponse {
   id: number;
+  branchId?: number;
+  branchName?: string;
   patientName: string;
+  patientEmail?: string;
   status: string;
   prescriptionUrl?: string;
+  prescriptionNotes?: string;
   medicines?: OrderItemResponse[];
   validationStatus?: string;
   stockConfirmed?: boolean;
   createdAt: string;
+  updatedAt?: string;
+  // Patient medical info
+  patientAllergies?: string;
+  patientBloodType?: string;
+  patientMedicalNotes?: string;
+  orderType?: string;
+  // Prescription auto-check data
+  prescriptionDate?: string;
+  hasStamp?: boolean;
+  hasSignature?: boolean;
+  // Pharmacist delivery instructions
+  medicationNotes?: string;
 }
 
 export interface SubstitutionResponse {
@@ -444,4 +465,69 @@ export interface NotificationItem {
   type: string;
   read: boolean;
   createdAt: string;
+}
+
+// ─── Inventory (batch-based) ──────────────────────────────────────────────────
+
+export interface MedicineResponse {
+  id: number;
+  name: string;
+  genericName?: string;
+  category?: string;
+  unit?: string;
+  sellingPrice?: number;
+  lowStockAlert?: number;
+  requiresPrescription: boolean;
+  description?: string;
+  createdAt?: string;
+  totalQuantity: number;
+  batchCount: number;
+  earliestExpiry?: string;
+  status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'EXPIRING_SOON';
+}
+
+export interface StockEntryResponse {
+  id: number;
+  medicineId: number;
+  medicineName: string;
+  branchId: number;
+  branchName: string;
+  batchNumber?: string;
+  quantityReceived: number;
+  purchasePrice?: number;
+  supplier?: string;
+  manufacturingDate?: string;
+  expiryDate?: string;
+  notes?: string;
+  createdAt: string;
+  status: 'ACTIVE' | 'EXPIRED' | 'EXPIRING_SOON';
+}
+
+export interface InventoryDashboardStats {
+  totalMedicines: number;
+  totalStockUnits: number;
+  lowStockItems: number;
+  expiringSoonItems: number;
+}
+
+export interface MedicineFormRequest {
+  medicineName: string;
+  genericName?: string;
+  category?: string;
+  unit?: string;
+  sellingPrice?: number;
+  lowStockAlert?: number;
+  requiresPrescription?: boolean;
+  description?: string;
+}
+
+export interface StockEntryRequest {
+  medicineId?: number;
+  batchNumber?: string;
+  quantityReceived: number;
+  purchasePrice?: number;
+  supplier?: string;
+  manufacturingDate?: string;
+  expiryDate?: string;
+  notes?: string;
 }

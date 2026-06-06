@@ -56,6 +56,7 @@ export default function PharmacistProfilePage() {
               { label: 'Phone',         value: profile.phoneNumber ?? '—' },
               { label: 'Pharmacist ID', value: profile.pharmacistUniqueId ?? '—' },
               { label: 'Pharmacy',      value: profile.pharmacyName ?? '—' },
+              { label: 'Branch',        value: profile.branchName ?? '—' },
               { label: 'Status',        value: profile.isActive ? 'Active' : 'Inactive', isStatus: true },
             ].map((row) => (
               <div key={row.label} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">

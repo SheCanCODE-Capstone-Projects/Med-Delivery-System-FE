@@ -5,6 +5,9 @@ import {
   DollarSign, AlertTriangle, CheckCircle2, XCircle, Loader2, AlertCircle, Printer,
 } from "lucide-react";
 import { getMyPharmacy, getMyPharmacyOrders, getInventory, getPharmacistsByPharmacy } from "@/services/pharmacyApi";
+import { getPharmacyAdminReport, type PharmacyAdminReport } from "@/services/reportService";
+import PrintableReport from "@/components/report/PrintableReport";
+import ReportTable from "@/components/report/ReportTable";
 import type { OrderResponse, PharmacyInventoryResponse, PharmacistResponse } from "@/types/api";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -127,6 +130,7 @@ export default function ReportsPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [inventory, setInventory] = useState<PharmacyInventoryResponse[]>([]);
   const [pharmacists, setPharmacists] = useState<PharmacistResponse[]>([]);
+  const [comprehensiveReport, setComprehensiveReport] = useState<PharmacyAdminReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -134,14 +138,16 @@ export default function ReportsPage() {
     (async () => {
       try {
         const ph = await getMyPharmacy();
-        const [o, inv, pharm] = await Promise.all([
+        const [o, inv, pharm, cr] = await Promise.all([
           getMyPharmacyOrders(ph.id).catch(() => []),
           getInventory(ph.id).catch(() => []),
           getPharmacistsByPharmacy(ph.id).catch(() => []),
+          getPharmacyAdminReport().catch(() => null),
         ]);
         setOrders(o);
         setInventory(inv);
         setPharmacists(pharm);
+        setComprehensiveReport(cr as PharmacyAdminReport | null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load reports");
       } finally {
@@ -337,6 +343,68 @@ export default function ReportsPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Comprehensive Printable Report */}
+      {comprehensiveReport && (
+        <PrintableReport
+          title="Pharmacy Admin Comprehensive Report"
+          entityName={comprehensiveReport.pharmacyName}
+          generatedBy={comprehensiveReport.generatedBy}
+          period={comprehensiveReport.reportPeriod}
+          generatedDate={comprehensiveReport.generatedDate}
+        >
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { label: 'Total Branches',        value: comprehensiveReport.totalBranches },
+              { label: 'Total Staff',            value: comprehensiveReport.totalStaff },
+              { label: 'Inventory Items',        value: comprehensiveReport.totalInventoryItems },
+              { label: 'Total Orders',           value: comprehensiveReport.totalOrders },
+              { label: 'Total Revenue',          value: `RWF ${(comprehensiveReport.totalRevenue ?? 0).toLocaleString()}` },
+            ].map((c) => (
+              <div key={c.label} className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{c.label}</p>
+                <p className="text-2xl font-bold text-slate-800 mt-1">{c.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <ReportTable
+            title="Branch Performance"
+            columns={['Branch', 'Orders', 'Pharmacists', 'Inventory Items', 'Status']}
+            rows={(comprehensiveReport.branchPerformance ?? []).map((r) => [
+              r.branchName, r.orders, r.pharmacists, r.inventoryItems, r.status,
+            ])}
+            emptyMessage="No branch data."
+          />
+
+          <ReportTable
+            title="Staff Summary"
+            columns={['Employee', 'Email', 'Role', 'Branch', 'Active']}
+            rows={(comprehensiveReport.staffSummary ?? []).map((r) => [
+              r.employeeName, r.email, r.role, r.branch, r.active ? 'Yes' : 'No',
+            ])}
+            emptyMessage="No staff data."
+          />
+
+          <ReportTable
+            title="Inventory Summary"
+            columns={['Medicine', 'Total Stock', 'Unit', 'Price (RWF)']}
+            rows={(comprehensiveReport.inventorySummary ?? []).map((r) => [
+              r.medicineName, r.totalStock, r.unit, r.price,
+            ])}
+            emptyMessage="No inventory data."
+          />
+
+          <ReportTable
+            title="Low Stock Medicines"
+            columns={['Medicine', 'Current Stock', 'Reorder Level', 'Branch']}
+            rows={(comprehensiveReport.lowStockMedicines ?? []).map((r) => [
+              r.medicineName, r.currentStock, r.reorderLevel, r.branch,
+            ])}
+            emptyMessage="No low-stock items."
+          />
+        </PrintableReport>
       )}
 
       {/* Recent orders table */}
