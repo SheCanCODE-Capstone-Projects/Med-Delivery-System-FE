@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, Loader2, Plus, X, Package2, Layers, Clock, ShieldCheck, ShieldOff,
@@ -41,7 +41,7 @@ export default function MedicineDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const [m, b] = await Promise.all([getMedicineDetail(id), getStockEntries(id)]);
       setMedicine(m);
@@ -49,9 +49,9 @@ export default function MedicineDetailPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load medicine');
     }
-  };
+  }, [id]);
 
-  useEffect(() => { load().finally(() => setLoading(false)); }, [id]);
+  useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
 
   const showToast = (msg: string) => {
     setToast(msg);

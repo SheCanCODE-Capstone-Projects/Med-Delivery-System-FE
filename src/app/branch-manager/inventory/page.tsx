@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Package2, Plus, Loader2, X, Search, Edit2, Layers, ChevronRight,
-  AlertTriangle, Clock, TrendingDown, CheckCircle, BarChart3, Filter,
+  Package2, Plus, Loader2, X, Search, Edit2, ChevronRight,
+  Clock, TrendingDown, BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
