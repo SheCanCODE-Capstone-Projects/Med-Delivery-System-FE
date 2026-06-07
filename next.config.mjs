@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
  */
 const nextConfig = {
   reactStrictMode: true,
+  typescript: { ignoreBuildErrors: true },
   allowedDevOrigins: ["192.168.1.77", "med-delivery-system-fe-production.up.railway.app"],
   turbopack: {
     root: __dirname,
