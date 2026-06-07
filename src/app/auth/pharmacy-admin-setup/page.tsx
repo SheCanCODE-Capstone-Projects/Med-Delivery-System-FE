@@ -1,11 +1,11 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Building2, CheckCircle2 } from 'lucide-react';
 import { validateInvitationToken, setupPharmacyAdmin, type PharmacyAdminSetupRequest } from '@/services/invitationService';
 import MedDeliveryLogo from '@/components/brand/MedDeliveryLogo';
 
-export default function PharmacyAdminSetupPage() {
+function PharmacyAdminSetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
@@ -44,7 +44,7 @@ export default function PharmacyAdminSetupPage() {
       .finally(() => setValidating(false));
   }, [token]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true); setSubmitError('');
     try {
@@ -140,7 +140,7 @@ export default function PharmacyAdminSetupPage() {
               <label className="text-xs font-bold text-slate-500 uppercase block mb-1">{label}</label>
               <input
                 required={required}
-                value={(form as Record<string, string>)[field] ?? ''}
+                value={(form as unknown as Record<string, string>)[field] ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
@@ -154,5 +154,17 @@ export default function PharmacyAdminSetupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function PharmacyAdminSetupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-teal-600" size={32} />
+      </div>
+    }>
+      <PharmacyAdminSetupContent />
+    </Suspense>
   );
 }
