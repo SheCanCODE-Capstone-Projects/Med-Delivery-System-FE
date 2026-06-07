@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Users, Store, LogOut, Search, Bell } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, Store, Mail, LogOut, Search, Bell } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 
 export default function AdminLayout({ children }) {
@@ -48,6 +48,10 @@ export default function AdminLayout({ children }) {
           <NavItem href="/admin/pharmacy">
             <Store size={18} />
             Pharmacy
+          </NavItem>
+          <NavItem href="/admin/invite">
+            <Mail size={18} />
+            Invitations
           </NavItem>
         </nav>
 

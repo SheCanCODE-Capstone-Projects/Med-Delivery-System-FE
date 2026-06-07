@@ -1,11 +1,11 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, GitBranch, CheckCircle2 } from 'lucide-react';
 import { validateInvitationToken, setupBranchManager, type BranchManagerSetupRequest } from '@/services/invitationService';
 import MedDeliveryLogo from '@/components/brand/MedDeliveryLogo';
 
-export default function BranchManagerSetupPage() {
+function BranchManagerSetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
@@ -36,7 +36,6 @@ export default function BranchManagerSetupPage() {
           return;
         }
         setPrefillEmail(data.email);
-        // Payload is JSON: {"branchName":"...","pharmacyId":123}
         try {
           const payload = JSON.parse(data.payload);
           if (payload.branchName) {
@@ -49,7 +48,7 @@ export default function BranchManagerSetupPage() {
       .finally(() => setValidating(false));
   }, [token]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true); setSubmitError('');
     try {
@@ -165,5 +164,17 @@ export default function BranchManagerSetupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function BranchManagerSetupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-teal-600" size={32} />
+      </div>
+    }>
+      <BranchManagerSetupContent />
+    </Suspense>
   );
 }

@@ -230,6 +230,24 @@ export async function verifyInsuranceCard(
   return res.data;
 }
 
+export async function invitePharmacyAdmin(email: string): Promise<void> {
+  await apiClient<ApiResponse<void>>('/api/admin/pharmacy-admin/invite', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function inviteBranchManager(
+  email: string,
+  branchName: string,
+  pharmacyId: number
+): Promise<void> {
+  await apiClient<ApiResponse<void>>('/api/admin/branch-manager/invite', {
+    method: 'POST',
+    body: JSON.stringify({ email, branchName, pharmacyId }),
+  });
+}
+
 export async function rejectInsuranceCard(
   id: number,
   notes?: string
