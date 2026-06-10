@@ -45,12 +45,6 @@ function HorizontalBar({ items, max, color = '#0ea5e9' }: {
   );
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  COMPLETED: 'bg-emerald-100 text-emerald-700',
-  CANCELLED: 'bg-rose-100 text-rose-700',
-  PENDING:   'bg-amber-100 text-amber-700',
-};
-
 export default function PatientReportsPage() {
   const [report, setReport] = useState<PatientReport | null>(null);
   const [loading, setLoading] = useState(true);
