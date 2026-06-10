@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Trash2, Loader2, Mail, Phone, X, Copy, Check } from 'lucide-react';
+import { Users, Plus, Trash2, Loader2, Mail, Phone, X, Copy, Check, RefreshCw } from 'lucide-react';
 import {
-  getBranchPharmacists, addBranchPharmacist, deactivateBranchPharmacist,
+  getBranchPharmacists, addBranchPharmacist, deactivateBranchPharmacist, resendPharmacistSetup,
   type BranchPharmacistResponse,
 } from '@/services/branchService';
 
@@ -37,6 +37,7 @@ export default function BranchPharmacistsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [removing, setRemoving] = useState<number | null>(null);
+  const [resendingId, setResendingId] = useState<number | null>(null);
   const [form, setForm] = useState({ fullName: '', email: '', phoneNumber: '' });
 
   const load = () => getBranchPharmacists()
@@ -57,6 +58,19 @@ export default function BranchPharmacistsPage() {
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to add pharmacist');
     } finally { setSubmitting(false); }
+  };
+
+  const handleResendSetup = async (p: BranchPharmacistResponse) => {
+    setResendingId(p.id);
+    setMsg('');
+    try {
+      await resendPharmacistSetup(p.id);
+      setMsg(`Setup email resent to ${p.email}.`);
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : 'Failed to resend setup email');
+    } finally {
+      setResendingId(null);
+    }
   };
 
   const handleDeactivate = async (id: number) => {
@@ -173,7 +187,20 @@ export default function BranchPharmacistsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          {!p.isActive && <SetupLinkButton email={p.email} />}
+                          {!p.isActive && (
+                            <>
+                              <button
+                                onClick={() => handleResendSetup(p)}
+                                disabled={resendingId === p.id}
+                                title="Resend account setup email"
+                                className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold bg-teal-50 text-teal-600 border border-teal-100 rounded-lg hover:bg-teal-100 transition disabled:opacity-50"
+                              >
+                                {resendingId === p.id ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
+                                Resend
+                              </button>
+                              <SetupLinkButton email={p.email} />
+                            </>
+                          )}
                           <button onClick={() => handleDeactivate(p.id)} disabled={removing === p.id || !p.isActive}
                             className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100 rounded-lg hover:bg-rose-100 transition disabled:opacity-50">
                             {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}

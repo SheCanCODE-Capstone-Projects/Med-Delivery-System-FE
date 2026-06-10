@@ -3,11 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Building2, Loader2, AlertCircle, Search, Filter,
-  CheckCircle2, XCircle, Ban, AlertTriangle, X, Mail,
+  CheckCircle2, XCircle, Ban, AlertTriangle, X, Mail, Clock, RefreshCw,
 } from 'lucide-react';
 import { getAllPharmacies } from '@/services/pharmacyApi';
 import { approvePharmacy, suspendPharmacy } from '@/services/adminApi';
-import { invitePharmacyAdmin } from '@/services/invitationService';
+import {
+  invitePharmacyAdmin,
+  getPendingPharmacyAdminInvitations,
+  type PendingPharmacyAdminInvitation,
+} from '@/services/invitationService';
 import type { PharmacyResponse } from '@/types/api';
 
 const STATUS_FILTERS = ['ALL', 'ACTIVE', 'PENDING_APPROVAL', 'SUSPENDED', 'REJECTED'];
@@ -92,10 +96,15 @@ export default function SuperAdminPharmaciesPage() {
   const [inviting, setInviting] = useState(false);
   const [inviteMsg, setInviteMsg] = useState('');
   const [inviteError, setInviteError] = useState('');
+  const [pendingInvites, setPendingInvites] = useState<PendingPharmacyAdminInvitation[]>([]);
+  const [resending, setResending] = useState<string | null>(null);
 
   useEffect(() => {
-    getAllPharmacies()
-      .then((data) => { setPharmacies(data); setFiltered(data); })
+    Promise.all([
+      getAllPharmacies().catch(() => [] as PharmacyResponse[]),
+      getPendingPharmacyAdminInvitations().catch(() => [] as PendingPharmacyAdminInvitation[]),
+    ])
+      .then(([data, pending]) => { setPharmacies(data); setFiltered(data); setPendingInvites(pending); })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacies'))
       .finally(() => setLoading(false));
   }, []);
@@ -153,11 +162,32 @@ export default function SuperAdminPharmaciesPage() {
     try {
       await invitePharmacyAdmin(inviteEmail);
       setInviteMsg(`Invitation sent to ${inviteEmail}.`);
+      setPendingInvites((prev) => prev.filter((p) => p.email !== inviteEmail));
       setShowInvite(false);
       setInviteEmail('');
     } catch (err) {
       setInviteError(err instanceof Error ? err.message : 'Failed to send invitation');
     } finally { setInviting(false); }
+  };
+
+  const handleResend = async (inv: PendingPharmacyAdminInvitation) => {
+    if (!window.confirm(`Resend pharmacy admin invitation to ${inv.email}?\n\nThis will send a new 48-hour setup link.`)) return;
+    setResending(inv.email);
+    try {
+      await invitePharmacyAdmin(inv.email);
+      setInviteMsg(`New invitation sent to ${inv.email}.`);
+      setPendingInvites((prev) =>
+        prev.map((p) =>
+          p.email === inv.email
+            ? { ...p, expired: false, sentAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString() }
+            : p
+        )
+      );
+    } catch (err) {
+      setInviteMsg(err instanceof Error ? err.message : 'Failed to resend invitation');
+    } finally {
+      setResending(null);
+    }
   };
 
   return (
@@ -205,9 +235,6 @@ export default function SuperAdminPharmaciesPage() {
           <p className="text-slate-500 mt-1">View, approve, reject, or suspend all registered pharmacies.</p>
         </div>
         <div className="flex items-center gap-3">
-          {inviteMsg && (
-            <span className="text-xs text-teal-700 font-semibold">{inviteMsg}</span>
-          )}
           <button onClick={() => { setShowInvite(true); setInviteError(''); }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition">
             <Mail size={14} /> Invite Pharmacy Admin
@@ -223,6 +250,53 @@ export default function SuperAdminPharmaciesPage() {
           </button>
         )}
       </div>
+
+      {inviteMsg && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-teal-50 border border-teal-100 text-teal-700 text-sm font-semibold">{inviteMsg}</div>
+      )}
+
+      {/* Pending Invitations */}
+      {pendingInvites.length > 0 && (
+        <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+            <Clock size={15} className="text-amber-500" />
+            <h2 className="text-sm font-bold text-slate-800">Pending Pharmacy Admin Invitations</h2>
+            <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+              {pendingInvites.length}
+            </span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {pendingInvites.map((inv) => (
+              <div key={inv.email} className="flex items-center gap-4 px-6 py-4">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${inv.expired ? 'bg-rose-50' : 'bg-amber-50'}`}>
+                  {inv.expired
+                    ? <AlertTriangle size={15} className="text-rose-500" />
+                    : <Clock size={15} className="text-amber-500" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{inv.email}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Sent {new Date(inv.sentAt).toLocaleDateString()} · Expires {new Date(inv.expiresAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${inv.expired ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                  {inv.expired ? 'Expired' : 'Pending'}
+                </span>
+                <button
+                  onClick={() => handleResend(inv)}
+                  disabled={resending === inv.email}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-teal-50 text-teal-600 border border-teal-100 rounded-lg hover:bg-teal-100 transition disabled:opacity-50"
+                >
+                  {resending === inv.email
+                    ? <Loader2 size={12} className="animate-spin" />
+                    : <RefreshCw size={12} />}
+                  Resend
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">

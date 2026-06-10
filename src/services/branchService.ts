@@ -171,3 +171,20 @@ export async function inviteBranchManager(email: string, branchName: string, bra
     body: JSON.stringify({ email, branchName, branchAddress }),
   });
 }
+
+export interface PendingInvitationResponse {
+  email: string;
+  branchName: string | null;
+  sentAt: string;
+  expiresAt: string;
+  expired: boolean;
+}
+
+export async function getPendingInvitations(): Promise<PendingInvitationResponse[]> {
+  const r = await apiClient<{ data: PendingInvitationResponse[] }>('/api/pharmacy/branches/invitations/pending');
+  return r.data ?? [];
+}
+
+export async function resendPharmacistSetup(pharmacistId: number): Promise<void> {
+  await apiClient(`/api/branch-manager/pharmacists/${pharmacistId}/resend-setup`, { method: 'POST' });
+}

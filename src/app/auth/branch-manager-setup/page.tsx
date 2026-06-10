@@ -1,7 +1,7 @@
 "use client";
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, GitBranch, CheckCircle2 } from 'lucide-react';
+import { Loader2, GitBranch, CheckCircle2, MapPin } from 'lucide-react';
 import { validateInvitationToken, setupBranchManager, type BranchManagerSetupRequest } from '@/services/invitationService';
 import MedDeliveryLogo from '@/components/brand/MedDeliveryLogo';
 
@@ -17,6 +17,7 @@ function BranchManagerSetupContent() {
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [locating, setLocating] = useState(false);
 
   const [form, setForm] = useState<BranchManagerSetupRequest>({
     token,
@@ -47,6 +48,28 @@ function BranchManagerSetupContent() {
       .catch((e) => setTokenError(e instanceof Error ? e.message : 'Invalid or expired invitation link.'))
       .finally(() => setValidating(false));
   }, [token]);
+
+  const handleGPS = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          setForm((f) => ({ ...f, address: data.display_name ?? `${latitude}, ${longitude}` }));
+        } catch {
+          // silently ignore reverse-geocode errors
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => setLocating(false)
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,14 +152,14 @@ function BranchManagerSetupContent() {
             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Full Name *</label>
             <input required value={form.fullName}
               onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="Your full name" />
           </div>
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Password *</label>
             <input required type="password" value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="Choose a strong password" />
           </div>
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider pt-2">Branch Details</h2>
@@ -145,20 +168,30 @@ function BranchManagerSetupContent() {
             <input required value={form.branchName}
               readOnly={!!prefillBranchName}
               onChange={(e) => setForm((f) => ({ ...f, branchName: e.target.value }))}
-              className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${prefillBranchName ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : 'bg-white'}`} />
+              className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${prefillBranchName ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : 'bg-white text-slate-900'}`} />
             {prefillBranchName && <p className="text-xs text-teal-600 font-semibold mt-1">Pre-filled from your invitation</p>}
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Address</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Address</label>
+              <button type="button" onClick={handleGPS} disabled={locating}
+                className="flex items-center gap-1 text-xs text-teal-600 font-semibold hover:text-teal-700 disabled:opacity-50 transition">
+                {locating ? <Loader2 size={11} className="animate-spin" /> : <MapPin size={11} />}
+                {locating ? 'Locating…' : 'Use GPS'}
+              </button>
+            </div>
             <input value={form.address ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              placeholder="Branch street address"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500" />
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Contact Info</label>
-            <input value={form.contactInfo ?? ''}
+            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Phone Number (optional)</label>
+            <input type="tel" autoComplete="tel" value={form.contactInfo ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, contactInfo: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              placeholder="+250 7XX XXX XXX"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+            <p className="text-xs text-slate-400 mt-1">Your mobile or office number</p>
           </div>
           <button type="submit" disabled={submitting}
             className="w-full py-3 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2 mt-2">

@@ -58,3 +58,16 @@ export async function invitePharmacyAdmin(email: string): Promise<void> {
     body: JSON.stringify({ email }),
   });
 }
+
+export interface PendingPharmacyAdminInvitation {
+  email: string;
+  branchName: string | null;
+  sentAt: string;
+  expiresAt: string;
+  expired: boolean;
+}
+
+export async function getPendingPharmacyAdminInvitations(): Promise<PendingPharmacyAdminInvitation[]> {
+  const r = await apiClient<{ data: PendingPharmacyAdminInvitation[] }>('/api/admin/pharmacy-admin/invitations/pending');
+  return r.data ?? [];
+}

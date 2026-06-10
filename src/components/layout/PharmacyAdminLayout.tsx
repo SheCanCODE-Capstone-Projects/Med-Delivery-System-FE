@@ -11,6 +11,7 @@ import {
   X,
   BarChart2,
   GitBranch,
+  Shield,
 } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -64,6 +65,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
       <NavItem href="/Pharmacy-admin" label="Dashboard" icon={LayoutDashboard} exact onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/employees" label="Manage Personnel" icon={Users} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/branches" label="Branches" icon={GitBranch} onClick={closeSidebar} />
+      <NavItem href="/Pharmacy-admin/insurance" label="Insurance" icon={Shield} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/reports" label="Reports" icon={BarChart2} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/settings" label="System Settings" icon={Settings} onClick={closeSidebar} />
     </nav>

@@ -1,7 +1,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { GitBranch, Plus, Loader2, Mail, MapPin, X, Users, Package2 } from 'lucide-react';
-import { getPharmacyBranches, inviteBranchManager, type BranchResponse } from '@/services/branchService';
+import { GitBranch, Plus, Loader2, Mail, MapPin, X, Users, Package2, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
+import {
+  getPharmacyBranches,
+  inviteBranchManager,
+  getPendingInvitations,
+  type BranchResponse,
+  type PendingInvitationResponse,
+} from '@/services/branchService';
 import Link from 'next/link';
 
 const STATUS_STYLE: Record<string, string> = {
@@ -11,6 +17,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default function BranchesPage() {
   const [branches, setBranches] = useState<BranchResponse[]>([]);
+  const [pending, setPending] = useState<PendingInvitationResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -18,10 +25,14 @@ export default function BranchesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [inviteForm, setInviteForm] = useState({ email: '', branchName: '', branchAddress: '' });
+  const [resending, setResending] = useState<string | null>(null);
 
   useEffect(() => {
-    getPharmacyBranches()
-      .then(setBranches)
+    Promise.all([
+      getPharmacyBranches().catch(() => [] as BranchResponse[]),
+      getPendingInvitations().catch(() => [] as PendingInvitationResponse[]),
+    ])
+      .then(([b, p]) => { setBranches(b); setPending(p); })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load branches'))
       .finally(() => setLoading(false));
   }, []);
@@ -32,11 +43,35 @@ export default function BranchesPage() {
     try {
       await inviteBranchManager(inviteForm.email, inviteForm.branchName, inviteForm.branchAddress);
       setMsg(`Invitation sent to ${inviteForm.email}.`);
+      setPending((prev) => prev.filter((p) => p.email !== inviteForm.email));
       setShowInvite(false);
       setInviteForm({ email: '', branchName: '', branchAddress: '' });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to send invitation');
     } finally { setSubmitting(false); }
+  };
+
+  const handleResend = async (inv: PendingInvitationResponse) => {
+    if (!window.confirm(
+      `Resend invitation to ${inv.email}${inv.branchName ? ` for branch "${inv.branchName}"` : ''}?\n\nThis will send a new 48-hour link, replacing the old one.`
+    )) return;
+    setResending(inv.email);
+    setMsg('');
+    try {
+      await inviteBranchManager(inv.email, inv.branchName ?? '', undefined);
+      setMsg(`New invitation sent to ${inv.email}.`);
+      setPending((prev) =>
+        prev.map((p) =>
+          p.email === inv.email
+            ? { ...p, expired: false, sentAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString() }
+            : p
+        )
+      );
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : 'Failed to resend invitation');
+    } finally {
+      setResending(null);
+    }
   };
 
   return (
@@ -54,6 +89,57 @@ export default function BranchesPage() {
 
       {msg && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-teal-50 border border-teal-100 text-teal-700 text-sm font-semibold">{msg}</div>
+      )}
+
+      {pending.length > 0 && (
+        <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+            <Clock size={15} className="text-amber-500" />
+            <h2 className="text-sm font-bold text-slate-800">Pending Invitations</h2>
+            <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+              {pending.length}
+            </span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {pending.map((inv) => (
+              <div key={inv.email} className="flex items-center gap-4 px-6 py-4">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${inv.expired ? 'bg-rose-50' : 'bg-amber-50'}`}>
+                  {inv.expired
+                    ? <AlertTriangle size={15} className="text-rose-500" />
+                    : <Clock size={15} className="text-amber-500" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{inv.email}</p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                    {inv.branchName && (
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <GitBranch size={10} />{inv.branchName}
+                      </span>
+                    )}
+                    <span className="text-xs text-slate-400">
+                      Sent {new Date(inv.sentAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${inv.expired ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                    {inv.expired ? 'Expired' : 'Pending'}
+                  </span>
+                  <button
+                    onClick={() => handleResend(inv)}
+                    disabled={resending === inv.email}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-teal-50 text-teal-600 border border-teal-100 rounded-lg hover:bg-teal-100 transition disabled:opacity-50"
+                  >
+                    {resending === inv.email
+                      ? <Loader2 size={12} className="animate-spin" />
+                      : <RefreshCw size={12} />}
+                    Resend
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {showInvite && (
