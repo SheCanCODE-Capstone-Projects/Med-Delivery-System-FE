@@ -71,7 +71,7 @@ function LineChart({ labels, values }: { labels: string[]; values: number[] }) {
   const yTicks = Array.from({ length: 5 }, (_, i) => Math.round((max / 4) * i));
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
       {yTicks.map((t) => (
         <g key={t}>
           <line x1={pad.left} y1={py(t)} x2={W - pad.right} y2={py(t)}
@@ -232,7 +232,7 @@ export default function AnalyticsPage() {
       {/* Platform Growth Chart */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 className="text-base font-bold text-slate-800 mb-5">Pharmacy Registrations (Last 6 Months)</h2>
-        <div className="h-56">
+        <div className="h-56 overflow-hidden">
           <LineChart labels={months} values={growthValues} />
         </div>
       </div>
