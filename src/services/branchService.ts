@@ -79,7 +79,7 @@ export async function getBranchPharmacists(): Promise<BranchPharmacistResponse[]
   return r.data;
 }
 
-export async function addBranchPharmacist(form: { fullName: string; email: string; phoneNumber?: string }): Promise<BranchPharmacistResponse> {
+export async function addBranchPharmacist(form: { email: string }): Promise<BranchPharmacistResponse> {
   const r = await apiClient<{ data: BranchPharmacistResponse }>('/api/branch-manager/pharmacists', {
     method: 'POST',
     body: JSON.stringify(form),

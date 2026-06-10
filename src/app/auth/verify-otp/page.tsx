@@ -22,6 +22,8 @@ function SetPasswordStep({
   isPharmacist?: boolean;
   onDone: () => void;
 }) {
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPasswordValue] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
@@ -29,6 +31,7 @@ function SetPasswordStep({
   const [error, setError] = useState("");
 
   const validate = () => {
+    if (isPharmacist && !fullName.trim()) return "Full name is required.";
     if (password.length < 8) return "Password must be at least 8 characters.";
     if (password !== confirm) return "Passwords do not match.";
     return "";
@@ -41,7 +44,12 @@ function SetPasswordStep({
     setLoading(true);
     setError("");
     try {
-      await setPassword({ username, otp, password });
+      await setPassword({
+        username,
+        otp,
+        password,
+        ...(isPharmacist && { fullName: fullName.trim(), phoneNumber: phoneNumber.trim() || undefined }),
+      });
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to set password. Please try again.");
@@ -74,6 +82,32 @@ function SetPasswordStep({
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
+        {isPharmacist && (
+          <>
+            <div className="grid gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Full Name</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => { setFullName(e.target.value); setError(""); }}
+                placeholder="Your full name"
+                autoComplete="name"
+                className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-sm font-semibold text-slate-700">Phone Number <span className="text-slate-400 font-normal">(optional)</span></label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+250 ..."
+                autoComplete="tel"
+                className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
+              />
+            </div>
+          </>
+        )}
         <div className="grid gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Password</label>
           <div className="relative">

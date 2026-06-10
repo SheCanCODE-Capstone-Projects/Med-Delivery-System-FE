@@ -48,6 +48,8 @@ export interface SetPasswordRequest {
   username: string;
   otp: string;
   password: string;
+  fullName?: string;
+  phoneNumber?: string;
 }
 
 export interface ForgotPasswordRequest {

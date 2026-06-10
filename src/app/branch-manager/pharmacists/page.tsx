@@ -38,7 +38,7 @@ export default function BranchPharmacistsPage() {
   const [submitError, setSubmitError] = useState('');
   const [removing, setRemoving] = useState<number | null>(null);
   const [resendingId, setResendingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ fullName: '', email: '', phoneNumber: '' });
+  const [email, setEmail] = useState('');
 
   const load = () => getBranchPharmacists()
     .then(setPharmacists)
@@ -50,16 +50,13 @@ export default function BranchPharmacistsPage() {
     e.preventDefault();
     setSubmitting(true); setSubmitError('');
     try {
-      await addBranchPharmacist({
-        ...form,
-        phoneNumber: form.phoneNumber.trim() || undefined,
-      });
-      setMsg('Pharmacist invited. A setup email has been sent.');
+      await addBranchPharmacist({ email });
+      setMsg('Invitation sent. The pharmacist will receive an email to set up their account.');
       setShowForm(false);
-      setForm({ fullName: '', email: '', phoneNumber: '' });
+      setEmail('');
       load();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to add pharmacist');
+      setSubmitError(err instanceof Error ? err.message : 'Failed to send invitation');
     } finally { setSubmitting(false); }
   };
 
@@ -111,27 +108,27 @@ export default function BranchPharmacistsPage() {
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-bold text-slate-800">Add Pharmacist to Branch</h2>
+              <h2 className="text-lg font-bold text-slate-800">Invite Pharmacist</h2>
               <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             {submitError && (
               <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 text-sm">{submitError}</div>
             )}
             <form onSubmit={handleAdd} className="space-y-4">
-              {(['fullName', 'email', 'phoneNumber'] as const).map((field) => (
-                <div key={field}>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                    {field === 'fullName' ? 'Full Name' : field === 'email' ? 'Email' : 'Phone (optional)'}
-                  </label>
-                  <input
-                    required={field !== 'phoneNumber'}
-                    type={field === 'email' ? 'email' : 'text'}
-                    value={form[field]}
-                    onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                  Email Address
+                </label>
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="pharmacist@example.com"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+                <p className="text-xs text-slate-400 mt-1">They will receive an email to set up their own account details.</p>
+              </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)}
                   className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">
@@ -140,7 +137,7 @@ export default function BranchPharmacistsPage() {
                 <button type="submit" disabled={submitting}
                   className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2">
                   {submitting && <Loader2 size={14} className="animate-spin" />}
-                  Add Pharmacist
+                  Send Invitation
                 </button>
               </div>
             </form>
