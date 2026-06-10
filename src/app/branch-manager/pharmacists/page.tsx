@@ -50,7 +50,10 @@ export default function BranchPharmacistsPage() {
     e.preventDefault();
     setSubmitting(true); setSubmitError('');
     try {
-      await addBranchPharmacist(form);
+      await addBranchPharmacist({
+        ...form,
+        phoneNumber: form.phoneNumber.trim() || undefined,
+      });
       setMsg('Pharmacist invited. A setup email has been sent.');
       setShowForm(false);
       setForm({ fullName: '', email: '', phoneNumber: '' });
