@@ -75,7 +75,12 @@ function BranchManagerSetupContent() {
     e.preventDefault();
     setSubmitting(true); setSubmitError('');
     try {
-      await setupBranchManager(form);
+      const payload = {
+        ...form,
+        address: form.address?.trim() || undefined,
+        contactInfo: form.contactInfo?.trim() || undefined,
+      };
+      await setupBranchManager(payload);
       setDone(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Setup failed. Please try again.');
