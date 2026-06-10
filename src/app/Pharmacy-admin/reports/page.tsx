@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import {
   TrendingUp, Package2, Users, ClipboardList,
-  DollarSign, AlertTriangle, CheckCircle2, XCircle, Loader2, AlertCircle, Printer,
+  DollarSign, AlertTriangle, CheckCircle2, XCircle, Loader2, AlertCircle,
 } from "lucide-react";
 import { getMyPharmacy, getMyPharmacyOrders, getInventory, getPharmacistsByPharmacy } from "@/services/pharmacyApi";
 import { getPharmacyAdminReport, type PharmacyAdminReport } from "@/services/reportService";
@@ -217,18 +217,9 @@ export default function ReportsPage() {
         }
       `}</style>
 
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Pharmacy Reports</h1>
-          <p className="text-sm text-slate-500 mt-1">Live summary derived from your pharmacy data</p>
-        </div>
-        <button
-          onClick={() => window.print()}
-          className="print:hidden flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 transition"
-        >
-          <Printer size={16} />
-          Print Report
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">Pharmacy Reports</h1>
+        <p className="text-sm text-slate-500 mt-1">Live summary derived from your pharmacy data</p>
       </div>
 
       {/* KPI strip */}

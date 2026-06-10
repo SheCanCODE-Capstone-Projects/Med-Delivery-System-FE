@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Trash2, Loader2, AlertCircle, X, Mail, Phone, Copy, Check, Info } from 'lucide-react';
-import { getPharmacistsByPharmacy, addPharmacist, removePharmacist, getMyPharmacy } from '@/services/pharmacyApi';
+import { Users, Trash2, Loader2, AlertCircle, Mail, Phone, Copy, Check, Info } from 'lucide-react';
+import { getPharmacistsByPharmacy, removePharmacist, getMyPharmacy } from '@/services/pharmacyApi';
 import type { PharmacistResponse } from '@/types/api';
 
 function pharmacistStatus(p: PharmacistResponse): { label: string; style: string } {
@@ -41,11 +41,7 @@ export default function EmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionMsg, setActionMsg] = useState('');
-  const [showForm, setShowForm] = useState(false);
   const [removing, setRemoving] = useState<number | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const [form, setForm] = useState({ fullName: '', email: '', phoneNumber: '' });
 
   const load = async (id: number) => {
     try {
@@ -65,24 +61,6 @@ export default function EmployeesPage() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacy'))
       .finally(() => setLoading(false));
   }, []);
-
-  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!pharmacyId) return;
-    setSubmitting(true);
-    setSubmitError('');
-    try {
-      await addPharmacist(pharmacyId, form);
-      setActionMsg('Pharmacist added. A setup email has been sent to their address. If they don\'t receive it, use the Setup Link button to share it manually.');
-      setShowForm(false);
-      setForm({ fullName: '', email: '', phoneNumber: '' });
-      load(pharmacyId);
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to add pharmacist');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleRemove = async (id: number) => {
     if (!pharmacyId || !window.confirm('Remove this pharmacist from the pharmacy?')) return;
@@ -106,86 +84,18 @@ export default function EmployeesPage() {
           <h1 className="text-2xl font-bold text-slate-800">Personnel Management</h1>
           <p className="text-slate-500 mt-1">Manage your pharmacy's pharmacists and staff.</p>
         </div>
-        <button
-          onClick={() => { setShowForm(true); setSubmitError(''); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition"
-        >
-          <Plus size={16} /> Add Pharmacist
-        </button>
       </div>
 
       <div className="mb-4 flex items-start gap-2 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 text-xs">
         <Info size={14} className="shrink-0 mt-0.5" />
         <span>
-          When you add a pharmacist, they automatically receive an email with a link to set their password and activate their account.
-          If they didn&apos;t receive it, use <strong>Setup Link</strong> to copy and share the link manually.
+          This is a read-only view of all pharmacists across your pharmacy. To add pharmacists to a specific branch, the branch manager should use their portal.
         </span>
       </div>
 
       {actionMsg && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-teal-50 border border-teal-100 text-teal-700 text-sm font-semibold">
           {actionMsg}
-        </div>
-      )}
-
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-bold text-slate-800">Add Pharmacist</h2>
-              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600">
-                <X size={20} />
-              </button>
-            </div>
-            {submitError && (
-              <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 text-sm">
-                {submitError}
-              </div>
-            )}
-            <form onSubmit={handleAdd} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Full Name</label>
-                <input
-                  required
-                  value={form.fullName}
-                  onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="Dr. Jane Doe"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Email</label>
-                <input
-                  required
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="jane@pharmacy.rw"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Phone (optional)</label>
-                <input
-                  value={form.phoneNumber}
-                  onChange={(e) => setForm((f) => ({ ...f, phoneNumber: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="+250 788 000 000"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">
-                  Cancel
-                </button>
-                <button type="submit" disabled={submitting}
-                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 transition flex items-center justify-center gap-2">
-                  {submitting && <Loader2 size={14} className="animate-spin" />}
-                  Add Pharmacist
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
 

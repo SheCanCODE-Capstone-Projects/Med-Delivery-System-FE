@@ -21,9 +21,12 @@ function getLastSixMonths(): string[] {
   });
 }
 
-function buildGrowthValues(total: number): number[] {
-  if (total === 0) return [0, 0, 0, 0, 0, 0];
-  return [0.50, 0.60, 0.70, 0.80, 0.90, 1.00].map((f) => Math.round(total * f));
+function buildGrowthFromPharmacies(pharmacies: PharmacyResponse[]): number[] {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, i) => {
+    const cutoff = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 1);
+    return pharmacies.filter(p => new Date(p.createdAt) < cutoff).length;
+  });
 }
 
 function timeAgo(dateStr?: string): string {
@@ -181,7 +184,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  const growthValues = buildGrowthValues(activeUsers);
+  const growthValues = buildGrowthFromPharmacies(allPharmacies);
 
   if (loading) {
     return (
@@ -228,7 +231,7 @@ export default function AnalyticsPage() {
 
       {/* Platform Growth Chart */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h2 className="text-base font-bold text-slate-800 mb-5">Platform Growth</h2>
+        <h2 className="text-base font-bold text-slate-800 mb-5">Pharmacy Registrations (Last 6 Months)</h2>
         <div className="h-56">
           <LineChart labels={months} values={growthValues} />
         </div>
