@@ -4,12 +4,15 @@ import { Shield, Loader2, AlertCircle, RefreshCw, Search } from 'lucide-react';
 import { getAuditLogs } from '@/services/adminApi';
 import type { AuditLogResponse } from '@/types/api';
 
+const PAGE_SIZE = 20;
+
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLogResponse[]>([]);
   const [filtered, setFiltered] = useState<AuditLogResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
 
   const load = async () => {
     setLoading(true);
@@ -28,6 +31,7 @@ export default function AuditLogsPage() {
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
+    setPage(0);
     if (!search.trim()) { setFiltered(logs); return; }
     const q = search.toLowerCase();
     setFiltered(logs.filter((l) =>
@@ -95,7 +99,7 @@ export default function AuditLogsPage() {
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {filtered.map((log) => (
+            {filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((log) => (
               <div key={log.id} className="flex items-start gap-4 px-6 py-4 hover:bg-slate-50/60 transition">
                 <div className={`mt-0.5 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${getActionColor(log.action)}`}>
                   {log.action}
@@ -118,8 +122,26 @@ export default function AuditLogsPage() {
           </div>
         )}
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
-          Showing {filtered.length} of {logs.length} log entries
+        <div className="p-4 border-t border-slate-100 bg-slate-50/30 flex justify-between items-center text-xs text-slate-500">
+          <span>
+            Showing {filtered.length === 0 ? 0 : page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length} log entries
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={(page + 1) * PAGE_SIZE >= filtered.length}
+              className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </>

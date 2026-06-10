@@ -212,11 +212,14 @@ function RejectModal({
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function InsuranceCardsPage() {
   const [cards, setCards] = useState<InsuranceCardResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("");
+  const [page, setPage] = useState(0);
 
   const [verifyTarget, setVerifyTarget] = useState<InsuranceCardResponse | null>(null);
   const [rejectTarget, setRejectTarget] = useState<InsuranceCardResponse | null>(null);
@@ -235,7 +238,7 @@ export default function InsuranceCardsPage() {
     }
   };
 
-  useEffect(() => { load(activeTab); }, [activeTab]);
+  useEffect(() => { load(activeTab); setPage(0); }, [activeTab]);
 
   const handleVerify = async (pct: number) => {
     if (!verifyTarget) return;
@@ -268,6 +271,8 @@ export default function InsuranceCardsPage() {
   };
 
   const pendingCount = cards.filter((c) => c.status === "PENDING_VERIFICATION").length;
+  const paginated = cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil(cards.length / PAGE_SIZE);
 
   return (
     <>
@@ -337,7 +342,7 @@ export default function InsuranceCardsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {cards.map((card) => (
+                {paginated.map((card) => (
                   <tr
                     key={card.id}
                     className={`text-sm transition ${
@@ -439,9 +444,26 @@ export default function InsuranceCardsPage() {
           </div>
         )}
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
-          {cards.length} card{cards.length !== 1 ? "s" : ""}
-          {activeTab ? ` · filtered by ${activeTab.toLowerCase().replace("_", " ")}` : " total"}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/30 flex justify-between items-center text-xs text-slate-500">
+          <span>
+            Showing {cards.length === 0 ? 0 : page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, cards.length)} of {cards.length} card{cards.length !== 1 ? "s" : ""}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages - 1}
+              className="px-3 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

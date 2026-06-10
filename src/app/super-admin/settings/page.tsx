@@ -2,11 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 import {
-  Settings,
   User,
   Lock,
-  Bell,
-  Database,
   Mail,
   Upload,
   Save,
@@ -50,8 +47,6 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'profile', label: 'Profile Settings', icon: User },
     { id: 'security', label: 'Security', icon: Lock },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'system', label: 'System Configuration', icon: Database },
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,18 +112,6 @@ export default function SettingsPage() {
             ))}
           </nav>
 
-          <div className="mt-8 p-4 bg-orange-50 border border-orange-100 rounded-xl">
-            <div className="flex items-center gap-2 text-orange-700 font-bold text-xs uppercase tracking-wider mb-2">
-              <AlertCircle size={14} />
-              Danger Zone
-            </div>
-            <p className="text-xs text-orange-600 mb-4 leading-relaxed">
-              Actions here can affect entire system data. Handle with care.
-            </p>
-            <button className="w-full py-2 bg-white text-red-600 border border-red-100 rounded-lg text-xs font-bold hover:bg-red-50 transition">
-              Maintenance Mode
-            </button>
-          </div>
         </aside>
 
         {/* Content Area */}
@@ -298,18 +281,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Other tabs follow similar patterns */}
-          {(activeTab === 'notifications' || activeTab === 'system') && (
-            <div className="bg-white p-12 rounded-xl border border-slate-200 shadow-sm text-center">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                <Settings size={32} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800">Advanced Settings</h3>
-              <p className="text-slate-500 max-w-sm mx-auto mt-2">
-                These configurations are currently locked for stability. Contact platform engineering for deep system changes.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </>

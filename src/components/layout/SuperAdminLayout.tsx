@@ -5,17 +5,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Building2,
-  Users,
   ShieldCheck,
-  CreditCard,
   Settings,
   LogOut,
-  Package,
-  ScrollText,
   HeartHandshake,
   Menu,
   X,
   ShieldAlert,
+  Users,
 } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -86,12 +83,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
         <NavItem href="/super-admin/analytics" icon={LayoutDashboard} label="Dashboard" onClick={closeSidebar} />
         <NavItem href="/super-admin/pharmacies" icon={Building2} label="Pharmacies" onClick={closeSidebar} />
-        <NavItem href="/super-admin/orders" icon={Package} label="Orders" onClick={closeSidebar} />
-        <NavItem href="/super-admin/admins" icon={ShieldCheck} label="Users" onClick={closeSidebar} />
-        <NavItem href="/super-admin/patients" icon={Users} label="Patients" onClick={closeSidebar} />
+        <NavItem href="/super-admin/admins" icon={Users} label="Users" onClick={closeSidebar} />
         <NavItem href="/super-admin/insurance-providers" icon={HeartHandshake} label="Insurance" onClick={closeSidebar} />
-        <NavItem href="/super-admin/insurance-cards" icon={CreditCard} label="Ins. Cards" onClick={closeSidebar} />
-        <NavItem href="/super-admin/audit-logs" icon={ScrollText} label="Audit Logs" onClick={closeSidebar} />
         <NavItem href="/super-admin/security" icon={ShieldAlert} label="Security" onClick={closeSidebar} />
         <NavItem href="/super-admin/settings" icon={Settings} label="Settings" onClick={closeSidebar} />
       </nav>

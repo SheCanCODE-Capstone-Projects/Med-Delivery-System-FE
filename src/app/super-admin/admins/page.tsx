@@ -15,9 +15,27 @@ const inactiveStyle = 'bg-slate-100 text-slate-500 border-slate-200';
 const ROLE_STYLE: Record<string, string> = {
   SUPER_ADMIN: 'bg-violet-50 text-violet-700',
   MANAGER: 'bg-amber-50 text-amber-700',
-  PHARMACIST: 'bg-sky-50 text-sky-700',
-  PATIENT: 'bg-teal-50 text-teal-700',
+  BRANCH_MANAGER: 'bg-sky-50 text-sky-700',
+  PHARMACIST: 'bg-teal-50 text-teal-700',
+  PATIENT: 'bg-slate-100 text-slate-600',
 };
+
+const ROLE_LABEL: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
+  MANAGER: 'Pharmacy Admin',
+  BRANCH_MANAGER: 'Branch Manager',
+  PHARMACIST: 'Pharmacist',
+  PATIENT: 'Patient',
+};
+
+const ROLE_FILTERS = [
+  { label: 'All',            value: 'ALL' },
+  { label: 'Super Admin',    value: 'SUPER_ADMIN' },
+  { label: 'Pharmacy Admin', value: 'MANAGER' },
+  { label: 'Branch Manager', value: 'BRANCH_MANAGER' },
+  { label: 'Pharmacist',     value: 'PHARMACIST' },
+  { label: 'Patient',        value: 'PATIENT' },
+];
 
 // ─── Profile Modal ─────────────────────────────────────────────────────────────
 
@@ -87,7 +105,7 @@ function ProfileModal({
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-bold text-slate-900 text-lg leading-tight">{user.fullName}</p>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${ROLE_STYLE[user.role] ?? 'bg-slate-100 text-slate-600'}`}>
-                {user.role.replace('_', ' ')}
+                {ROLE_LABEL[user.role] ?? user.role.replace('_', ' ')}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${user.isActive ? activeStyle : inactiveStyle}`}>
                 {user.isActive ? 'ACTIVE' : 'INACTIVE'}
@@ -270,14 +288,14 @@ export default function AdminsPage() {
               onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
             />
           </div>
-          <div className="flex bg-white border border-slate-200 rounded-lg p-1">
-            {['ALL', 'SUPER_ADMIN', 'MANAGER', 'PHARMACIST', 'PATIENT'].map((r) => (
+          <div className="flex flex-wrap gap-1 bg-white border border-slate-200 rounded-lg p-1">
+            {ROLE_FILTERS.map((f) => (
               <button
-                key={r}
-                onClick={() => { setRoleFilter(r); setPage(0); }}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${roleFilter === r ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                key={f.value}
+                onClick={() => { setRoleFilter(f.value); setPage(0); }}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${roleFilter === f.value ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
               >
-                {r === 'ALL' ? 'All' : r.replace('_', ' ')}
+                {f.label}
               </button>
             ))}
           </div>
@@ -331,7 +349,7 @@ export default function AdminsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${ROLE_STYLE[user.role] ?? 'bg-slate-100 text-slate-600'}`}>
-                        {user.role.replace('_', ' ')}
+                        {ROLE_LABEL[user.role] ?? user.role.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-500 text-xs">{user.phoneNumber ?? '—'}</td>
