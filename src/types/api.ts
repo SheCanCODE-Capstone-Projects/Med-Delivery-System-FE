@@ -218,6 +218,7 @@ export interface PharmacyRegistrationRequest {
   contactInfo: string;
   managerName: string;
   managerEmail: string;
+  managerPassword: string;
   insuranceProviderIds: number[];
   latitude?: number;
   longitude?: number;

@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   GitBranch,
+  ClipboardList,
 } from 'lucide-react';
 import MedDeliveryLogo from '../brand/MedDeliveryLogo';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -79,6 +80,7 @@ export default function BranchManagerLayout({ children }: { children: React.Reac
         <NavItem href="/branch-manager" icon={LayoutDashboard} label="Dashboard" exact onClick={closeSidebar} />
         <NavItem href="/branch-manager/pharmacists" icon={Users} label="Pharmacists" onClick={closeSidebar} />
         <NavItem href="/branch-manager/inventory" icon={Package2} label="Inventory" onClick={closeSidebar} />
+        <NavItem href="/branch-manager/orders" icon={ClipboardList} label="Orders" onClick={closeSidebar} />
         <NavItem href="/branch-manager/reports" icon={BarChart2} label="Reports" onClick={closeSidebar} />
         <NavItem href="/branch-manager/profile" icon={UserRound} label="My Profile" onClick={closeSidebar} />
       </nav>

@@ -1,0 +1,190 @@
+"use client";
+import React, { useEffect, useState } from 'react';
+import { Loader2, ShoppingBag, FileText, Pill, Truck, DollarSign } from 'lucide-react';
+import { getPatientReport, type PatientReport } from '@/services/reportService';
+import PrintableReport from '@/components/report/PrintableReport';
+import ReportTable from '@/components/report/ReportTable';
+
+function StatCard({ icon: Icon, label, value, color }: {
+  icon: React.ElementType; label: string; value: string | number; color: string;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color} shrink-0`}>
+        <Icon size={18} className="text-white" />
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
+        <p className="text-2xl font-bold text-slate-800 mt-0.5">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function HorizontalBar({ items, max, color = '#0ea5e9' }: {
+  items: { label: string; value: number }[];
+  max: number;
+  color?: string;
+}) {
+  if (items.length === 0) return <p className="text-sm text-slate-400 text-center py-6">No data yet.</p>;
+  return (
+    <div className="space-y-3">
+      {items.map((item, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <span className="text-sm text-slate-700 w-36 min-w-0 truncate flex-shrink-0" title={item.label}>{item.label}</span>
+          <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden min-w-0">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${Math.max((item.value / max) * 100, 2)}%`, background: color, WebkitPrintColorAdjust: 'exact' } as React.CSSProperties}
+            />
+          </div>
+          <span className="text-xs font-semibold text-slate-700 w-12 text-right flex-shrink-0">{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const STATUS_COLOR: Record<string, string> = {
+  COMPLETED: 'bg-emerald-100 text-emerald-700',
+  CANCELLED: 'bg-rose-100 text-rose-700',
+  PENDING:   'bg-amber-100 text-amber-700',
+};
+
+export default function PatientReportsPage() {
+  const [report, setReport] = useState<PatientReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getPatientReport()
+      .then(setReport)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load report'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-32 gap-3 text-slate-400">
+      <Loader2 className="animate-spin" size={24} /><span>Loading your report...</span>
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-6 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-sm">{error}</div>
+  );
+
+  if (!report) return null;
+
+  const fmt = (n: number) => new Intl.NumberFormat('en-RW', { style: 'currency', currency: 'RWF', maximumFractionDigits: 0 }).format(n);
+
+  const topMedicines = [...(report.purchasedMedicines ?? [])].sort((a, b) => b.quantity - a.quantity).slice(0, 8);
+  const maxQty = Math.max(...topMedicines.map(m => m.quantity), 1);
+
+  const deliveryBreakdown = (report.deliveryHistory ?? []).reduce<Record<string, number>>((acc, d) => {
+    acc[d.fulfillmentType] = (acc[d.fulfillmentType] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <PrintableReport
+      title="Patient Health Report"
+      entityName={report.patientName}
+      generatedBy={report.patientName}
+      period={report.reportDate}
+      generatedDate={report.generatedDate}
+    >
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard icon={ShoppingBag} label="Total Orders"       value={report.totalOrders}                     color="bg-sky-500" />
+        <StatCard icon={FileText}    label="Prescriptions"      value={report.totalPrescriptions}              color="bg-violet-500" />
+        <StatCard icon={DollarSign}  label="Total Spent"        value={fmt(report.totalAmountSpent ?? 0)}      color="bg-emerald-500" />
+        <StatCard icon={Pill}        label="Medicines Ordered"  value={report.purchasedMedicines?.length ?? 0} color="bg-teal-500" />
+        <StatCard icon={Truck}       label="Deliveries"         value={report.deliveryHistory?.length ?? 0}    color="bg-amber-500" />
+      </div>
+
+      {/* Medicines chart */}
+      {topMedicines.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <h3 className="text-sm font-semibold text-slate-700 mb-5">Most Ordered Medicines</h3>
+          <HorizontalBar
+            items={topMedicines.map(m => ({ label: m.medicineName, value: m.quantity }))}
+            max={maxQty}
+            color="#0ea5e9"
+          />
+        </div>
+      )}
+
+      {/* Order History */}
+      <ReportTable
+        title="Order History"
+        columns={['Order ID', 'Date', 'Type', 'Status', 'Amount']}
+        rows={(report.orderHistory ?? []).map((r) => [
+          `#${r.orderId}`,
+          r.date,
+          r.orderType?.replace(/_/g, ' ') ?? '—',
+          r.status,
+          r.amount ? fmt(r.amount) : '—',
+        ])}
+        emptyMessage="No orders yet."
+      />
+
+      {/* Delivery History */}
+      {(report.deliveryHistory ?? []).length > 0 && (
+        <>
+          {Object.keys(deliveryBreakdown).length > 0 && (
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-5">
+              <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3">Fulfillment Breakdown</h3>
+              <div className="flex gap-6 flex-wrap">
+                {Object.entries(deliveryBreakdown).map(([type, count]) => (
+                  <div key={type} className="flex items-center gap-2 text-sm">
+                    <Truck size={14} className="text-sky-600" />
+                    <span className="font-semibold text-slate-700">{type.replace(/_/g, ' ')}:</span>
+                    <span className="font-bold text-sky-700">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <ReportTable
+            title="Delivery History"
+            columns={['Order ID', 'Fulfillment', 'Status', 'Date']}
+            rows={(report.deliveryHistory ?? []).map((r) => [
+              `#${r.orderId}`,
+              r.fulfillmentType?.replace(/_/g, ' ') ?? '—',
+              r.status,
+              r.date,
+            ])}
+            emptyMessage="No delivery records."
+          />
+        </>
+      )}
+
+      {/* Prescription History */}
+      <ReportTable
+        title="Prescription History"
+        columns={['Prescription ID', 'Upload Date', 'Status', 'Validation']}
+        rows={(report.prescriptionHistory ?? []).map((r) => [
+          `#${r.prescriptionId}`,
+          r.uploadDate,
+          r.status,
+          r.validationStatus ?? '—',
+        ])}
+        emptyMessage="No prescriptions uploaded yet."
+      />
+
+      {/* Purchased Medicines */}
+      <ReportTable
+        title="Purchased Medicines"
+        columns={['Medicine', 'Quantity', 'Order ID', 'Date']}
+        rows={(report.purchasedMedicines ?? []).map((r) => [
+          r.medicineName,
+          r.quantity,
+          r.orderId ? `#${r.orderId}` : '—',
+          r.date,
+        ])}
+        emptyMessage="No medicines recorded yet."
+      />
+    </PrintableReport>
+  );
+}

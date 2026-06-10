@@ -5,6 +5,7 @@ import type {
   InventoryDashboardStats,
   MedicineFormRequest,
   StockEntryRequest,
+  DispensingOrderResponse,
 } from '@/types/api';
 
 export interface BranchResponse {
@@ -137,6 +138,11 @@ export async function addStockEntry(medicineId: number, form: StockEntryRequest)
     method: 'POST',
     body: JSON.stringify(form),
   });
+  return r.data;
+}
+
+export async function getBranchOrders(): Promise<DispensingOrderResponse[]> {
+  const r = await apiClient<{ data: DispensingOrderResponse[] }>('/api/branch-manager/orders');
   return r.data;
 }
 

@@ -5,11 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
-  ClipboardCheck,
   Settings,
   LogOut,
-  Package2,
-  UserRound,
   Menu,
   X,
   BarChart2,
@@ -66,9 +63,6 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
     <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
       <NavItem href="/Pharmacy-admin" label="Dashboard" icon={LayoutDashboard} exact onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/employees" label="Manage Personnel" icon={Users} onClick={closeSidebar} />
-      <NavItem href="/Pharmacy-admin/patients" label="Patients" icon={UserRound} onClick={closeSidebar} />
-      <NavItem href="/Pharmacy-admin/orders" label="Order Oversight" icon={ClipboardCheck} onClick={closeSidebar} />
-      <NavItem href="/Pharmacy-admin/inventory" label="Inventory" icon={Package2} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/branches" label="Branches" icon={GitBranch} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/reports" label="Reports" icon={BarChart2} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/settings" label="System Settings" icon={Settings} onClick={closeSidebar} />

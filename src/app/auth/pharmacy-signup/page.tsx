@@ -35,6 +35,8 @@ interface PharmacyForm {
 interface ManagerForm {
   managerName: string;
   managerEmail: string;
+  managerPassword: string;
+  managerConfirmPassword: string;
 }
 
 interface FormErrors {
@@ -47,6 +49,8 @@ interface FormErrors {
   insuranceProviders?: string;
   managerName?: string;
   managerEmail?: string;
+  managerPassword?: string;
+  managerConfirmPassword?: string;
 }
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -102,14 +106,14 @@ function Field({
       <input
         id={id} type={type} placeholder={placeholder} value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`h-12 w-full rounded-2xl border px-4 text-slate-900 placeholder:text-slate-400 outline-none transition
+        className={`h-12 w-full rounded-2xl border px-4 text-slate-900 placeholder:text-slate-500 outline-none transition
           bg-white focus:ring-4 disabled:opacity-60
           ${error
             ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/15"
             : "border-slate-200 focus:border-teal-500 focus:ring-teal-500/15"}`}
       />
       {error && <p className="text-xs text-rose-600">{error}</p>}
-      {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
+      {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
     </div>
   );
 }
@@ -143,7 +147,7 @@ export default function PharmacySignup() {
   });
 
   const [manager, setManager] = useState<ManagerForm>({
-    managerName: "", managerEmail: "",
+    managerName: "", managerEmail: "", managerPassword: "", managerConfirmPassword: "",
   });
 
   useEffect(() => {
@@ -232,6 +236,11 @@ export default function PharmacySignup() {
     if (manager.managerName.trim().length < 2) e.managerName = "Full name is required.";
     if (!manager.managerEmail.trim()) e.managerEmail = "Email is required.";
     else if (!emailRe.test(manager.managerEmail)) e.managerEmail = "Enter a valid email.";
+    if (!manager.managerPassword) e.managerPassword = "Password is required.";
+    else if (manager.managerPassword.length < 8) e.managerPassword = "Password must be at least 8 characters.";
+    if (!manager.managerConfirmPassword) e.managerConfirmPassword = "Please confirm your password.";
+    else if (manager.managerPassword !== manager.managerConfirmPassword)
+      e.managerConfirmPassword = "Passwords do not match.";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -249,6 +258,7 @@ export default function PharmacySignup() {
         contactInfo: pharmacy.contactEmail,
         managerName: manager.managerName,
         managerEmail: manager.managerEmail,
+        managerPassword: manager.managerPassword,
         insuranceProviderIds: pharmacy.selectedProviderIds,
         ...(pharmacy.latitude != null && { latitude: pharmacy.latitude }),
         ...(pharmacy.longitude != null && { longitude: pharmacy.longitude }),
@@ -436,7 +446,9 @@ export default function PharmacySignup() {
                 </p>
 
                 <Field id="managerName" label="Manager full name" placeholder="e.g. Alice Uwimana" value={manager.managerName} onChange={(v) => setM("managerName", v)} error={errors.managerName} required />
-                <Field id="managerEmail" label="Manager email" type="email" placeholder="manager@pharmacy.com" value={manager.managerEmail} onChange={(v) => setM("managerEmail", v)} error={errors.managerEmail} hint="Used to activate the pharmacy account" required />
+                <Field id="managerEmail" label="Manager email" type="email" placeholder="manager@pharmacy.com" value={manager.managerEmail} onChange={(v) => setM("managerEmail", v)} error={errors.managerEmail} hint="An activation email will be sent once approved" required />
+                <Field id="managerPassword" label="Password" type="password" placeholder="Minimum 8 characters" value={manager.managerPassword} onChange={(v) => setM("managerPassword", v)} error={errors.managerPassword} required />
+                <Field id="managerConfirmPassword" label="Confirm password" type="password" placeholder="Re-enter your password" value={manager.managerConfirmPassword} onChange={(v) => setM("managerConfirmPassword", v)} error={errors.managerConfirmPassword} required />
 
                 <div className="grid grid-cols-2 gap-3 mt-1">
                   <button

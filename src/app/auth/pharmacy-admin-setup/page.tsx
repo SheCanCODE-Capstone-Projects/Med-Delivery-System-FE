@@ -104,16 +104,23 @@ function PharmacyAdminSetupContent() {
         <p className="text-sm text-slate-500 mb-6">
           You have been invited to register a pharmacy on MedDelivery. Complete the form below to get started.
         </p>
-        {prefillEmail && (
-          <div className="mb-4 px-3 py-2 bg-teal-50 border border-teal-100 rounded-lg text-teal-700 text-xs font-semibold">
-            Invited email: {prefillEmail}
-          </div>
-        )}
         {submitError && (
           <div className="mb-4 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg text-rose-700 text-sm">{submitError}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider pt-2">Your Account</h2>
+          {prefillEmail && (
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Email Address</label>
+              <input
+                type="email"
+                value={prefillEmail}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-500 cursor-not-allowed outline-none"
+              />
+              <p className="text-xs text-teal-600 font-semibold mt-1">Pre-filled from your invitation — cannot be changed</p>
+            </div>
+          )}
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Full Name *</label>
             <input required value={form.fullName}
