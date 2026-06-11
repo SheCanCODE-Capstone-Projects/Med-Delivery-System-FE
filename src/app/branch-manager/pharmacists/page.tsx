@@ -219,6 +219,16 @@ export default function BranchPharmacistsPage() {
                               <SetupLinkButton email={p.email} />
                             </>
                           )}
+                          {p.isActive && (
+                            <button
+                              onClick={() => handleToggleActive(p, false)}
+                              disabled={removing === p.id}
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100"
+                            >
+                              {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
+                              Deactivate
+                            </button>
+                          )}
                           {!p.isActive && p.isVerified && (
                             <button
                               onClick={() => handleToggleActive(p, true)}
@@ -227,16 +237,6 @@ export default function BranchPharmacistsPage() {
                             >
                               {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
                               Activate
-                            </button>
-                          )}
-                          {p.isActive && p.isVerified && (
-                            <button
-                              onClick={() => handleToggleActive(p, false)}
-                              disabled={removing === p.id}
-                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100"
-                            >
-                              {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
-                              Deactivate
                             </button>
                           )}
                         </div>

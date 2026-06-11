@@ -149,6 +149,16 @@ export default function EmployeesPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
                           {!p.isVerified && <SetupLinkButton email={p.email} />}
+                          {p.isActive && (
+                            <button
+                              onClick={() => handleToggleActive(p, false)}
+                              disabled={toggling === p.id}
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100"
+                            >
+                              {toggling === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
+                              Deactivate
+                            </button>
+                          )}
                           {!p.isActive && p.isVerified && (
                             <button
                               onClick={() => handleToggleActive(p, true)}
@@ -157,16 +167,6 @@ export default function EmployeesPage() {
                             >
                               {toggling === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
                               Activate
-                            </button>
-                          )}
-                          {p.isActive && p.isVerified && (
-                            <button
-                              onClick={() => handleToggleActive(p, false)}
-                              disabled={toggling === p.id}
-                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100"
-                            >
-                              {toggling === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
-                              Deactivate
                             </button>
                           )}
                         </div>
