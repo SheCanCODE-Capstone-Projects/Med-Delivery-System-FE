@@ -9,6 +9,8 @@ import {
   deleteInsuranceCard,
   updateInsuranceCard,
   uploadInsuranceCard,
+  getAllInsuranceProviders,
+  type InsuranceProviderItem,
 } from "@/services/patientApi";
 import type { InsuranceCardResponse } from "@/types/api";
 
@@ -18,6 +20,7 @@ export default function InsurancePage() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [providers, setProviders] = useState<InsuranceProviderItem[]>([]);
 
   // text fields
   const [providerName, setProviderName] = useState("");
@@ -43,7 +46,10 @@ export default function InsurancePage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getAllInsuranceProviders().then(setProviders).catch(() => {});
+  }, []);
 
   const openAdd = () => {
     setEditingId(null);
@@ -151,12 +157,27 @@ export default function InsurancePage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Provider Name</label>
-                  <input
-                    value={providerName}
-                    onChange={(e) => setProviderName(e.target.value)}
-                    placeholder="e.g. RSSB, MMI, RADIANT"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-                  />
+                  {providers.length > 0 ? (
+                    <select
+                      value={providerName}
+                      onChange={(e) => setProviderName(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                    >
+                      <option value="">Select insurance provider…</option>
+                      {providers.map((p) => (
+                        <option key={p.id} value={p.name}>
+                          {p.name}{p.coveragePercentage ? ` — ${p.coveragePercentage}% coverage` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      value={providerName}
+                      onChange={(e) => setProviderName(e.target.value)}
+                      placeholder="e.g. RSSB, MMI, RADIANT"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Member ID</label>

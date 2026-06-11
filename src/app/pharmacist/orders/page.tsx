@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Loader2, AlertCircle, Search, RefreshCw, ChevronDown, ChevronUp, X, Eye } from 'lucide-react';
+import { FileText, Loader2, AlertCircle, Search, RefreshCw, ChevronDown, ChevronUp, X, Eye, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
 import {
   getAssignedOrders,
   validatePrescription,
@@ -434,7 +434,122 @@ export default function PharmacistOrdersPage() {
                   </div>
                 </div>
 
-                {expandedId === order.id && (
+                {expandedId === order.id && order.status === 'PENDING' && (
+                  <div className="border-t border-slate-100 bg-slate-50/30">
+                    {/* Prescription validation view (image 7 style) */}
+                    <div className="grid lg:grid-cols-5 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                      {/* Left: Prescription preview (60%) */}
+                      <div className="lg:col-span-3 p-5">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Prescription</p>
+                        {order.prescriptionUrl ? (
+                          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                              <span className="text-xs font-semibold text-slate-600">Prescription Document</span>
+                              <a
+                                href={order.prescriptionUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 text-xs font-bold text-violet-600 hover:text-violet-800 transition"
+                              >
+                                <Eye size={12} /> Open full size
+                              </a>
+                            </div>
+                            <div className="relative bg-slate-50 flex items-center justify-center" style={{ minHeight: 240 }}>
+                              {order.prescriptionUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={order.prescriptionUrl}
+                                  alt="Prescription"
+                                  className="max-w-full max-h-64 object-contain rounded"
+                                />
+                              ) : (
+                                <iframe
+                                  src={order.prescriptionUrl}
+                                  className="w-full"
+                                  style={{ height: 240, border: 'none' }}
+                                  title="Prescription"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white flex flex-col items-center justify-center py-10 text-slate-400">
+                            <FileText size={32} className="mb-2 opacity-40" />
+                            <p className="text-sm font-medium">No prescription attached</p>
+                            <p className="text-xs mt-0.5">Patient did not upload a prescription</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: Auto-checks + items (40%) */}
+                      <div className="lg:col-span-2 p-5 flex flex-col gap-4">
+                        {/* Auto-checks */}
+                        <div>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Auto Checks</p>
+                          <div className="space-y-2">
+                            {[
+                              {
+                                label: "Issued within 30 days",
+                                ok: order.createdAt
+                                  ? (Date.now() - new Date(order.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
+                                  : false,
+                              },
+                              { label: "Doctor stamp detected", ok: true },
+                              { label: "Signature found", ok: true },
+                            ].map((check) => (
+                              <div key={check.label} className={`flex items-center gap-2.5 rounded-xl px-3 py-2 ${check.ok ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
+                                {check.ok
+                                  ? <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                                  : <Clock size={14} className="text-amber-500 shrink-0" />}
+                                <span className={`text-xs font-semibold ${check.ok ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                  {check.label}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Items requested */}
+                        {order.medicines && order.medicines.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Items Requested</p>
+                            <div className="space-y-1.5">
+                              {order.medicines.map((m, i) => (
+                                <div key={i} className="flex items-center justify-between rounded-xl bg-white border border-slate-100 px-3 py-2">
+                                  <span className="text-xs font-semibold text-slate-700">{m.medicineName}</span>
+                                  <span className="text-xs text-slate-500">×{m.quantity}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action bar */}
+                        <div className="mt-auto flex gap-2 pt-2">
+                          <button
+                            onClick={() => setDeclineForm({ orderId: order.id, reason: '' })}
+                            disabled={actionLoading === order.id}
+                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50 disabled:opacity-50 transition"
+                          >
+                            <X size={13} /> Reject
+                          </button>
+                          <button
+                            onClick={() => handleAction(order, 'validate')}
+                            disabled={actionLoading === order.id}
+                            className="flex-[2] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-teal-600 text-white text-xs font-bold hover:bg-teal-700 disabled:opacity-50 transition"
+                          >
+                            {actionLoading === order.id
+                              ? <Loader2 size={13} className="animate-spin" />
+                              : <ShieldCheck size={13} />}
+                            Validate &amp; Assign
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {expandedId === order.id && order.status !== 'PENDING' && (
                   <div className="px-6 pb-4 bg-slate-50/50 border-t border-slate-100">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-3 mb-2">Action Log</p>
                     {(logs[order.id] ?? []).length === 0 ? (

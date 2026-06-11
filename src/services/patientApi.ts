@@ -358,6 +358,20 @@ export async function askChatbot(
   return res.data;
 }
 
+// ─── Insurance Providers ──────────────────────────────────────────────────────
+
+export interface InsuranceProviderItem {
+  id: number;
+  name: string;
+  code: string;
+  coveragePercentage: number;
+}
+
+export async function getAllInsuranceProviders(): Promise<InsuranceProviderItem[]> {
+  const res = await apiClient<ApiResponse<InsuranceProviderItem[]>>('/api/insurance-providers');
+  return res.data ?? [];
+}
+
 // Legacy exports kept for backward compatibility
 export type PatientProfilePayload = PatientProfileRequest;
 export const patientApi = {

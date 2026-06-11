@@ -66,6 +66,65 @@ interface ChatMessage {
   text: string;
 }
 
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  const result: React.ReactNode[] = [];
+  let listItems: React.ReactNode[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      result.push(
+        <ul key={`ul-${result.length}`} className="list-disc list-inside space-y-0.5 my-1 pl-1">
+          {listItems}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+
+  const parseLine = (line: string, key: string): React.ReactNode => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="font-bold text-slate-800">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  lines.forEach((line, idx) => {
+    const key = String(idx);
+    if (line.match(/^[-•]\s/)) {
+      flushList();
+      listItems.push(
+        <li key={key} className="text-slate-700">
+          {parseLine(line.replace(/^[-•]\s/, ""), key)}
+        </li>
+      );
+    } else if (line.match(/^#+ /)) {
+      flushList();
+      result.push(
+        <p key={key} className="font-bold text-slate-800 mt-1">
+          {parseLine(line.replace(/^#+ /, ""), key)}
+        </p>
+      );
+    } else if (line.trim() === "") {
+      flushList();
+      result.push(<div key={key} className="h-2" />);
+    } else {
+      flushList();
+      result.push(
+        <p key={key} className="leading-relaxed">
+          {parseLine(line, key)}
+        </p>
+      );
+    }
+    if (idx === lines.length - 1) flushList();
+  });
+
+  return <div className="space-y-0.5">{result}</div>;
+}
+
 function FloatingChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -135,7 +194,7 @@ function FloatingChatbot() {
                     ? "bg-teal-600 text-white rounded-br-sm"
                     : "bg-white text-slate-700 border border-slate-200 rounded-bl-sm shadow-sm"
                 }`}>
-                  {m.text}
+                  {m.role === "assistant" ? renderMarkdown(m.text) : m.text}
                 </div>
               </div>
             ))}
