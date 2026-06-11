@@ -12,7 +12,7 @@ interface StepItem { icon: React.ReactNode; title: string; description: string }
 interface FeatureItem { icon: React.ReactNode; title: string; description: string }
 interface TestimonialItem {
   stars: number; quote: string;
-  name: string; role: string; initial: string; color: string;
+  name: string; role: string; initial: string;
 }
 interface FooterColumn { heading: string; links: { label: string; href: string }[] }
 
@@ -114,7 +114,6 @@ const testimonials: TestimonialItem[] = [
     name: 'Amina Uwase',
     role: 'Verified Patient',
     initial: 'AU',
-    color: '#0abfbc',
   },
   {
     stars: 4,
@@ -122,7 +121,6 @@ const testimonials: TestimonialItem[] = [
     name: 'Jean-Pierre Habimana',
     role: 'Verified Patient',
     initial: 'JH',
-    color: '#089A97',
   },
   {
     stars: 5,
@@ -130,7 +128,6 @@ const testimonials: TestimonialItem[] = [
     name: 'Marie-Claire Mukamana',
     role: 'Verified Patient',
     initial: 'MC',
-    color: '#0abfbc',
   },
 ];
 
@@ -139,9 +136,9 @@ const footerColumns: FooterColumn[] = [
     heading: 'Product',
     links: [
       { label: 'How it Works', href: '#how' },
-      { label: 'Pharmacies', href: '#pharmacies' },
+      { label: 'Pharmacies', href: '/auth/pharmacy-signup' },
       { label: 'Pricing', href: '#' },
-      { label: 'Security', href: '#' },
+      { label: 'Security', href: '#features' },
     ],
   },
   {
@@ -163,6 +160,12 @@ const footerColumns: FooterColumn[] = [
   },
 ];
 
+const trustStats = [
+  { value: '500+', label: 'Patients Served' },
+  { value: '20+', label: 'Partner Pharmacies' },
+  { value: '24/7', label: 'Support Available' },
+];
+
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
 function StarRating({ count }: { count: number }) {
@@ -177,8 +180,6 @@ function StarRating({ count }: { count: number }) {
   );
 }
 
-
-
 /* ─── Navbar ─────────────────────────────────────────────────────────────── */
 
 function Navbar(): React.JSX.Element {
@@ -188,12 +189,10 @@ function Navbar(): React.JSX.Element {
     <>
       <nav
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[6%] h-[68px]"
-        style={{ background: '#0E9384', borderBottom: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 1px 8px rgba(0,0,0,0.12)' }}
+        style={{ background: '#0E9384', borderBottom: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 2px 12px rgba(14,147,132,0.25)' }}
       >
-        {/* Logo */}
         <MedDeliveryLogo theme="dark" size="sm" showTagline={true} />
 
-        {/* Centre nav */}
         <ul className="hidden md:flex items-center gap-9 list-none p-0 m-0">
           {navLinks.map((link) => (
             <li key={link.href}>
@@ -210,7 +209,6 @@ function Navbar(): React.JSX.Element {
           ))}
         </ul>
 
-        {/* CTA buttons */}
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/auth/login"
@@ -220,7 +218,7 @@ function Navbar(): React.JSX.Element {
             Log In
           </Link>
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="text-sm font-bold no-underline px-5 py-2 rounded-lg transition-all"
             style={{ background: '#fff', color: '#0E9384' }}
           >
@@ -228,7 +226,6 @@ function Navbar(): React.JSX.Element {
           </Link>
         </div>
 
-        {/* Mobile burger */}
         <button
           type="button"
           aria-label="Toggle menu"
@@ -242,11 +239,10 @@ function Navbar(): React.JSX.Element {
         </button>
       </nav>
 
-      {/* Mobile menu */}
       {menuOpen && (
         <div
           className="fixed top-[68px] left-0 right-0 z-40 flex flex-col px-[6%] pb-6 pt-3"
-          style={{ background: '#fff', borderBottom: '1px solid #e8f5f3' }}
+          style={{ background: '#fff', borderBottom: '1px solid #e8f5f3', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
         >
           {navLinks.map((link) => (
             <a
@@ -265,7 +261,7 @@ function Navbar(): React.JSX.Element {
               style={{ color: '#374151', borderColor: '#e5e7eb' }}>
               Log In
             </Link>
-            <Link href="/signup" onClick={() => setMenuOpen(false)}
+            <Link href="/auth/signup" onClick={() => setMenuOpen(false)}
               className="text-sm font-bold no-underline px-4 py-2 rounded-lg"
               style={{ background: '#02C39A', color: '#fff' }}>
               Sign Up
@@ -282,59 +278,88 @@ function Navbar(): React.JSX.Element {
 function Hero(): React.JSX.Element {
   return (
     <section
-      className="flex flex-col md:flex-row items-center justify-between px-[6%] pt-[100px] pb-[72px] gap-10"
+      className="flex flex-col md:flex-row items-center justify-between px-[6%] pt-[100px] pb-[72px] gap-10 relative overflow-hidden"
       style={{ background: '#fff', minHeight: '100vh' }}
     >
+      {/* Subtle background accent */}
+      <div
+        className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 0% 0%, rgba(2,195,154,0.08) 0%, transparent 70%)',
+          zIndex: 0,
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-[400px] h-[400px] pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 100% 100%, rgba(14,147,132,0.06) 0%, transparent 70%)',
+          zIndex: 0,
+        }}
+      />
+
       {/* Left – Copy */}
-      <div className="flex-1 max-w-[520px]">
-        <h1 className="font-bold leading-[1.15] tracking-tight mb-5" style={{ fontSize: 'clamp(2rem,4vw,2.8rem)', color: '#0F172A' }}>
-          Your Pharmacy, Delivered<br />to Your Door
+      <div className="flex-1 max-w-[520px] relative z-10">
+        {/* Badge */}
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5"
+          style={{ background: 'rgba(2,195,154,0.1)', color: '#0E9384', border: '1px solid rgba(2,195,154,0.25)' }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+          Now available in Rwanda
+        </div>
+
+        <h1 className="font-bold leading-[1.15] tracking-tight mb-5" style={{ fontSize: 'clamp(2rem,4vw,2.9rem)', color: '#0F172A' }}>
+          Your Pharmacy,<br />
+          <span style={{ color: '#02C39A' }}>Delivered to Your Door</span>
         </h1>
         <p className="leading-[1.75] mb-8 max-w-[440px]" style={{ color: '#6B7280', fontSize: '1rem' }}>
           Order your prescription medicines online safely and securely. Our licensed pharmacists review every order before it gets dispatched directly to you.
         </p>
-        <div className="flex gap-3 flex-wrap">
+
+        <div className="flex gap-3 flex-wrap mb-8">
           <Link
-            href="/signup"
-            className="font-bold no-underline px-7 py-3 rounded-lg transition-all inline-flex items-center"
-            style={{ background: '#02C39A', color: '#fff', fontSize: '0.95rem' }}
+            href="/auth/signup"
+            className="font-bold no-underline px-7 py-3 rounded-lg transition-all inline-flex items-center gap-2"
+            style={{ background: '#02C39A', color: '#fff', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(2,195,154,0.35)' }}
           >
             Order Now
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
           </Link>
-          <a
+          <Link
             href="/auth/pharmacy-signup"
             className="font-medium no-underline px-7 py-3 rounded-lg transition-all inline-flex items-center border"
-            style={{ color: '#02C39A', borderColor: '#02C39A', background: 'transparent', fontSize: '0.95rem' }}
+            style={{ color: '#0E9384', borderColor: '#0E9384', background: 'transparent', fontSize: '0.95rem' }}
           >
-            Pharmacy
-          </a>
+            For Pharmacies
+          </Link>
+        </div>
+
+        {/* Trust stats */}
+        <div className="flex flex-wrap gap-5">
+          {trustStats.map((s) => (
+            <div key={s.label} className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#02C39A' }} />
+              <span className="text-sm font-bold" style={{ color: '#0F172A' }}>{s.value}</span>
+              <span className="text-sm" style={{ color: '#9CA3AF' }}>{s.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Right – Image */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="rounded-2xl overflow-hidden w-full" style={{ maxHeight: '480px' }}>
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <div
+          className="rounded-3xl overflow-hidden w-full relative"
+          style={{ maxHeight: '500px', boxShadow: '0 20px 60px rgba(14,147,132,0.15), 0 4px 16px rgba(0,0,0,0.08)' }}
+        >
           <img
             src={heroImage.src}
             alt="Pharmacy delivery person handing a package"
             className="w-full h-full object-cover"
-            style={{ maxHeight: '480px' }}
+            style={{ maxHeight: '500px' }}
           />
-          {/* Fallback placeholder if image fails */}
-          <div
-            className="hidden items-center justify-center rounded-2xl"
-            style={{ background: 'linear-gradient(135deg, #e6fdf8 0%, #b2f0e4 100%)', minHeight: '380px' }}
-          >
-            <div className="text-center">
-              <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: '#02C39A' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12">
-                  <rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                  <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
-                </svg>
-              </div>
-              <p className="font-semibold" style={{ color: '#02C39A' }}>Fast Pharmacy Delivery</p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -345,8 +370,8 @@ function Hero(): React.JSX.Element {
 
 function HowItWorks(): React.JSX.Element {
   return (
-    <section id="how" className="px-[6%] py-[80px]" style={{ background: '#0E9384' }}>
-      <div className="text-center mb-14">
+    <section id="how" className="px-[6%] py-[90px]" style={{ background: '#0E9384' }}>
+      <div className="text-center mb-16">
         <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#fff' }}>
           How It Works
         </h2>
@@ -355,15 +380,18 @@ function HowItWorks(): React.JSX.Element {
         </p>
       </div>
 
-      {/* Step row */}
-      <div className="relative flex flex-col md:flex-row items-start justify-center gap-6">
+      <div className="relative flex flex-col md:flex-row items-start justify-center gap-8">
         {/* Dotted connector – desktop only */}
         <div className="hidden md:block absolute top-[28px] left-[12%] right-[12%] h-[2px] z-0"
-          style={{ borderTop: '2px dashed rgba(255,255,255,0.35)' }}
+          style={{ borderTop: '2px dashed rgba(255,255,255,0.3)' }}
         />
 
         {steps.map((step, idx) => (
           <div key={idx} className="flex flex-col items-center text-center z-10 flex-1" style={{ maxWidth: '180px', margin: '0 auto' }}>
+            {/* Step number */}
+            <div className="text-xs font-black mb-2 tracking-widest" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              STEP {idx + 1}
+            </div>
             {/* Icon circle */}
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
@@ -371,8 +399,8 @@ function HowItWorks(): React.JSX.Element {
             >
               {step.icon}
             </div>
-            <h3 className="font-bold text-sm mb-1" style={{ color: '#fff' }}>{step.title}</h3>
-            <p className="text-xs leading-[1.6]" style={{ color: 'rgba(255,255,255,0.78)' }}>{step.description}</p>
+            <h3 className="font-bold text-sm mb-2" style={{ color: '#fff' }}>{step.title}</h3>
+            <p className="text-xs leading-[1.65]" style={{ color: 'rgba(255,255,255,0.75)' }}>{step.description}</p>
           </div>
         ))}
       </div>
@@ -399,7 +427,11 @@ function WhyChoose(): React.JSX.Element {
           <div
             key={idx}
             className="rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1"
-            style={{ background: '#f8fffe', border: '1px solid #d8f5ef' }}
+            style={{
+              background: '#f8fffe',
+              border: '1px solid #d8f5ef',
+              borderLeft: '4px solid #02C39A',
+            }}
           >
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
@@ -420,18 +452,18 @@ function WhyChoose(): React.JSX.Element {
 
 function Testimonials(): React.JSX.Element {
   return (
-    <section id="reviews" className="px-[6%] py-[90px]" style={{ background: '#0E9384' }}>
+    <section id="reviews" className="px-[6%] py-[90px]" style={{ background: '#f8fffe', borderTop: '1px solid #e8f5f3' }}>
       <div className="text-center mb-12">
-        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#fff' }}>
+        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#0F172A' }}>
           Patient Success Stories
         </h2>
         <div className="flex items-center justify-center gap-1">
           {[0, 1, 2, 3, 4].map(i => (
-            <svg key={i} viewBox="0 0 20 20" fill="#FCD34D" className="w-4 h-4">
+            <svg key={i} viewBox="0 0 20 20" fill="#F59E0B" className="w-4 h-4">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           ))}
-          <span className="ml-2 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>5.0 · 200+ reviews</span>
+          <span className="ml-2 text-sm font-medium" style={{ color: '#6B7280' }}>5.0 · 200+ reviews</span>
         </div>
       </div>
 
@@ -439,27 +471,63 @@ function Testimonials(): React.JSX.Element {
         {testimonials.map((t, idx) => (
           <div
             key={idx}
-            className="rounded-2xl p-6 flex flex-col justify-between"
-            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)' }}
+            className="rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1"
+            style={{ background: '#fff', border: '1px solid #d8f5ef', boxShadow: '0 2px 12px rgba(14,147,132,0.07)' }}
           >
             <div>
               <StarRating count={t.stars} />
-              <p className="text-sm leading-[1.75] mb-6" style={{ color: 'rgba(255,255,255,0.92)' }}>{t.quote}</p>
+              <p className="text-sm leading-[1.75] mb-6" style={{ color: '#374151' }}>{t.quote}</p>
             </div>
             <div className="flex items-center gap-3">
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: 'rgba(255,255,255,0.3)' }}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                style={{ background: '#0E9384' }}
               >
                 {t.initial}
               </div>
               <div>
-                <div className="text-sm font-semibold" style={{ color: '#fff' }}>{t.name}</div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>{t.role}</div>
+                <div className="text-sm font-semibold" style={{ color: '#0F172A' }}>{t.name}</div>
+                <div className="text-xs" style={{ color: '#9CA3AF' }}>{t.role}</div>
               </div>
             </div>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── CTA Strip ──────────────────────────────────────────────────────────── */
+
+function CTAStrip(): React.JSX.Element {
+  return (
+    <section className="px-[6%] py-[72px]" style={{ background: '#0E9384' }}>
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', color: '#fff' }}>
+          Ready to get started?
+        </h2>
+        <p className="mb-8" style={{ color: 'rgba(255,255,255,0.82)', fontSize: '1rem' }}>
+          No prescription delays, no queues. Your medication delivered in minutes.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link
+            href="/auth/signup"
+            className="font-bold no-underline px-8 py-3 rounded-lg transition-all inline-flex items-center gap-2"
+            style={{ background: '#fff', color: '#0E9384', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }}
+          >
+            Order Now
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </Link>
+          <Link
+            href="/auth/pharmacy-signup"
+            className="font-medium no-underline px-8 py-3 rounded-lg transition-all inline-flex items-center border"
+            style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.55)', background: 'transparent', fontSize: '0.95rem' }}
+          >
+            Register Your Pharmacy
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -479,7 +547,6 @@ function Footer(): React.JSX.Element {
           </p>
         </div>
 
-        {/* Link columns */}
         {footerColumns.map((col) => (
           <div key={col.heading}>
             <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#111827' }}>
@@ -506,6 +573,7 @@ function Footer(): React.JSX.Element {
         style={{ borderTop: '1px solid #f3f4f6', color: '#9CA3AF' }}
       >
         <span>© 2026 MedDelivery. All rights reserved.</span>
+        <span style={{ color: '#d1d5db' }}>Made with ❤️ for Rwanda</span>
       </div>
     </footer>
   );
@@ -515,13 +583,14 @@ function Footer(): React.JSX.Element {
 
 export default function LandingPage(): React.JSX.Element {
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: '#fff', color: '#0F172A' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: '#fff', color: '#0F172A', scrollBehavior: 'smooth' }}>
       <Navbar />
       <main>
         <Hero />
         <HowItWorks />
         <WhyChoose />
         <Testimonials />
+        <CTAStrip />
       </main>
       <Footer />
     </div>
