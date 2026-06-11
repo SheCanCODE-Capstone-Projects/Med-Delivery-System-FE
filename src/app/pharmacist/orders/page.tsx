@@ -14,6 +14,20 @@ import {
 } from '@/services/pharmacistApi';
 import type { DispensingOrderResponse, ActionLogResponse } from '@/types/api';
 
+function getPrescriptionChecks(order: DispensingOrderResponse) {
+  const now = Date.now();
+  return [
+    {
+      label: "Issued within 30 days",
+      ok: order.prescriptionDate
+        ? (now - new Date(order.prescriptionDate).getTime()) < 30 * 24 * 60 * 60 * 1000
+        : false,
+    },
+    { label: "Doctor stamp detected", ok: order.hasStamp ?? false },
+    { label: "Signature found", ok: order.hasSignature ?? false },
+  ];
+}
+
 const STATUS_STYLE: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 border-amber-100',
   CONFIRMED: 'bg-sky-50 text-sky-700 border-sky-100',
@@ -456,7 +470,6 @@ export default function PharmacistOrdersPage() {
                             </div>
                             <div className="relative bg-slate-50 flex items-center justify-center" style={{ minHeight: 240 }}>
                               {order.prescriptionUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                   src={order.prescriptionUrl}
                                   alt="Prescription"
@@ -487,16 +500,7 @@ export default function PharmacistOrdersPage() {
                         <div>
                           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Auto Checks</p>
                           <div className="space-y-2">
-                            {[
-                              {
-                                label: "Issued within 30 days",
-                                ok: order.prescriptionDate
-                                  ? (Date.now() - new Date(order.prescriptionDate).getTime()) < 30 * 24 * 60 * 60 * 1000
-                                  : false,
-                              },
-                              { label: "Doctor stamp detected", ok: order.hasStamp ?? false },
-                              { label: "Signature found", ok: order.hasSignature ?? false },
-                            ].map((check) => (
+                            {getPrescriptionChecks(order).map((check) => (
                               <div key={check.label} className={`flex items-center gap-2.5 rounded-xl px-3 py-2 ${check.ok ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
                                 {check.ok
                                   ? <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />

@@ -44,11 +44,11 @@ export default function BranchPharmacistsPage() {
     .then(setPharmacists)
     .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'));
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     load().finally(() => setLoading(false));
     const id = setInterval(() => load(), 30_000);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAdd = async (e: React.FormEvent) => {

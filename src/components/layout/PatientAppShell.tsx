@@ -84,7 +84,7 @@ function renderMarkdown(text: string): React.ReactNode {
     }
   };
 
-  const parseLine = (line: string, key: string): React.ReactNode => {
+  const parseLine = (line: string, _key: string): React.ReactNode => {
     const parts = line.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**")) {
