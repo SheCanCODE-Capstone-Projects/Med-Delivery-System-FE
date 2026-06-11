@@ -490,12 +490,12 @@ export default function PharmacistOrdersPage() {
                             {[
                               {
                                 label: "Issued within 30 days",
-                                ok: order.createdAt
-                                  ? (Date.now() - new Date(order.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000
+                                ok: order.prescriptionDate
+                                  ? (Date.now() - new Date(order.prescriptionDate).getTime()) < 30 * 24 * 60 * 60 * 1000
                                   : false,
                               },
-                              { label: "Doctor stamp detected", ok: true },
-                              { label: "Signature found", ok: true },
+                              { label: "Doctor stamp detected", ok: order.hasStamp ?? false },
+                              { label: "Signature found", ok: order.hasSignature ?? false },
                             ].map((check) => (
                               <div key={check.label} className={`flex items-center gap-2.5 rounded-xl px-3 py-2 ${check.ok ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
                                 {check.ok

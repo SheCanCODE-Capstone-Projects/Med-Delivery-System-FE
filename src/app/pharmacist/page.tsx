@@ -131,34 +131,6 @@ export default function PharmacistDashboard() {
         </div>
       )}
 
-      {/* Recent Activity strip */}
-      {recentActivity.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-            <Bell size={15} className="text-teal-600" />
-            <h2 className="text-sm font-bold text-slate-800">Recent Activity</h2>
-          </div>
-          <div className="divide-y divide-slate-50">
-            {recentActivity.map((n) => {
-              const iconMap: Record<string, React.ElementType> = { ORDER: Package, INSURANCE: ShieldCheck, SUBSTITUTION: RefreshCw };
-              const Icon = iconMap[n.type] ?? Bell;
-              return (
-                <div key={n.id} className={`flex items-start gap-3 px-5 py-3 ${n.read ? "" : "bg-teal-50/20"}`}>
-                  <div className="h-6 w-6 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon size={12} className="text-teal-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs leading-tight ${n.read ? "text-slate-600" : "text-slate-800 font-semibold"}`}>{n.title}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{n.message}</p>
-                  </div>
-                  {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0" />}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
@@ -200,6 +172,34 @@ export default function PharmacistDashboard() {
           </Link>
         ))}
       </div>
+
+      {/* Recent Activity strip */}
+      {recentActivity.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+            <Bell size={15} className="text-teal-600" />
+            <h2 className="text-sm font-bold text-slate-800">Recent Activity</h2>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {recentActivity.map((n) => {
+              const iconMap: Record<string, React.ElementType> = { ORDER: Package, INSURANCE: ShieldCheck, SUBSTITUTION: RefreshCw };
+              const Icon = iconMap[n.type] ?? Bell;
+              return (
+                <div key={n.id} className={`flex items-start gap-3 px-5 py-3 ${n.read ? "" : "bg-teal-50/20"}`}>
+                  <div className="h-6 w-6 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon size={12} className="text-teal-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs leading-tight ${n.read ? "text-slate-600" : "text-slate-800 font-semibold"}`}>{n.title}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{n.message}</p>
+                  </div>
+                  {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0" />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Live Dispensing Queue — full width */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

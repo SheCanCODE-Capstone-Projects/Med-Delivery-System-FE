@@ -14,6 +14,11 @@ import {
 } from '@/services/pharmacistApi';
 import type { DispensingOrderResponse } from '@/types/api';
 
+function calcAge(dob?: string): string {
+  if (!dob) return '—';
+  return String(Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 3600 * 1000))) + ' yrs';
+}
+
 function AutoCheck({ label, pass }: { label: string; pass: boolean | undefined }) {
   if (pass === undefined || pass === null) {
     return (
@@ -361,7 +366,11 @@ export default function OrderDetailPage() {
           <h2 className="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider flex items-center gap-2">
             <User size={14} /> Patient Information
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase mb-0.5">Age</p>
+              <p className="text-sm font-semibold text-slate-700">{calcAge(order.patientDateOfBirth)}</p>
+            </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase mb-0.5 flex items-center gap-1">
                 <Droplets size={11} /> Blood Type

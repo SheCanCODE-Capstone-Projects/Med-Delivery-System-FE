@@ -9,6 +9,7 @@ import { askChatbot } from "@/services/patientApi";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import {
   BarChart2,
+  Building2,
   ClipboardList,
   LayoutGrid,
   LogOut,
@@ -28,6 +29,7 @@ const navItems = [
   { icon: ClipboardList, label: "Track Orders",      href: "/tracking" },
   { icon: MapPin,        label: "Locations",         href: "/locations" },
   { icon: ShieldCheck,   label: "Insurance",         href: "/insurance" },
+  { icon: Building2,     label: "Pharmacies",        href: "/pharmacies" },
   { icon: BarChart2,     label: "My Report",         href: "/patient-dashboard/report" },
   { icon: Settings,      label: "Settings",          href: "/profile" },
 ];

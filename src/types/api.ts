@@ -415,6 +415,7 @@ export interface DispensingOrderResponse {
   patientAllergies?: string;
   patientBloodType?: string;
   patientMedicalNotes?: string;
+  patientDateOfBirth?: string;
   orderType?: string;
   // Prescription auto-check data
   prescriptionDate?: string;

@@ -233,7 +233,7 @@ export default function TrackingPage() {
         getMyOrders(0, 50).catch(() => ({ content: [] as OrderResponse[], totalElements: 0, totalPages: 0, number: 0, size: 50 })),
         getPendingSubstitutions().catch((): SubstitutionResponse[] => []),
       ]);
-      setOrders(ordPage.content);
+      setOrders([...ordPage.content].sort((a, b) => b.id - a.id));
       setSubstitutions(subs);
     } finally {
       setLoading(false);
@@ -308,7 +308,7 @@ export default function TrackingPage() {
 
   const statuses = ["ALL", "UPLOADED", "MATCHING", "ASSIGNED", "IN_PROGRESS", "STOCK_CONFIRMED", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "COMPLETED", "CANCELLED"];
   const statusDisplayLabel: Record<string, string> = {
-    UPLOADED: "Received", MATCHING: "Matching", ASSIGNED: "Assigned", IN_PROGRESS: "In Progress",
+    UPLOADED: "Received", MATCHING: "Finding Pharmacy", ASSIGNED: "Assigned", IN_PROGRESS: "In Progress",
     STOCK_CONFIRMED: "Confirmed", READY_FOR_PICKUP: "Ready", OUT_FOR_DELIVERY: "Delivering",
     COMPLETED: "Completed", CANCELLED: "Cancelled",
   };

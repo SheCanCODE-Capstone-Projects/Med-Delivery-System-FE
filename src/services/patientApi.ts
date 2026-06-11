@@ -372,6 +372,22 @@ export async function getAllInsuranceProviders(): Promise<InsuranceProviderItem[
   return res.data ?? [];
 }
 
+export interface PharmacyPublicInfo {
+  id: number;
+  name: string;
+  pharmacyCode?: string;
+  address?: string;
+  contactInfo?: string;
+  managerName?: string;
+  managerEmail?: string;
+  supportedInsurances?: string[];
+}
+
+export async function getActivePharmacies(): Promise<PharmacyPublicInfo[]> {
+  const res = await apiClient<ApiResponse<PharmacyPublicInfo[]>>('/api/pharmacies/active');
+  return res.data ?? [];
+}
+
 // Legacy exports kept for backward compatibility
 export type PatientProfilePayload = PatientProfileRequest;
 export const patientApi = {
