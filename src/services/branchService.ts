@@ -91,6 +91,28 @@ export async function deactivateBranchPharmacist(id: number): Promise<void> {
   await apiClient(`/api/branch-manager/pharmacists/${id}/deactivate`, { method: 'PUT' });
 }
 
+export async function activateBranchPharmacist(id: number): Promise<void> {
+  await apiClient(`/api/branch-manager/pharmacists/${id}/activate`, { method: 'PUT' });
+}
+
+export async function setPharmacyPharmacistStatus(pharmacistId: number, active: boolean): Promise<void> {
+  await apiClient(`/api/pharmacy/branches/pharmacists/${pharmacistId}/status?active=${active}`, { method: 'PUT' });
+}
+
+export interface PharmacyInventoryRow {
+  medicineName: string;
+  branchName: string;
+  quantity: number;
+  unit: string;
+  price: number;
+  status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
+}
+
+export async function getAllBranchesInventory(): Promise<PharmacyInventoryRow[]> {
+  const r = await apiClient<{ data: PharmacyInventoryRow[] }>('/api/pharmacy/branches/inventory');
+  return r.data ?? [];
+}
+
 // ── Inventory (batch-based) ────────────────────────────────────────────────────
 
 export async function getInventoryStats(): Promise<InventoryDashboardStats> {

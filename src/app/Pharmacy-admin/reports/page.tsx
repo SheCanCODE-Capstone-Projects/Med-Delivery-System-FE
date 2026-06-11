@@ -340,10 +340,16 @@ export default function ReportsPage() {
       {comprehensiveReport && (
         <PrintableReport
           title="Pharmacy Admin Comprehensive Report"
-          entityName={comprehensiveReport.pharmacyName}
           generatedBy={comprehensiveReport.generatedBy}
-          period={comprehensiveReport.reportPeriod}
           generatedDate={comprehensiveReport.generatedDate}
+          meta={{ rows: [
+            { label: 'Pharmacy Name', value: comprehensiveReport.pharmacyName },
+            { label: 'Manager', value: comprehensiveReport.generatedBy },
+            { label: 'Report Period', value: comprehensiveReport.reportPeriod },
+            { label: 'Total Branches', value: comprehensiveReport.totalBranches },
+            { label: 'Total Staff', value: comprehensiveReport.totalStaff },
+            { label: 'Generated On', value: comprehensiveReport.generatedDate },
+          ]}}
         >
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {[

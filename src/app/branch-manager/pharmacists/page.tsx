@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Trash2, Loader2, Mail, Phone, X, Copy, Check, RefreshCw, RotateCw } from 'lucide-react';
+import { Users, Plus, Loader2, Mail, Phone, X, Copy, Check, RefreshCw, RotateCw, ShieldOff, ShieldCheck } from 'lucide-react';
 import {
-  getBranchPharmacists, addBranchPharmacist, deactivateBranchPharmacist, resendPharmacistSetup,
+  getBranchPharmacists, addBranchPharmacist, deactivateBranchPharmacist, activateBranchPharmacist, resendPharmacistSetup,
   type BranchPharmacistResponse,
 } from '@/services/branchService';
 
@@ -78,15 +78,23 @@ export default function BranchPharmacistsPage() {
     }
   };
 
-  const handleDeactivate = async (id: number) => {
-    if (!window.confirm("Deactivate this pharmacist's account? They will no longer be able to log in.")) return;
-    setRemoving(id);
+  const handleToggleActive = async (p: BranchPharmacistResponse) => {
+    const action = p.isActive ? 'Deactivate' : 'Activate';
+    const msg = p.isActive
+      ? "Deactivate this pharmacist? They will no longer be able to log in."
+      : "Activate this pharmacist? They will be able to log in again.";
+    if (!window.confirm(msg)) return;
+    setRemoving(p.id);
     try {
-      await deactivateBranchPharmacist(id);
-      setPharmacists((prev) => prev.map((p) => p.id === id ? { ...p, isActive: false } : p));
-      setMsg('Pharmacist deactivated.');
+      if (p.isActive) {
+        await deactivateBranchPharmacist(p.id);
+      } else {
+        await activateBranchPharmacist(p.id);
+      }
+      setPharmacists((prev) => prev.map((x) => x.id === p.id ? { ...x, isActive: !p.isActive } : x));
+      setMsg(`Pharmacist ${action.toLowerCase()}d.`);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : 'Failed to deactivate');
+      setMsg(err instanceof Error ? err.message : `Failed to ${action.toLowerCase()}`);
     } finally { setRemoving(null); }
   };
 
@@ -212,10 +220,19 @@ export default function BranchPharmacistsPage() {
                               <SetupLinkButton email={p.email} />
                             </>
                           )}
-                          <button onClick={() => handleDeactivate(p.id)} disabled={removing === p.id || !p.isActive}
-                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100 rounded-lg hover:bg-rose-100 transition disabled:opacity-50">
-                            {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                            Deactivate
+                          <button
+                            onClick={() => handleToggleActive(p)}
+                            disabled={removing === p.id}
+                            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 ${
+                              p.isActive
+                                ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
+                            }`}
+                          >
+                            {removing === p.id
+                              ? <Loader2 size={12} className="animate-spin" />
+                              : p.isActive ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
+                            {p.isActive ? 'Deactivate' : 'Activate'}
                           </button>
                         </div>
                       </td>

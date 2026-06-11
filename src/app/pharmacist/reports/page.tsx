@@ -46,10 +46,16 @@ export default function PharmacistReportsPage() {
   return (
     <PrintableReport
       title="Pharmacist Activity Report"
-      entityName={`${report.branch} — ${report.pharmacyName}`}
       generatedBy={report.pharmacistName}
-      period={report.reportDate}
       generatedDate={report.generatedDate}
+      meta={{ rows: [
+        { label: 'Pharmacist Name', value: report.pharmacistName },
+        { label: 'Pharmacist ID', value: report.pharmacistId },
+        { label: 'Branch', value: report.branch },
+        { label: 'Pharmacy', value: report.pharmacyName },
+        { label: 'Report Date', value: report.reportDate },
+        { label: 'Generated On', value: report.generatedDate },
+      ]}}
     >
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

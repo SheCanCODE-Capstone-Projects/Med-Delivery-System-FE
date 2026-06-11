@@ -100,10 +100,16 @@ export default function BranchReportsPage() {
   return (
     <PrintableReport
       title="Branch Manager Report"
-      entityName={report.branchName}
       generatedBy={report.managerName}
-      period={report.reportPeriod}
       generatedDate={report.generatedDate}
+      meta={{ rows: [
+        { label: 'Manager Name', value: report.managerName },
+        { label: 'Branch', value: report.branchName },
+        { label: 'Report Period', value: report.reportPeriod },
+        { label: 'Total Orders', value: report.totalOrders },
+        { label: 'Pharmacists', value: report.pharmacistCount },
+        { label: 'Patients Served', value: report.patientsServed },
+      ]}}
     >
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

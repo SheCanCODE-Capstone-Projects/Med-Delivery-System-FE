@@ -18,7 +18,7 @@ import {
   UserCog,
 } from 'lucide-react';
 import { getPharmacy } from '@/services/pharmacyApi';
-import { approvePharmacy, suspendPharmacy, replacePharmacyManager } from '@/services/adminApi';
+import { approvePharmacy, suspendPharmacy, reactivatePharmacy, replacePharmacyManager } from '@/services/adminApi';
 import type { PharmacyResponse } from '@/types/api';
 
 const STATUS_STYLE: Record<string, string> = {
@@ -93,6 +93,22 @@ export default function PharmacyDetailsPage() {
       setPharmacy((p) => p ? { ...p, status: 'SUSPENDED' } : p);
       setActionMsg('Pharmacy suspended.');
       setShowSuspendDialog(false);
+    } catch (err) {
+      setActionMsg(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!pharmacy) return;
+    if (!window.confirm('Reactivate this pharmacy? All verified users will regain access.')) return;
+    setActionLoading(true);
+    setActionMsg('');
+    try {
+      await reactivatePharmacy(pharmacy.id);
+      setPharmacy((p) => p ? { ...p, status: 'ACTIVE' } : p);
+      setActionMsg('Pharmacy reactivated successfully.');
     } catch (err) {
       setActionMsg(err instanceof Error ? err.message : 'Action failed.');
     } finally {
@@ -193,6 +209,16 @@ export default function PharmacyDetailsPage() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold hover:bg-amber-100 transition disabled:opacity-50"
               >
                 <Ban size={16} /> Suspend
+              </button>
+            )}
+            {pharmacy.status === 'SUSPENDED' && (
+              <button
+                onClick={handleReactivate}
+                disabled={actionLoading}
+                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-50"
+              >
+                {actionLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                Reactivate
               </button>
             )}
           </div>

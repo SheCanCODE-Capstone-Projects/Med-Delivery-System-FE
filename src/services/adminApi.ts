@@ -71,6 +71,10 @@ export async function suspendPharmacy(id: number, reason: string): Promise<void>
   );
 }
 
+export async function reactivatePharmacy(id: number): Promise<void> {
+  await apiClient<ApiResponse<void>>(`/api/admin/pharmacies/${id}/reactivate`, { method: 'POST' });
+}
+
 export async function replacePharmacyManager(
   id: number,
   request: ManagerUpdateRequest

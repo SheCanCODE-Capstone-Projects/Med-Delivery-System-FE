@@ -106,7 +106,18 @@ export default function PharmaciesPage() {
                   <div className="h-10 w-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
                     <Building2 size={18} className="text-teal-600" />
                   </div>
-                  <ChevronRight size={15} className="text-slate-300 group-hover:text-teal-500 transition mt-1 shrink-0" />
+                  <div className="flex items-center gap-1.5">
+                    {pharmacy.status && pharmacy.status !== 'ACTIVE' ? (
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        Pending Approval
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Active
+                      </span>
+                    )}
+                    <ChevronRight size={15} className="text-slate-300 group-hover:text-teal-500 transition mt-0.5 shrink-0" />
+                  </div>
                 </div>
 
                 <div>

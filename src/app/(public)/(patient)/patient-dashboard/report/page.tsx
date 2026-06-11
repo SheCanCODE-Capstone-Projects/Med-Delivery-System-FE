@@ -77,9 +77,16 @@ export default function PatientReportPage() {
       {!loading && !error && report && (
         <PrintableReport
           title="Patient Medical Report"
-          entityName={report.patientName}
+          generatedBy={report.patientName}
           generatedDate={report.generatedDate}
-          period={report.reportDate}
+          meta={{ rows: [
+            { label: 'Patient Name', value: report.patientName },
+            { label: 'Report Date', value: report.reportDate },
+            { label: 'Generated On', value: report.generatedDate },
+            { label: 'Total Orders', value: report.totalOrders },
+            { label: 'Total Prescriptions', value: report.totalPrescriptions },
+            { label: 'Total Spent', value: new Intl.NumberFormat('en-RW', { style: 'currency', currency: 'RWF', maximumFractionDigits: 0 }).format(report.totalAmountSpent ?? 0) },
+          ]}}
         >
           {/* Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

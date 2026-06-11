@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Users, Trash2, Loader2, AlertCircle, Mail, Phone, Copy, Check, Info } from 'lucide-react';
-import { getPharmacistsByPharmacy, removePharmacist, getMyPharmacy } from '@/services/pharmacyApi';
+import { Users, Loader2, AlertCircle, Mail, Phone, Copy, Check, Info, ShieldOff, ShieldCheck } from 'lucide-react';
+import { getPharmacistsByPharmacy, getMyPharmacy } from '@/services/pharmacyApi';
+import { setPharmacyPharmacistStatus } from '@/services/branchService';
 import type { PharmacistResponse } from '@/types/api';
 
 function pharmacistStatus(p: PharmacistResponse): { label: string; style: string } {
@@ -20,7 +21,7 @@ function SetupLinkButton({ email }: { email: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback: select text
+      // ignore
     }
   };
 
@@ -37,11 +38,10 @@ function SetupLinkButton({ email }: { email: string }) {
 
 export default function EmployeesPage() {
   const [pharmacists, setPharmacists] = useState<PharmacistResponse[]>([]);
-  const [pharmacyId, setPharmacyId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionMsg, setActionMsg] = useState('');
-  const [removing, setRemoving] = useState<number | null>(null);
+  const [toggling, setToggling] = useState<number | null>(null);
 
   const load = async (id: number) => {
     try {
@@ -54,26 +54,28 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     getMyPharmacy()
-      .then((pharmacy) => {
-        setPharmacyId(pharmacy.id);
-        return load(pharmacy.id);
-      })
+      .then((pharmacy) => load(pharmacy.id))
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacy'))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleRemove = async (id: number) => {
-    if (!pharmacyId || !window.confirm('Remove this pharmacist from the pharmacy?')) return;
-    setRemoving(id);
+  const handleToggleActive = async (p: PharmacistResponse) => {
+    const nextActive = !p.isActive;
+    const action = nextActive ? 'Activate' : 'Deactivate';
+    const confirmMsg = nextActive
+      ? 'Activate this pharmacist? They will be able to log in again.'
+      : "Deactivate this pharmacist? They will no longer be able to log in.";
+    if (!window.confirm(confirmMsg)) return;
+    setToggling(p.id);
     setActionMsg('');
     try {
-      await removePharmacist(pharmacyId, id);
-      setActionMsg('Pharmacist removed.');
-      setPharmacists((prev) => prev.filter((p) => p.id !== id));
+      await setPharmacyPharmacistStatus(p.id, nextActive);
+      setActionMsg(`Pharmacist ${action.toLowerCase()}d.`);
+      setPharmacists((prev) => prev.map((x) => x.id === p.id ? { ...x, isActive: nextActive } : x));
     } catch (err) {
-      setActionMsg(err instanceof Error ? err.message : 'Failed to remove pharmacist');
+      setActionMsg(err instanceof Error ? err.message : `Failed to ${action.toLowerCase()}`);
     } finally {
-      setRemoving(null);
+      setToggling(null);
     }
   };
 
@@ -82,14 +84,14 @@ export default function EmployeesPage() {
       <div className="mb-6 flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Personnel Management</h1>
-          <p className="text-slate-500 mt-1">Manage your pharmacy's pharmacists and staff.</p>
+          <p className="text-slate-500 mt-1">Manage your pharmacy&apos;s pharmacists and staff.</p>
         </div>
       </div>
 
       <div className="mb-4 flex items-start gap-2 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 text-xs">
         <Info size={14} className="shrink-0 mt-0.5" />
         <span>
-          This is a read-only view of all pharmacists across your pharmacy. To add pharmacists to a specific branch, the branch manager should use their portal.
+          This is a view of all pharmacists across your pharmacy. To add pharmacists to a specific branch, the branch manager should use their portal.
         </span>
       </div>
 
@@ -112,7 +114,7 @@ export default function EmployeesPage() {
         ) : pharmacists.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
             <Users size={36} className="mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No pharmacists yet. Add one to get started.</p>
+            <p className="font-medium">No pharmacists yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -139,9 +141,7 @@ export default function EmployeesPage() {
                           {p.phoneNumber && <span className="flex items-center gap-1.5 text-xs"><Phone size={12} />{p.phoneNumber}</span>}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-slate-500">
-                        {p.pharmacistUniqueId ?? '—'}
-                      </td>
+                      <td className="px-6 py-4 text-xs font-mono text-slate-500">{p.pharmacistUniqueId ?? '—'}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${status.style}`}>
                           {status.label}
@@ -150,13 +150,20 @@ export default function EmployeesPage() {
                       <td className="px-6 py-4 text-slate-400 text-xs">{new Date(p.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          {!p.isActive && (
-                            <SetupLinkButton email={p.email} />
-                          )}
-                          <button onClick={() => handleRemove(p.id)} disabled={removing === p.id}
-                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100 rounded-lg hover:bg-rose-100 transition disabled:opacity-50">
-                            {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                            Remove
+                          {!p.isActive && <SetupLinkButton email={p.email} />}
+                          <button
+                            onClick={() => handleToggleActive(p)}
+                            disabled={toggling === p.id}
+                            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 ${
+                              p.isActive
+                                ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
+                            }`}
+                          >
+                            {toggling === p.id
+                              ? <Loader2 size={12} className="animate-spin" />
+                              : p.isActive ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
+                            {p.isActive ? 'Deactivate' : 'Activate'}
                           </button>
                         </div>
                       </td>

@@ -1,307 +1,135 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Package2, Plus, Trash2, Loader2, AlertCircle, X, AlertTriangle, Pencil } from 'lucide-react';
-import { getInventory, addInventoryItem, deleteInventoryItem, getMyPharmacy } from '@/services/pharmacyApi';
-import type { PharmacyInventoryResponse } from '@/types/api';
+import { Package2, Loader2, AlertCircle, Search, X } from 'lucide-react';
+import { getAllBranchesInventory, type PharmacyInventoryRow } from '@/services/branchService';
 
-const EMPTY_FORM = { medicineName: '', quantity: '', unit: '', price: '', expiryDate: '', lowStockThreshold: '' };
+const STATUS_STYLE: Record<string, string> = {
+  IN_STOCK:    'bg-emerald-50 text-emerald-700 border-emerald-100',
+  LOW_STOCK:   'bg-amber-50 text-amber-700 border-amber-100',
+  OUT_OF_STOCK:'bg-rose-50 text-rose-600 border-rose-100',
+};
 
-export default function InventoryPage() {
-  const [items, setItems] = useState<PharmacyInventoryResponse[]>([]);
-  const [pharmacyId, setPharmacyId] = useState<number | null>(null);
+export default function PharmacyAdminInventoryPage() {
+  const [items, setItems] = useState<PharmacyInventoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionMsg, setActionMsg] = useState('');
-  const [submitError, setSubmitError] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [deleting, setDeleting] = useState<number | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-
-  // Update stock state
-  const [updateTarget, setUpdateTarget] = useState<PharmacyInventoryResponse | null>(null);
-  const [updateQty, setUpdateQty] = useState('');
-  const [updating, setUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState('');
-
-  const load = async (id: number) => {
-    try {
-      const data = await getInventory(id);
-      setItems(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load inventory');
-    }
-  };
+  const [search, setSearch] = useState('');
+  const [branchFilter, setBranchFilter] = useState('ALL');
 
   useEffect(() => {
-    getMyPharmacy()
-      .then((pharmacy) => {
-        setPharmacyId(pharmacy.id);
-        return load(pharmacy.id);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacy'))
+    getAllBranchesInventory()
+      .then(setItems)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load inventory'))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!pharmacyId) return;
-    setSubmitting(true);
-    setSubmitError('');
-    try {
-      await addInventoryItem(pharmacyId, {
-        medicineName: form.medicineName,
-        quantity: Number(form.quantity),
-        unit: form.unit,
-        price: Number(form.price),
-        expiryDate: form.expiryDate || undefined,
-        lowStockThreshold: form.lowStockThreshold ? Number(form.lowStockThreshold) : undefined,
-      });
-      setActionMsg('Inventory item added.');
-      setShowForm(false);
-      setForm(EMPTY_FORM);
-      load(pharmacyId);
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to add item');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const branches = ['ALL', ...Array.from(new Set(items.map((i) => i.branchName)))];
 
-  const handleDelete = async (itemId: number, name: string) => {
-    if (!pharmacyId || !window.confirm(`Remove "${name}" from inventory?`)) return;
-    setDeleting(itemId);
-    setActionMsg('');
-    try {
-      await deleteInventoryItem(pharmacyId, itemId);
-      setActionMsg('Item removed.');
-      setItems((prev) => prev.filter((i) => i.id !== itemId));
-    } catch (err) {
-      setActionMsg(err instanceof Error ? err.message : 'Failed to delete item');
-    } finally {
-      setDeleting(null);
-    }
-  };
+  const filtered = items.filter((item) => {
+    const matchSearch = item.medicineName.toLowerCase().includes(search.toLowerCase());
+    const matchBranch = branchFilter === 'ALL' || item.branchName === branchFilter;
+    return matchSearch && matchBranch;
+  });
 
-  const openUpdateModal = (item: PharmacyInventoryResponse) => {
-    setUpdateTarget(item);
-    setUpdateQty(String(item.quantity));
-    setUpdateError('');
-  };
-
-  const handleUpdateStock = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!pharmacyId || !updateTarget) return;
-    setUpdating(true);
-    setUpdateError('');
-    try {
-      // POST acts as upsert — re-posting with same medicine name updates the existing entry
-      const updated = await addInventoryItem(pharmacyId, {
-        medicineName: updateTarget.medicineName,
-        quantity: Number(updateQty),
-        unit: updateTarget.unit,
-        price: updateTarget.price,
-        expiryDate: updateTarget.expiryDate,
-        lowStockThreshold: updateTarget.lowStockThreshold,
-      });
-      setItems((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
-      setActionMsg(`Stock updated for ${updateTarget.medicineName}.`);
-      setUpdateTarget(null);
-    } catch (err) {
-      setUpdateError(err instanceof Error ? err.message : 'Failed to update stock');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const isLowStock = (item: PharmacyInventoryResponse) =>
-    item.lowStockThreshold != null && item.quantity <= item.lowStockThreshold;
+  const totalItems = filtered.length;
+  const lowStock = filtered.filter((i) => i.status === 'LOW_STOCK').length;
+  const outOfStock = filtered.filter((i) => i.status === 'OUT_OF_STOCK').length;
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap justify-between items-end gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Inventory</h1>
-          <p className="text-slate-500 mt-1">Manage medicines and stock levels.</p>
-        </div>
-        <button onClick={() => { setShowForm(true); setSubmitError(''); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition">
-          <Plus size={16} /> Add Item
-        </button>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-800">Inventory — All Branches</h1>
+        <p className="text-slate-500 mt-1">Stock levels across every branch in your pharmacy.</p>
       </div>
 
-      {actionMsg && (
-        <div className="mb-4 px-4 py-3 rounded-xl bg-teal-50 border border-teal-100 text-teal-700 text-sm font-semibold">
-          {actionMsg}
-        </div>
-      )}
-
-      {/* Add Item Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-bold text-slate-800">Add Inventory Item</h2>
-              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      {/* Stat strip */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'Total Items', value: totalItems, color: 'bg-teal-600' },
+          { label: 'Low Stock', value: lowStock, color: 'bg-amber-500' },
+          { label: 'Out of Stock', value: outOfStock, color: 'bg-rose-500' },
+        ].map((card) => (
+          <div key={card.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.color} shrink-0`}>
+              <Package2 size={17} className="text-white" />
             </div>
-            {submitError && (
-              <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 text-sm">{submitError}</div>
-            )}
-            <form onSubmit={handleAdd} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Medicine Name</label>
-                  <input required value={form.medicineName}
-                    onChange={(e) => setForm((f) => ({ ...f, medicineName: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    placeholder="Amoxicillin 500mg" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Quantity</label>
-                  <input required type="number" min={0} value={form.quantity}
-                    onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    placeholder="100" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Unit</label>
-                  <input required value={form.unit}
-                    onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    placeholder="tablets" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Price (RWF)</label>
-                  <input required type="number" min={0} step="0.01" value={form.price}
-                    onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    placeholder="500" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Low Stock Alert</label>
-                  <input type="number" min={0} value={form.lowStockThreshold}
-                    onChange={(e) => setForm((f) => ({ ...f, lowStockThreshold: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    placeholder="10" />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Expiry Date (optional)</label>
-                  <input type="date" value={form.expiryDate}
-                    onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-                <button type="submit" disabled={submitting}
-                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 transition flex items-center justify-center gap-2">
-                  {submitting && <Loader2 size={14} className="animate-spin" />} Add Item
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Update Stock Modal */}
-      {updateTarget && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-bold text-slate-800">Update Stock</h2>
-              <button onClick={() => setUpdateTarget(null)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{card.label}</p>
+              <p className="text-2xl font-bold text-slate-800">{card.value}</p>
             </div>
-            <p className="text-sm text-slate-600 mb-4">
-              <span className="font-semibold">{updateTarget.medicineName}</span> &mdash; current stock:{' '}
-              <span className="font-bold text-slate-800">{updateTarget.quantity}</span>
-              {updateTarget.unit ? ` ${updateTarget.unit}` : ''}
-            </p>
-            {updateError && (
-              <div className="mb-3 px-3 py-2 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 text-sm">{updateError}</div>
-            )}
-            <form onSubmit={handleUpdateStock} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">New Quantity</label>
-                <input
-                  required
-                  type="number"
-                  min={0}
-                  value={updateQty}
-                  onChange={(e) => setUpdateQty(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setUpdateTarget(null)}
-                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-                <button type="submit" disabled={updating}
-                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 disabled:opacity-50 transition flex items-center justify-center gap-2">
-                  {updating && <Loader2 size={14} className="animate-spin" />} Save
-                </button>
-              </div>
-            </form>
           </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-48">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search medicine…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <X size={13} />
+            </button>
+          )}
+        </div>
+        <select
+          value={branchFilter}
+          onChange={(e) => setBranchFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+        >
+          {branches.map((b) => <option key={b} value={b}>{b === 'ALL' ? 'All Branches' : b}</option>)}
+        </select>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-sm flex gap-2">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />{error}
         </div>
       )}
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && <div className="p-4 bg-rose-50 border-b border-rose-100 text-rose-700 text-sm font-semibold flex gap-2"><AlertCircle size={16} />{error}</div>}
         {loading ? (
           <div className="flex items-center justify-center py-20 gap-3 text-slate-400">
-            <Loader2 className="animate-spin" size={22} /><span>Loading inventory...</span>
+            <Loader2 className="animate-spin" size={22} /><span>Loading inventory…</span>
           </div>
-        ) : items.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
-            <Package2 size={36} className="mx-auto mb-3 opacity-40" />
-            <p className="font-medium">Inventory is empty. Add your first item.</p>
+            <Package2 size={36} className="mx-auto mb-3 opacity-30" />
+            <p className="font-medium text-sm">No inventory found.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                   <th className="px-6 py-4">Medicine</th>
-                  <th className="px-6 py-4">Stock</th>
+                  <th className="px-6 py-4">Branch</th>
+                  <th className="px-6 py-4">Qty</th>
                   <th className="px-6 py-4">Unit</th>
-                  <th className="px-6 py-4">Price</th>
-                  <th className="px-6 py-4">Expiry</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
+                  <th className="px-6 py-4">Price (RWF)</th>
+                  <th className="px-6 py-4">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition text-sm">
-                    <td className="px-6 py-4 font-semibold text-slate-800">{item.medicineName}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-bold ${isLowStock(item) ? 'text-amber-600' : 'text-slate-800'}`}>{item.quantity}</span>
-                        {isLowStock(item) && (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
-                            <AlertTriangle size={10} /> Low
-                          </span>
-                        )}
-                      </div>
+                {filtered.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/60 transition">
+                    <td className="px-6 py-3 font-semibold text-slate-800">{item.medicineName}</td>
+                    <td className="px-6 py-3 text-slate-500">{item.branchName}</td>
+                    <td className="px-6 py-3 font-mono text-slate-700">{item.quantity}</td>
+                    <td className="px-6 py-3 text-slate-500">{item.unit || '—'}</td>
+                    <td className="px-6 py-3 font-mono text-slate-700">
+                      {Number(item.price).toLocaleString('en-RW')}
                     </td>
-                    <td className="px-6 py-4 text-slate-500 text-xs">{item.unit || '—'}</td>
-                    <td className="px-6 py-4 text-slate-700 font-semibold">RWF {item.price.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">
-                      {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : '—'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => openUpdateModal(item)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-teal-50 text-teal-700 border border-teal-100 rounded-lg hover:bg-teal-100 transition"
-                        >
-                          <Pencil size={11} /> Update
-                        </button>
-                        <button onClick={() => handleDelete(item.id, item.medicineName)} disabled={deleting === item.id}
-                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100 rounded-lg hover:bg-rose-100 transition disabled:opacity-50">
-                          {deleting === item.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Remove
-                        </button>
-                      </div>
+                    <td className="px-6 py-3">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_STYLE[item.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                        {item.status.replace('_', ' ')}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -309,13 +137,9 @@ export default function InventoryPage() {
             </table>
           </div>
         )}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
-          {items.length} item{items.length !== 1 ? 's' : ''} in inventory
-          {items.some(isLowStock) && (
-            <span className="ml-3 text-amber-600 font-semibold">
-              · {items.filter(isLowStock).length} low stock alert{items.filter(isLowStock).length !== 1 ? 's' : ''}
-            </span>
-          )}
+        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/30 text-xs text-slate-500">
+          {filtered.length} item{filtered.length !== 1 ? 's' : ''}
+          {branchFilter !== 'ALL' && ` in ${branchFilter}`}
         </div>
       </div>
     </>

@@ -381,6 +381,7 @@ export interface PharmacyPublicInfo {
   managerName?: string;
   managerEmail?: string;
   supportedInsurances?: string[];
+  status?: string;
 }
 
 export async function getActivePharmacies(): Promise<PharmacyPublicInfo[]> {

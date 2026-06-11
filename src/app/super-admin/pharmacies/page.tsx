@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, Ban, AlertTriangle, X, Mail, Clock, RefreshCw,
 } from 'lucide-react';
 import { getAllPharmacies } from '@/services/pharmacyApi';
-import { approvePharmacy, suspendPharmacy } from '@/services/adminApi';
+import { approvePharmacy, suspendPharmacy, reactivatePharmacy } from '@/services/adminApi';
 import {
   invitePharmacyAdmin,
   getPendingPharmacyAdminInvitations,
@@ -136,6 +136,21 @@ export default function SuperAdminPharmaciesPage() {
       // user can retry from detail page
     } finally {
       setSuspendLoading(false);
+    }
+  };
+
+  const handleReactivate = async (id: number) => {
+    if (!window.confirm('Reactivate this pharmacy? All verified users will regain access.')) return;
+    setActioning(id);
+    try {
+      await reactivatePharmacy(id);
+      setPharmacies((prev) =>
+        prev.map((p) => p.id === id ? { ...p, status: 'ACTIVE' } : p)
+      );
+    } catch {
+      // user can retry from detail page
+    } finally {
+      setActioning(null);
     }
   };
 
@@ -413,6 +428,18 @@ export default function SuperAdminPharmaciesPage() {
                               className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition"
                             >
                               <Ban size={12} /> Suspend
+                            </button>
+                          )}
+                          {pharmacy.status === 'SUSPENDED' && (
+                            <button
+                              onClick={() => handleReactivate(pharmacy.id)}
+                              disabled={actioning === pharmacy.id}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition disabled:opacity-50"
+                            >
+                              {actioning === pharmacy.id
+                                ? <Loader2 size={12} className="animate-spin" />
+                                : <CheckCircle2 size={12} />}
+                              Reactivate
                             </button>
                           )}
                           <button
