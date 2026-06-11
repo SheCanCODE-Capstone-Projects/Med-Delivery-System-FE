@@ -5,7 +5,7 @@ import {
   ClipboardCheck, Loader2, AlertCircle, Pill,
   CheckCircle2, Clock, RefreshCw, ChevronRight,
   PackageSearch, Truck, FileText, Activity,
-  AlertTriangle, TrendingUp, Zap,
+  AlertTriangle, TrendingUp,
 } from 'lucide-react';
 import { getAssignedOrders, validatePrescription, confirmStock, dispenseMedicine } from '@/services/pharmacistApi';
 import type { DispensingOrderResponse } from '@/types/api';
@@ -149,11 +149,27 @@ export default function PharmacistDashboard() {
         ))}
       </div>
 
-      {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      {/* Quick Actions Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { href: '/pharmacist/prescriptions', icon: FileText,      label: 'Review Prescriptions', accent: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100' },
+          { href: '/pharmacist/inventory',     icon: PackageSearch,  label: 'Check Inventory',      accent: 'text-sky-600',    bg: 'bg-sky-50',    border: 'border-sky-100' },
+          { href: '/pharmacist/delivery',      icon: Truck,          label: 'Track Deliveries',     accent: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-100' },
+          { href: '/pharmacist/orders',        icon: ClipboardCheck, label: 'All Orders',           accent: 'text-teal-600',   bg: 'bg-teal-50',   border: 'border-teal-100' },
+        ].map((item) => (
+          <Link key={item.href} href={item.href}
+            className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-teal-200 hover:shadow-md transition group"
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${item.bg} ${item.border} shrink-0`}>
+              <item.icon size={15} className={item.accent} />
+            </div>
+            <span className="text-sm font-semibold text-slate-700 group-hover:text-teal-700 leading-tight">{item.label}</span>
+          </Link>
+        ))}
+      </div>
 
-        {/* Dispensing Queue — left 2/3 */}
-        <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Live Dispensing Queue — full width */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
@@ -223,58 +239,6 @@ export default function PharmacistDashboard() {
             )}
           </div>
         </div>
-
-        {/* Right Panel */}
-        <div className="space-y-4">
-
-          {/* Quick Actions */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Zap size={15} className="text-teal-500" />
-              <h3 className="text-sm font-bold text-slate-800">Quick Actions</h3>
-            </div>
-            <div className="space-y-2">
-              {[
-                { href: '/pharmacist/prescriptions', icon: FileText,      label: 'Review Prescriptions', accent: 'text-violet-600 bg-violet-50 border-violet-100' },
-                { href: '/pharmacist/inventory',     icon: PackageSearch,  label: 'Check Inventory',      accent: 'text-sky-600 bg-sky-50 border-sky-100' },
-                { href: '/pharmacist/delivery',      icon: Truck,          label: 'Track Deliveries',     accent: 'text-amber-600 bg-amber-50 border-amber-100' },
-                { href: '/pharmacist/orders',        icon: ClipboardCheck, label: 'All Orders',           accent: 'text-teal-600 bg-teal-50 border-teal-100' },
-              ].map((item) => (
-                <Link key={item.href} href={item.href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-slate-100 hover:border-teal-200 hover:bg-teal-50/30 transition group"
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${item.accent} shrink-0`}>
-                    <item.icon size={15} />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700 group-hover:text-teal-700 flex-1">{item.label}</span>
-                  <ChevronRight size={14} className="text-slate-300 group-hover:text-teal-500 transition" />
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Workflow Guide */}
-          <div className="bg-gradient-to-br from-teal-600 to-teal-700 rounded-2xl p-5 text-white">
-            <p className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-3">Dispensing Workflow</p>
-            <div className="space-y-3">
-              {[
-                { step: '01', label: 'Validate Rx', desc: 'Verify prescription details' },
-                { step: '02', label: 'Confirm Stock', desc: 'Check medicine availability' },
-                { step: '03', label: 'Dispense', desc: 'Release to patient / delivery' },
-              ].map((s) => (
-                <div key={s.step} className="flex items-start gap-3">
-                  <span className="text-xs font-bold text-teal-300 w-6 shrink-0 mt-0.5">{s.step}</span>
-                  <div>
-                    <p className="text-sm font-semibold leading-tight">{s.label}</p>
-                    <p className="text-teal-200 text-xs">{s.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </div>
     </div>
   );
 }

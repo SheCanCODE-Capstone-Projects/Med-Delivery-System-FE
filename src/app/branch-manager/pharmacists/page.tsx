@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Trash2, Loader2, Mail, Phone, X, Copy, Check, RefreshCw } from 'lucide-react';
+import { Users, Plus, Trash2, Loader2, Mail, Phone, X, Copy, Check, RefreshCw, RotateCw } from 'lucide-react';
 import {
   getBranchPharmacists, addBranchPharmacist, deactivateBranchPharmacist, resendPharmacistSetup,
   type BranchPharmacistResponse,
@@ -44,7 +44,12 @@ export default function BranchPharmacistsPage() {
     .then(setPharmacists)
     .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'));
 
-  useEffect(() => { load().finally(() => setLoading(false)); }, []);
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+    const id = setInterval(() => load(), 30_000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,10 +97,16 @@ export default function BranchPharmacistsPage() {
           <h1 className="text-2xl font-bold text-slate-800">Pharmacists</h1>
           <p className="text-slate-500 mt-1">Manage pharmacists assigned to your branch.</p>
         </div>
-        <button onClick={() => { setShowForm(true); setSubmitError(''); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition">
-          <Plus size={16} /> Add Pharmacist
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => load()} title="Refresh status"
+            className="flex items-center gap-1.5 px-3 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition">
+            <RotateCw size={15} /> Refresh
+          </button>
+          <button onClick={() => { setShowForm(true); setSubmitError(''); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold hover:bg-teal-700 transition">
+            <Plus size={16} /> Invite Pharmacist
+          </button>
+        </div>
       </div>
 
       {msg && (

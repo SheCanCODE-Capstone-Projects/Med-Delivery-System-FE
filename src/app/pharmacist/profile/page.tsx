@@ -57,13 +57,13 @@ export default function PharmacistProfilePage() {
               { label: 'Pharmacist ID', value: profile.pharmacistUniqueId ?? '—' },
               { label: 'Pharmacy',      value: profile.pharmacyName ?? '—' },
               { label: 'Branch',        value: profile.branchName ?? '—' },
-              { label: 'Status',        value: profile.isActive ? 'Active' : 'Inactive', isStatus: true },
+              { label: 'Status',        value: (profile.isActive || profile.isVerified) ? 'Active' : 'Pending Setup', isStatus: true },
             ].map((row) => (
               <div key={row.label} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
                 <span className="text-sm text-slate-500 font-medium">{row.label}</span>
                 <span className={`text-sm font-semibold ${
                   'isStatus' in row
-                    ? profile.isActive ? 'text-emerald-600' : 'text-rose-600'
+                    ? (profile.isActive || profile.isVerified) ? 'text-emerald-600' : 'text-amber-600'
                     : 'text-slate-800'
                 }`}>
                   {row.value}
