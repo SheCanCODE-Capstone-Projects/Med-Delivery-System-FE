@@ -59,21 +59,19 @@ export default function EmployeesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleToggleActive = async (p: PharmacistResponse) => {
-    const nextActive = !p.isActive;
-    const action = nextActive ? 'Activate' : 'Deactivate';
-    const confirmMsg = nextActive
+  const handleToggleActive = async (p: PharmacistResponse, activate: boolean) => {
+    const confirmMsg = activate
       ? 'Activate this pharmacist? They will be able to log in again.'
-      : "Deactivate this pharmacist? They will no longer be able to log in.";
+      : 'Deactivate this pharmacist? They will no longer be able to log in.';
     if (!window.confirm(confirmMsg)) return;
     setToggling(p.id);
     setActionMsg('');
     try {
-      await setPharmacyPharmacistStatus(p.id, nextActive);
-      setActionMsg(`Pharmacist ${action.toLowerCase()}d.`);
-      setPharmacists((prev) => prev.map((x) => x.id === p.id ? { ...x, isActive: nextActive } : x));
+      await setPharmacyPharmacistStatus(p.id, activate);
+      setActionMsg(`Pharmacist ${activate ? 'activated' : 'deactivated'}.`);
+      setPharmacists((prev) => prev.map((x) => x.id === p.id ? { ...x, isActive: activate } : x));
     } catch (err) {
-      setActionMsg(err instanceof Error ? err.message : `Failed to ${action.toLowerCase()}`);
+      setActionMsg(err instanceof Error ? err.message : `Failed to ${activate ? 'activate' : 'deactivate'}`);
     } finally {
       setToggling(null);
     }
@@ -150,21 +148,27 @@ export default function EmployeesPage() {
                       <td className="px-6 py-4 text-slate-400 text-xs">{new Date(p.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          {!p.isActive && <SetupLinkButton email={p.email} />}
-                          <button
-                            onClick={() => handleToggleActive(p)}
-                            disabled={toggling === p.id}
-                            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 ${
-                              p.isActive
-                                ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100'
-                                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
-                            }`}
-                          >
-                            {toggling === p.id
-                              ? <Loader2 size={12} className="animate-spin" />
-                              : p.isActive ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
-                            {p.isActive ? 'Deactivate' : 'Activate'}
-                          </button>
+                          {!p.isVerified && <SetupLinkButton email={p.email} />}
+                          {!p.isActive && p.isVerified && (
+                            <button
+                              onClick={() => handleToggleActive(p, true)}
+                              disabled={toggling === p.id}
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
+                            >
+                              {toggling === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
+                              Activate
+                            </button>
+                          )}
+                          {p.isActive && p.isVerified && (
+                            <button
+                              onClick={() => handleToggleActive(p, false)}
+                              disabled={toggling === p.id}
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100"
+                            >
+                              {toggling === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
+                              Deactivate
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

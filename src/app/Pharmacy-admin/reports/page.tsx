@@ -4,11 +4,12 @@ import {
   TrendingUp, Package2, Users, ClipboardList,
   DollarSign, AlertTriangle, CheckCircle2, XCircle, Loader2, AlertCircle,
 } from "lucide-react";
-import { getMyPharmacy, getMyPharmacyOrders, getInventory, getPharmacistsByPharmacy } from "@/services/pharmacyApi";
+import { getMyPharmacy, getMyPharmacyOrders, getPharmacistsByPharmacy } from "@/services/pharmacyApi";
+import { getAllBranchesInventory, type PharmacyInventoryRow } from "@/services/branchService";
 import { getPharmacyAdminReport, type PharmacyAdminReport } from "@/services/reportService";
 import PrintableReport from "@/components/report/PrintableReport";
 import ReportTable from "@/components/report/ReportTable";
-import type { OrderResponse, PharmacyInventoryResponse, PharmacistResponse } from "@/types/api";
+import type { OrderResponse, PharmacistResponse } from "@/types/api";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ function StatCard({ icon: Icon, label, value, color }: {
 
 export default function ReportsPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
-  const [inventory, setInventory] = useState<PharmacyInventoryResponse[]>([]);
+  const [inventory, setInventory] = useState<PharmacyInventoryRow[]>([]);
   const [pharmacists, setPharmacists] = useState<PharmacistResponse[]>([]);
   const [comprehensiveReport, setComprehensiveReport] = useState<PharmacyAdminReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,7 +141,7 @@ export default function ReportsPage() {
         const ph = await getMyPharmacy();
         const [o, inv, pharm, cr] = await Promise.all([
           getMyPharmacyOrders(ph.id).catch(() => []),
-          getInventory(ph.id).catch(() => []),
+          getAllBranchesInventory().catch(() => []),
           getPharmacistsByPharmacy(ph.id).catch(() => []),
           getPharmacyAdminReport().catch(() => null),
         ]);
@@ -174,7 +175,7 @@ export default function ReportsPage() {
   const cancelled  = orders.filter(o => o.status === "CANCELLED");
   const active     = orders.filter(o => !["COMPLETED","CANCELLED"].includes(o.status));
   const revenue    = completed.reduce((s, o) => s + (o.totalAmount ?? 0), 0);
-  const lowStock   = inventory.filter(i => i.quantity < 10);
+  const lowStock   = inventory.filter(i => i.status === 'LOW_STOCK' || i.status === 'OUT_OF_STOCK');
 
   // orders by status
   const statusGroups: Record<string, number> = {};
@@ -288,20 +289,23 @@ export default function ReportsPage() {
           ? <p className="text-sm text-slate-400 text-center py-10">No inventory items</p>
           : (
             <div className="space-y-3">
-              {topMeds.map(item => (
-                <div key={item.id} className="flex items-center gap-3">
-                  <span className="text-sm text-slate-700 w-36 min-w-0 truncate overflow-hidden flex-shrink-0" title={item.medicineName}>{item.medicineName}</span>
-                  <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden min-w-0">
-                    <div
-                      className={`h-full rounded-full transition-all ${item.quantity < 10 ? "bg-rose-400" : "bg-[#0E9384]"}`}
-                      style={{ width: `${(item.quantity / maxMedQty) * 100}%`, printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' } as React.CSSProperties}
-                    />
+              {topMeds.map((item, idx) => {
+                const isLow = item.status === 'LOW_STOCK' || item.status === 'OUT_OF_STOCK';
+                return (
+                  <div key={`${item.medicineName}-${item.branchName}-${idx}`} className="flex items-center gap-3">
+                    <span className="text-sm text-slate-700 w-36 min-w-0 truncate overflow-hidden flex-shrink-0" title={item.medicineName}>{item.medicineName}</span>
+                    <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden min-w-0">
+                      <div
+                        className={`h-full rounded-full transition-all ${isLow ? "bg-rose-400" : "bg-[#0E9384]"}`}
+                        style={{ width: `${(item.quantity / maxMedQty) * 100}%`, printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' } as React.CSSProperties}
+                      />
+                    </div>
+                    <span className={`text-xs font-semibold w-16 text-right flex-shrink-0 ${isLow ? "text-rose-600" : "text-slate-700"}`}>
+                      {item.quantity} {item.unit}
+                    </span>
                   </div>
-                  <span className={`text-xs font-semibold w-16 text-right flex-shrink-0 ${item.quantity < 10 ? "text-rose-600" : "text-slate-700"}`}>
-                    {item.quantity} {item.unit}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
       </div>
@@ -319,16 +323,18 @@ export default function ReportsPage() {
                 <th className="text-left pb-2 font-semibold text-slate-500">Medicine</th>
                 <th className="text-right pb-2 font-semibold text-slate-500">Qty</th>
                 <th className="text-right pb-2 font-semibold text-slate-500">Unit</th>
+                <th className="text-right pb-2 font-semibold text-slate-500">Branch</th>
                 <th className="text-right pb-2 font-semibold text-slate-500">Price (RWF)</th>
               </tr>
             </thead>
             <tbody>
-              {lowStock.map(item => (
-                <tr key={item.id} className="border-b border-slate-50 last:border-0">
+              {lowStock.map((item, idx) => (
+                <tr key={`${item.medicineName}-${item.branchName}-${idx}`} className="border-b border-slate-50 last:border-0">
                   <td className="py-2 text-slate-700">{item.medicineName}</td>
                   <td className="py-2 text-right font-bold text-rose-600">{item.quantity}</td>
                   <td className="py-2 text-right text-slate-500">{item.unit}</td>
-                  <td className="py-2 text-right text-slate-700">{item.price.toLocaleString()}</td>
+                  <td className="py-2 text-right text-slate-400 text-xs">{item.branchName}</td>
+                  <td className="py-2 text-right text-slate-700">{Number(item.price).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

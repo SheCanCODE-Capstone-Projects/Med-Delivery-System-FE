@@ -78,23 +78,22 @@ export default function BranchPharmacistsPage() {
     }
   };
 
-  const handleToggleActive = async (p: BranchPharmacistResponse) => {
-    const action = p.isActive ? 'Deactivate' : 'Activate';
-    const msg = p.isActive
-      ? "Deactivate this pharmacist? They will no longer be able to log in."
-      : "Activate this pharmacist? They will be able to log in again.";
-    if (!window.confirm(msg)) return;
+  const handleToggleActive = async (p: BranchPharmacistResponse, activate: boolean) => {
+    const confirmMsg = activate
+      ? 'Activate this pharmacist? They will be able to log in again.'
+      : 'Deactivate this pharmacist? They will no longer be able to log in.';
+    if (!window.confirm(confirmMsg)) return;
     setRemoving(p.id);
     try {
-      if (p.isActive) {
-        await deactivateBranchPharmacist(p.id);
-      } else {
+      if (activate) {
         await activateBranchPharmacist(p.id);
+      } else {
+        await deactivateBranchPharmacist(p.id);
       }
-      setPharmacists((prev) => prev.map((x) => x.id === p.id ? { ...x, isActive: !p.isActive } : x));
-      setMsg(`Pharmacist ${action.toLowerCase()}d.`);
+      setPharmacists((prev) => prev.map((x) => x.id === p.id ? { ...x, isActive: activate } : x));
+      setMsg(`Pharmacist ${activate ? 'activated' : 'deactivated'}.`);
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : `Failed to ${action.toLowerCase()}`);
+      setMsg(err instanceof Error ? err.message : `Failed to ${activate ? 'activate' : 'deactivate'}`);
     } finally { setRemoving(null); }
   };
 
@@ -206,7 +205,7 @@ export default function BranchPharmacistsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          {!p.isActive && (
+                          {!p.isVerified && (
                             <>
                               <button
                                 onClick={() => handleResendSetup(p)}
@@ -220,20 +219,26 @@ export default function BranchPharmacistsPage() {
                               <SetupLinkButton email={p.email} />
                             </>
                           )}
-                          <button
-                            onClick={() => handleToggleActive(p)}
-                            disabled={removing === p.id}
-                            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 ${
-                              p.isActive
-                                ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100'
-                                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
-                            }`}
-                          >
-                            {removing === p.id
-                              ? <Loader2 size={12} className="animate-spin" />
-                              : p.isActive ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
-                            {p.isActive ? 'Deactivate' : 'Activate'}
-                          </button>
+                          {!p.isActive && p.isVerified && (
+                            <button
+                              onClick={() => handleToggleActive(p, true)}
+                              disabled={removing === p.id}
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
+                            >
+                              {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
+                              Activate
+                            </button>
+                          )}
+                          {p.isActive && p.isVerified && (
+                            <button
+                              onClick={() => handleToggleActive(p, false)}
+                              disabled={removing === p.id}
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-50 bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100"
+                            >
+                              {removing === p.id ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
+                              Deactivate
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
