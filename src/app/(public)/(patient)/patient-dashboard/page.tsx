@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Activity,
   AlertCircle,
-  Bell,
   CalendarCheck2,
   CheckCircle2,
   ChevronRight,
@@ -14,7 +13,6 @@ import {
   Heart,
   Loader2,
   MapPin,
-  Package,
   Pill,
   RefreshCw,
   ShieldCheck,
@@ -23,8 +21,7 @@ import {
 } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
 import { getMyOrders, getMyProfile, getPendingSubstitutions } from "@/services/patientApi";
-import { getNotifications } from "@/services/notificationApi";
-import type { OrderResponse, PatientProfileResponse, SubstitutionResponse, NotificationItem } from "@/types/api";
+import type { OrderResponse, PatientProfileResponse, SubstitutionResponse } from "@/types/api";
 
 const STATUS_TONE: Record<string, string> = {
   UPLOADED: "bg-amber-50 text-amber-700",
@@ -57,7 +54,6 @@ export default function PatientDashboard() {
   const [profile, setProfile] = useState<PatientProfileResponse | null>(null);
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [substitutions, setSubstitutions] = useState<SubstitutionResponse[]>([]);
-  const [recentActivity, setRecentActivity] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -68,12 +64,10 @@ export default function PatientDashboard() {
       getMyProfile().catch(() => null),
       getMyOrders(0, 10).catch(() => ({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 10 })),
       getPendingSubstitutions().catch(() => []),
-      getNotifications().catch(() => []),
-    ]).then(([prof, ordersPage, subs, notifs]) => {
+    ]).then(([prof, ordersPage, subs]) => {
       setProfile(prof);
       setOrders(ordersPage.content);
       setSubstitutions(subs);
-      setRecentActivity((notifs as NotificationItem[]).slice(0, 4));
     }).catch(() => setError("Could not load dashboard data."))
     .finally(() => setLoading(false));
   };
@@ -131,36 +125,6 @@ export default function PatientDashboard() {
         <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 pointer-events-none" />
         <div className="absolute -right-4 bottom-0 h-24 w-24 rounded-full bg-white/5 pointer-events-none" />
       </div>
-
-      {/* Recent Activity strip */}
-      {recentActivity.length > 0 && (
-        <div className="mb-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-              <Bell size={16} className="text-teal-600" />
-              Recent Activity
-            </h2>
-          </div>
-          <div className="divide-y divide-slate-50">
-            {recentActivity.map((n) => {
-              const iconMap: Record<string, React.ElementType> = { ORDER: Package, INSURANCE: ShieldCheck, SUBSTITUTION: RefreshCw };
-              const Icon = iconMap[n.type] ?? Bell;
-              return (
-                <div key={n.id} className={`flex items-start gap-3 px-5 py-3 ${n.read ? "" : "bg-teal-50/30"}`}>
-                  <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon size={13} className="text-teal-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-tight ${n.read ? "text-slate-600" : "text-slate-800 font-semibold"}`}>{n.title}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{n.message}</p>
-                  </div>
-                  {!n.read && <span className="h-2 w-2 rounded-full bg-teal-500 mt-1.5 shrink-0" />}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">

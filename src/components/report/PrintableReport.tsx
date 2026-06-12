@@ -39,6 +39,7 @@ export default function PrintableReport({
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            forced-color-adjust: none !important;
           }
           .print-container {
             overflow: visible !important;
@@ -62,7 +63,9 @@ export default function PrintableReport({
             className="px-8 py-6 flex items-start justify-between"
             style={{
               background: 'linear-gradient(135deg, #0E9384 0%, #0a7568 100%)',
-            }}
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact',
+            } as React.CSSProperties}
           >
             {/* Left: brand + title */}
             <div>
@@ -109,7 +112,7 @@ export default function PrintableReport({
 
           {/* ── Meta / Report Information ── */}
           {meta && meta.rows.length > 0 && (
-            <div className="px-8 py-6 border-b border-slate-100" style={{ background: '#fafffe' }}>
+            <div className="px-8 py-6 border-b border-slate-100" style={{ background: '#fafffe', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 rounded-full" style={{ background: '#0E9384' }} />
                 <span className="text-xs font-bold tracking-widest uppercase" style={{ color: '#0E9384' }}>
@@ -138,7 +141,7 @@ export default function PrintableReport({
 
           {/* ── Footer ── */}
           <div className="px-8 pb-6">
-            <div className="h-px w-full mb-5" style={{ background: 'linear-gradient(90deg, #0E9384, rgba(14,147,132,0.1))' }} />
+            <div className="h-px w-full mb-5" style={{ background: 'linear-gradient(90deg, #0E9384, rgba(14,147,132,0.1))', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties} />
             <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm text-slate-600">
               <div className="flex items-end gap-3">
                 <span className="font-bold text-xs uppercase tracking-wide text-slate-500">Prepared By</span>
