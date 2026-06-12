@@ -1,23 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Loader2, ClipboardList, CheckCircle2, XCircle, Pill } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { getPharmacistReport, type PharmacistReport } from '@/services/reportService';
 import PrintableReport from '@/components/report/PrintableReport';
 import ReportTable from '@/components/report/ReportTable';
-
-function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string | number; color: string }) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color} shrink-0`}>
-        <Icon size={18} className="text-white" />
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-slate-800 mt-0.5">{value}</p>
-      </div>
-    </div>
-  );
-}
 
 export default function PharmacistReportsPage() {
   const [report, setReport] = useState<PharmacistReport | null>(null);
@@ -49,23 +35,18 @@ export default function PharmacistReportsPage() {
       generatedBy={report.pharmacistName}
       generatedDate={report.generatedDate}
       meta={{ rows: [
-        { label: 'Pharmacist Name', value: report.pharmacistName },
-        { label: 'Pharmacist ID', value: report.pharmacistId },
-        { label: 'Branch', value: report.branch },
-        { label: 'Pharmacy', value: report.pharmacyName },
-        { label: 'Report Date', value: report.reportDate },
-        { label: 'Generated On', value: report.generatedDate },
+        { label: 'Pharmacist',              value: report.pharmacistName },
+        { label: 'Pharmacist ID',           value: report.pharmacistId },
+        { label: 'Branch',                  value: report.branch },
+        { label: 'Pharmacy',                value: report.pharmacyName },
+        { label: 'Report Date',             value: report.reportDate },
+        { label: 'Prescriptions Reviewed',  value: report.prescriptionsReviewed },
+        { label: 'Approved',                value: report.prescriptionsApproved },
+        { label: 'Rejected',                value: report.prescriptionsRejected },
+        { label: 'Medicines Dispensed',     value: report.medicinesDispensed },
+        { label: 'Generated On',            value: report.generatedDate },
       ]}}
     >
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={ClipboardList} label="Reviewed"  value={report.prescriptionsReviewed}  color="bg-teal-600" />
-        <StatCard icon={CheckCircle2} label="Approved"   value={report.prescriptionsApproved}  color="bg-emerald-600" />
-        <StatCard icon={XCircle}      label="Rejected"   value={report.prescriptionsRejected}  color="bg-rose-500" />
-        <StatCard icon={Pill}         label="Dispensed"  value={report.medicinesDispensed}      color="bg-violet-600" />
-      </div>
-
-      {/* Processed Prescriptions */}
       <ReportTable
         title="Processed Prescriptions"
         columns={['Order ID', 'Patient', 'Status', 'Validation', 'Date']}
@@ -75,7 +56,6 @@ export default function PharmacistReportsPage() {
         emptyMessage="No prescriptions processed yet."
       />
 
-      {/* Dispensed Medicines */}
       <ReportTable
         title="Dispensed Medicines"
         columns={['Medicine', 'Total Quantity']}
@@ -83,7 +63,6 @@ export default function PharmacistReportsPage() {
         emptyMessage="No medicines dispensed yet."
       />
 
-      {/* Rejected Prescriptions */}
       <ReportTable
         title="Rejected Prescriptions"
         columns={['Order ID', 'Patient', 'Reason', 'Date']}
