@@ -24,36 +24,11 @@ export default function PrintableReport({
   filename,
   children,
 }: PrintableReportProps) {
-  const handleDownload = async () => {
-    try {
-      const { default: html2canvas } = await import('html2canvas');
-      const { jsPDF } = await import('jspdf');
-
-      const element = document.querySelector('.med-print-root') as HTMLElement;
-      if (!element) return;
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        imageTimeout: 15000,
-        ignoreElements: (el) => el.classList.contains('no-print'),
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(filename ?? 'report.pdf');
-    } catch (err) {
-      console.error('PDF download failed:', err);
-      const msg = err instanceof Error ? err.message : String(err);
-      alert(`Download failed: ${msg}\n\nTry the Print button and choose "Save as PDF" instead.`);
-    }
+  const handleDownload = () => {
+    const prev = document.title;
+    document.title = (filename ?? 'report').replace(/\.pdf$/i, '');
+    window.print();
+    setTimeout(() => { document.title = prev; }, 500);
   };
 
   return (
@@ -136,6 +111,7 @@ export default function PrintableReport({
                 </button>
                 <button
                   onClick={handleDownload}
+                  title="Opens print dialog — choose 'Save as PDF' to download"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition"
                   style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}

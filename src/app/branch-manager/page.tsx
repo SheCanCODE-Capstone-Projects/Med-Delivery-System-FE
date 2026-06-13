@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Users, Package2, AlertTriangle, ShoppingBag, Loader2, GitBranch, MapPin } from 'lucide-react';
+import { Users, Package2, AlertTriangle, ShoppingBag, Loader2, MapPin } from 'lucide-react';
 import { getBranchDashboard, getMyBranch, type BranchStatsResponse, type BranchResponse } from '@/services/branchService';
 
 function StatCard({ icon: Icon, label, value, sub, color }: {
