@@ -6,6 +6,7 @@ import type { ApiResponse } from '@/types/api';
 export interface SuperAdminReport {
   generatedBy: string;
   generatedDate: string;
+  reportPeriod?: string;
   totalPharmacies: number;
   totalBranches: number;
   totalUsers: number;
@@ -59,6 +60,7 @@ export interface PharmacistReport {
   pharmacyName: string;
   reportDate: string;
   generatedDate: string;
+  reportPeriod?: string;
   prescriptionsReviewed: number;
   prescriptionsApproved: number;
   prescriptionsRejected: number;
@@ -73,6 +75,7 @@ export interface PatientReport {
   patientId: number;
   reportDate: string;
   generatedDate: string;
+  reportPeriod?: string;
   totalOrders: number;
   totalPrescriptions: number;
   totalAmountSpent: number;
@@ -84,27 +87,27 @@ export interface PatientReport {
 
 // ── API calls ─────────────────────────────────────────────────────────────────
 
-export async function getSuperAdminReport(): Promise<SuperAdminReport> {
-  const res = await apiClient<ApiResponse<SuperAdminReport>>('/api/admin/reports/comprehensive');
+export async function getSuperAdminReport(period = 'ALL_TIME'): Promise<SuperAdminReport> {
+  const res = await apiClient<ApiResponse<SuperAdminReport>>(`/api/admin/reports/comprehensive?period=${period}`);
   return res.data;
 }
 
-export async function getPharmacyAdminReport(): Promise<PharmacyAdminReport> {
-  const res = await apiClient<ApiResponse<PharmacyAdminReport>>('/api/pharmacy/branches/reports/comprehensive');
+export async function getPharmacyAdminReport(period = 'ALL_TIME'): Promise<PharmacyAdminReport> {
+  const res = await apiClient<ApiResponse<PharmacyAdminReport>>(`/api/pharmacy/branches/reports/comprehensive?period=${period}`);
   return res.data;
 }
 
-export async function getBranchManagerReport(): Promise<BranchManagerReport> {
-  const res = await apiClient<ApiResponse<BranchManagerReport>>('/api/branch-manager/reports/comprehensive');
+export async function getBranchManagerReport(period = 'ALL_TIME'): Promise<BranchManagerReport> {
+  const res = await apiClient<ApiResponse<BranchManagerReport>>(`/api/branch-manager/reports/comprehensive?period=${period}`);
   return res.data;
 }
 
-export async function getPharmacistReport(): Promise<PharmacistReport> {
-  const res = await apiClient<ApiResponse<PharmacistReport>>('/api/pharmacist/dispensing/reports/comprehensive');
+export async function getPharmacistReport(period = 'ALL_TIME'): Promise<PharmacistReport> {
+  const res = await apiClient<ApiResponse<PharmacistReport>>(`/api/pharmacist/dispensing/reports/comprehensive?period=${period}`);
   return res.data;
 }
 
-export async function getPatientReport(): Promise<PatientReport> {
-  const res = await apiClient<ApiResponse<PatientReport>>('/api/patient/reports/comprehensive');
+export async function getPatientReport(period = 'ALL_TIME'): Promise<PatientReport> {
+  const res = await apiClient<ApiResponse<PatientReport>>(`/api/patient/reports/comprehensive?period=${period}`);
   return res.data;
 }

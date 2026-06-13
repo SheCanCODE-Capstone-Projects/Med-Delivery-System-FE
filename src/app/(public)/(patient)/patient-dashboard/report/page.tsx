@@ -6,48 +6,77 @@ import PatientAppShell from '@/components/layout/PatientAppShell';
 import PrintableReport from '@/components/report/PrintableReport';
 import ReportTable from '@/components/report/ReportTable';
 
+const PERIODS = [
+  { value: 'DAILY',    label: 'Today'     },
+  { value: 'WEEKLY',   label: 'This Week' },
+  { value: 'MONTHLY',  label: 'Monthly'   },
+  { value: 'YEARLY',   label: 'Yearly'    },
+  { value: 'ALL_TIME', label: 'All Time'  },
+];
+
 export default function PatientReportPage() {
   const [report, setReport] = useState<PatientReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [period, setPeriod] = useState('MONTHLY');
 
   useEffect(() => {
-    getPatientReport()
+    setLoading(true);
+    setReport(null);
+    getPatientReport(period)
       .then(setReport)
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load report'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [period]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-RW', { style: 'currency', currency: 'RWF', maximumFractionDigits: 0 }).format(n);
 
   return (
     <PatientAppShell>
+      {/* Period selector */}
+      <div className="no-print flex items-center gap-2 mb-4 flex-wrap">
+        {PERIODS.map((p) => (
+          <button
+            key={p.value}
+            onClick={() => setPeriod(p.value)}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition ${
+              period === p.value
+                ? 'bg-teal-600 text-white border-teal-600'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-teal-400'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       {loading && (
         <div className="flex items-center justify-center py-32 gap-3 text-slate-400">
           <Loader2 className="animate-spin" size={24} /><span>Loading your report...</span>
         </div>
       )}
 
-      {error && (
+      {error && !loading && (
         <div className="p-6 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-sm">{error}</div>
       )}
 
       {!loading && !error && report && (
         <PrintableReport
           title="Patient Medical Report"
-          filename={`patient-report-${new Date().toISOString().slice(0, 10)}.pdf`}
+          filename={`patient-report-${period.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`}
           generatedBy={report.patientName}
           generatedDate={report.generatedDate}
           meta={{ rows: [
-            { label: 'Patient Name',      value: report.patientName },
-            { label: 'Report Date',       value: report.reportDate },
-            { label: 'Total Orders',      value: report.totalOrders },
-            { label: 'Total Prescriptions', value: report.totalPrescriptions },
-            { label: 'Medicines Ordered', value: report.purchasedMedicines?.length ?? 0 },
-            { label: 'Deliveries',        value: report.deliveryHistory?.length ?? 0 },
-            { label: 'Total Spent',       value: fmt(report.totalAmountSpent ?? 0) },
-            { label: 'Generated On',      value: report.generatedDate },
+            { label: 'Patient Name',        value: report.patientName },
+            { label: 'Report Period',        value: report.reportPeriod },
+            { label: 'Report Date',          value: report.reportDate },
+            { label: 'Total Orders',         value: report.totalOrders },
+            { label: 'Total Prescriptions',  value: report.totalPrescriptions },
+            { label: 'Medicines Ordered',    value: report.purchasedMedicines?.length ?? 0 },
+            { label: 'Deliveries',           value: report.deliveryHistory?.length ?? 0 },
+            { label: 'Total Spent',          value: fmt(report.totalAmountSpent ?? 0) },
+            { label: 'Generated On',         value: report.generatedDate },
           ]}}
         >
           <ReportTable
