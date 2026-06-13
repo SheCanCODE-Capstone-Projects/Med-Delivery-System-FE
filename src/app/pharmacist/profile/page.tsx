@@ -4,6 +4,19 @@ import { Loader2, UserRound } from 'lucide-react';
 import { getMyProfile } from '@/services/pharmacistApi';
 import type { PharmacistResponse } from '@/types/api';
 
+function getStatus(isActive: boolean, isVerified: boolean) {
+  if (isActive && isVerified)  return { label: 'Active',               color: 'text-emerald-600' };
+  if (isActive && !isVerified) return { label: 'Pending Verification',  color: 'text-amber-600'   };
+  if (!isActive && isVerified) return { label: 'Deactivated',           color: 'text-rose-600'    };
+                               return { label: 'Setup Needed',          color: 'text-amber-600'   };
+}
+
+const STATUS_HINT: Record<string, string> = {
+  'Setup Needed':         'Your account setup is incomplete. Ask your branch manager to resend your setup link.',
+  'Pending Verification': 'Your setup is complete. Waiting for your branch manager to activate your account.',
+  'Deactivated':          'Your account has been deactivated. Contact your branch manager.',
+};
+
 export default function PharmacistProfilePage() {
   const [profile, setProfile] = useState<PharmacistResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,22 +70,31 @@ export default function PharmacistProfilePage() {
               { label: 'Pharmacist ID', value: profile.pharmacistUniqueId ?? '—' },
               { label: 'Pharmacy',      value: profile.pharmacyName ?? '—' },
               { label: 'Branch',        value: profile.branchName ?? '—' },
-              { label: 'Status',        value: (profile.isActive || profile.isVerified) ? 'Active' : 'Pending Setup', isStatus: true },
             ].map((row) => (
               <div key={row.label} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
                 <span className="text-sm text-slate-500 font-medium">{row.label}</span>
-                <span className={`text-sm font-semibold ${
-                  'isStatus' in row
-                    ? (profile.isActive || profile.isVerified) ? 'text-emerald-600' : 'text-amber-600'
-                    : 'text-slate-800'
-                }`}>
-                  {row.value}
-                </span>
+                <span className="text-sm font-semibold text-slate-800">{row.value}</span>
               </div>
             ))}
+            {/* Status row — 4-state */}
+            {(() => {
+              const st = getStatus(profile.isActive, profile.isVerified);
+              return (
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-sm text-slate-500 font-medium">Status</span>
+                  <span className={`text-sm font-semibold ${st.color}`}>{st.label}</span>
+                </div>
+              );
+            })()}
           </div>
 
-          <div className="px-6 pb-6">
+          <div className="px-6 pb-6 space-y-3">
+            {/* Hint when not fully active */}
+            {!(profile.isActive && profile.isVerified) && (
+              <p className="text-xs text-amber-700 bg-amber-50 rounded-xl px-4 py-3 border border-amber-100">
+                {STATUS_HINT[getStatus(profile.isActive, profile.isVerified).label]}
+              </p>
+            )}
             <p className="text-xs text-slate-400 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
               To update your profile details, please contact your pharmacy manager.
             </p>
