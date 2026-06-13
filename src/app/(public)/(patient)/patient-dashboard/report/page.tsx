@@ -36,6 +36,7 @@ export default function PatientReportPage() {
       {!loading && !error && report && (
         <PrintableReport
           title="Patient Medical Report"
+          filename={`patient-report-${new Date().toISOString().slice(0, 10)}.pdf`}
           generatedBy={report.patientName}
           generatedDate={report.generatedDate}
           meta={{ rows: [

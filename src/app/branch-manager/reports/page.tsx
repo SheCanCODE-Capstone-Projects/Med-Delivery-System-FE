@@ -35,6 +35,7 @@ export default function BranchReportsPage() {
   return (
     <PrintableReport
       title="Branch Manager Report"
+      filename={`branch-report-${new Date().toISOString().slice(0, 10)}.pdf`}
       generatedBy={report.managerName}
       generatedDate={report.generatedDate}
       meta={{ rows: [

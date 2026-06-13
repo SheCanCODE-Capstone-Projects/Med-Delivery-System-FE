@@ -44,6 +44,7 @@ export default function ReportsPage() {
 
       <PrintableReport
         title="Pharmacy Admin Comprehensive Report"
+        filename={`admin-report-${new Date().toISOString().slice(0, 10)}.pdf`}
         generatedBy={comprehensiveReport.generatedBy}
         generatedDate={comprehensiveReport.generatedDate}
         meta={{ rows: [

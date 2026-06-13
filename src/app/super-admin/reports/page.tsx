@@ -73,6 +73,7 @@ export default function SuperAdminReportsPage() {
   return (
     <PrintableReport
       title="Platform System Report"
+      filename={`platform-report-${new Date().toISOString().slice(0, 10)}.pdf`}
       generatedBy="Super Admin"
       generatedDate={reportDate}
       meta={{ rows: [

@@ -32,6 +32,7 @@ export default function PharmacistReportsPage() {
   return (
     <PrintableReport
       title="Pharmacist Activity Report"
+      filename={`pharmacist-report-${new Date().toISOString().slice(0, 10)}.pdf`}
       generatedBy={report.pharmacistName}
       generatedDate={report.generatedDate}
       meta={{ rows: [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Printer } from 'lucide-react';
+import { Printer, Download } from 'lucide-react';
 
 export interface ReportMeta {
   rows: { label: string; value: string | number | undefined | null }[];
@@ -11,6 +11,7 @@ interface PrintableReportProps {
   meta?: ReportMeta;
   generatedBy?: string;
   generatedDate?: string;
+  filename?: string;
   children: React.ReactNode;
 }
 
@@ -20,8 +21,31 @@ export default function PrintableReport({
   meta,
   generatedBy,
   generatedDate,
+  filename,
   children,
 }: PrintableReportProps) {
+  const handleDownload = async () => {
+    const { default: html2canvas } = await import('html2canvas');
+    const { default: jsPDF } = await import('jspdf');
+
+    const element = document.querySelector('.med-print-root') as HTMLElement;
+    if (!element) return;
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(filename ?? 'report.pdf');
+  };
+
   return (
     <>
       <style>{`
@@ -88,17 +112,28 @@ export default function PrintableReport({
               )}
             </div>
 
-            {/* Right: date + print button */}
+            {/* Right: date + action buttons */}
             <div className="flex flex-col items-end gap-3">
-              <button
-                onClick={() => window.print()}
-                className="no-print flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition"
-                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
-              >
-                <Printer size={14} /> Print / PDF
-              </button>
+              <div className="no-print flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition"
+                  style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+                >
+                  <Printer size={14} /> Print / PDF
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition"
+                  style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+                >
+                  <Download size={14} /> Download PDF
+                </button>
+              </div>
               {generatedDate && (
                 <div className="text-right">
                   <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.6)' }}>
