@@ -134,7 +134,7 @@ export default function PatientDashboard() {
           { label: "Pending", value: orders.filter(o => o.status === "PENDING").length, icon: CalendarCheck2, color: "bg-amber-500/10 text-amber-600" },
           { label: "Substitutions", value: substitutions.length, icon: RefreshCw, color: "bg-violet-500/10 text-violet-600" },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm flex items-center gap-3">
+          <div key={stat.label} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm flex items-center gap-3 hover:shadow-md hover:border-teal-100 transition-all duration-200">
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
               <stat.icon size={18} />
             </div>

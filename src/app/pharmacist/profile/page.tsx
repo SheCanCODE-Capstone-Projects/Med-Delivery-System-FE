@@ -29,40 +29,61 @@ export default function PharmacistProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const st = profile ? getStatus(profile.isActive, profile.isVerified) : null;
+  const statusBadge: Record<string, string> = {
+    'Active':               'bg-emerald-50 text-emerald-700 border-emerald-200',
+    'Pending Verification': 'bg-amber-50 text-amber-700 border-amber-200',
+    'Deactivated':          'bg-rose-50 text-rose-700 border-rose-200',
+    'Setup Needed':         'bg-amber-50 text-amber-700 border-amber-200',
+  };
+
   return (
-    <div>
+    <div className="max-w-2xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">My Profile</h1>
         <p className="text-slate-500 mt-1 text-sm">Your pharmacist account details.</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 gap-3 text-slate-400">
-          <Loader2 className="animate-spin" size={22} />
-          <span>Loading profile…</span>
+        <div className="flex flex-col items-center justify-center min-h-[240px] gap-3 text-slate-400">
+          <Loader2 className="animate-spin" size={28} />
+          <span className="text-sm">Loading profile…</span>
         </div>
       ) : error ? (
-        <p className="text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-sm">{error}</p>
+        <div className="bg-rose-50 border border-rose-100 rounded-2xl px-5 py-4 text-rose-700 text-sm font-medium">
+          {error}
+        </div>
       ) : !profile ? (
-        <p className="text-slate-400 text-sm">Profile not found. Please contact your pharmacy manager.</p>
+        <div className="text-center py-16 text-slate-400">
+          <UserRound size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium">Profile not found.</p>
+          <p className="text-xs mt-1">Please contact your pharmacy manager.</p>
+        </div>
       ) : (
-        <div className="max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Avatar section */}
-          <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-8 flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/40">
-              <UserRound className="h-8 w-8 text-white" />
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Avatar / Banner */}
+          <div className="bg-gradient-to-br from-teal-600 to-teal-500 px-6 py-8 flex items-center gap-5">
+            <div className="h-20 w-20 rounded-full bg-white/15 flex items-center justify-center border-2 border-white/30 shrink-0 shadow-lg">
+              <UserRound className="h-10 w-10 text-white" />
             </div>
-            <div>
-              <p className="text-white font-bold text-lg leading-tight">{profile.fullName}</p>
-              <p className="text-teal-100 text-sm mt-0.5">{profile.email}</p>
-              <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold">
-                Pharmacist
-              </span>
+            <div className="min-w-0">
+              <p className="text-white font-bold text-xl leading-tight truncate">{profile.fullName}</p>
+              <p className="text-teal-100 text-sm mt-0.5 truncate">{profile.email}</p>
+              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold border border-white/20">
+                  Pharmacist
+                </span>
+                {st && (
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusBadge[st.label]}`}>
+                    {st.label}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Details */}
-          <div className="p-6 space-y-1">
+          {/* Info grid */}
+          <div className="divide-y divide-slate-50">
             {[
               { label: 'Full Name',     value: profile.fullName },
               { label: 'Email',         value: profile.email },
@@ -71,29 +92,29 @@ export default function PharmacistProfilePage() {
               { label: 'Pharmacy',      value: profile.pharmacyName ?? '—' },
               { label: 'Branch',        value: profile.branchName ?? '—' },
             ].map((row) => (
-              <div key={row.label} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                <span className="text-sm text-slate-500 font-medium">{row.label}</span>
-                <span className="text-sm font-semibold text-slate-800">{row.value}</span>
+              <div key={row.label} className="flex items-center justify-between px-6 py-3.5">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">{row.label}</span>
+                <span className="text-sm font-semibold text-slate-800 text-right max-w-[60%] truncate">{row.value}</span>
               </div>
             ))}
-            {/* Status row — 4-state */}
-            {(() => {
-              const st = getStatus(profile.isActive, profile.isVerified);
-              return (
-                <div className="flex items-center justify-between py-3">
-                  <span className="text-sm text-slate-500 font-medium">Status</span>
-                  <span className={`text-sm font-semibold ${st.color}`}>{st.label}</span>
-                </div>
-              );
-            })()}
+            {st && (
+              <div className="flex items-center justify-between px-6 py-3.5">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Status</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusBadge[st.label]}`}>
+                  {st.label}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="px-6 pb-6 space-y-3">
-            {/* Hint when not fully active */}
-            {!(profile.isActive && profile.isVerified) && (
-              <p className="text-xs text-amber-700 bg-amber-50 rounded-xl px-4 py-3 border border-amber-100">
-                {STATUS_HINT[getStatus(profile.isActive, profile.isVerified).label]}
-              </p>
+          {/* Notices */}
+          <div className="px-6 pb-6 pt-4 space-y-3">
+            {st && !(profile.isActive && profile.isVerified) && (
+              <div className="flex gap-3 bg-amber-50 border-l-4 border-amber-400 rounded-xl px-4 py-3">
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  {STATUS_HINT[st.label]}
+                </p>
+              </div>
             )}
             <p className="text-xs text-slate-400 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
               To update your profile details, please contact your pharmacy manager.

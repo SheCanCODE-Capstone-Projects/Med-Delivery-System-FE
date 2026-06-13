@@ -33,7 +33,7 @@ export default function BranchReportsPage() {
 
   return (
     <div>
-      <div className="no-print flex items-center gap-2 mb-4 flex-wrap">
+      <div className="no-print bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4 flex items-center gap-2 flex-wrap">
         {PERIODS.map((p) => (
           <button
             key={p.value}

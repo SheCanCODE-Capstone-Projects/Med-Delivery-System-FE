@@ -7,7 +7,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex items-start gap-4">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex items-start gap-4 hover:shadow-md hover:border-teal-100 transition-all duration-200">
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>
         <Icon size={20} className="text-white" />
       </div>
@@ -47,25 +47,23 @@ export default function BranchManagerDashboard() {
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Branch Dashboard</h1>
-        {branch && (
-          <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm">
-            <GitBranch size={14} />
-            <span className="font-semibold text-slate-700">{branch.name}</span>
-            {branch.address && (
-              <>
-                <MapPin size={12} className="ml-1" />
-                <span>{branch.address}</span>
-              </>
-            )}
-            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold border ${
-              branch.status === 'ACTIVE'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                : 'bg-rose-50 text-rose-700 border-rose-100'
-            }`}>{branch.status}</span>
-          </div>
-        )}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-700 to-teal-500 px-6 py-8 mb-6 text-white shadow-lg">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <div className="relative">
+          <p className="text-teal-100 text-xs font-semibold tracking-widest uppercase mb-1">Branch Dashboard</p>
+          <h1 className="text-2xl font-bold leading-tight">{branch?.name ?? 'My Branch'}</h1>
+          {branch && (
+            <div className="flex items-center gap-3 mt-2 text-teal-100 text-sm flex-wrap">
+              {branch.address && (
+                <span className="flex items-center gap-1.5"><MapPin size={13} />{branch.address}</span>
+              )}
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                branch.status === 'ACTIVE' ? 'bg-white/20 text-white' : 'bg-rose-400/30 text-rose-100'
+              }`}>{branch.status}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -79,7 +77,7 @@ export default function BranchManagerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
           <h2 className="text-base font-bold text-slate-800 mb-4">Order Summary</h2>
           <div className="space-y-3">
             {[
@@ -98,7 +96,7 @@ export default function BranchManagerDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
           <h2 className="text-base font-bold text-slate-800 mb-4">Branch Info</h2>
           {branch && (
             <div className="space-y-3 text-sm">

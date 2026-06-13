@@ -35,7 +35,7 @@ export default function ReportsPage() {
         <p className="text-sm text-slate-500 mt-1">Comprehensive report generated from your pharmacy data</p>
       </div>
 
-      <div className="no-print flex items-center gap-2 flex-wrap">
+      <div className="no-print bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-2 flex-wrap">
         {PERIODS.map((p) => (
           <button
             key={p.value}

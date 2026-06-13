@@ -250,13 +250,6 @@ export default function Signup() {
               Sign in
             </Link>
           </p>
-
-          <p className="mt-2 text-center text-sm text-slate-500">
-            Own a pharmacy?{" "}
-            <Link href="/auth/pharmacy-signup" className="font-bold text-teal-700 hover:text-teal-900">
-              Register your pharmacy
-            </Link>
-          </p>
         </div>
         </section>
       </div>

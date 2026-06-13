@@ -103,7 +103,7 @@ function StatCard({ label, value, sub, subColor, icon: Icon, iconBg, iconColor }
   icon: React.ElementType; iconBg: string; iconColor: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md hover:border-slate-200 transition-all duration-200">
       <div className="flex justify-between items-start mb-4">
         <span className="text-sm font-medium text-slate-500">{label}</span>
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
@@ -208,9 +208,14 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">System Overview</h1>
-        <p className="text-slate-500 mt-0.5">MedDelivery Super Admin Panel</p>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0B2F2B] to-[#0E9384] px-6 py-7 text-white shadow-lg">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <div className="relative">
+          <p className="text-teal-200 text-xs font-bold tracking-widest uppercase mb-1">Super Admin</p>
+          <h1 className="text-2xl font-bold text-white leading-tight">System Overview</h1>
+          <p className="text-teal-100 text-sm mt-0.5">MedDelivery platform-wide management panel</p>
+        </div>
       </div>
 
       {/* Stat Cards */}

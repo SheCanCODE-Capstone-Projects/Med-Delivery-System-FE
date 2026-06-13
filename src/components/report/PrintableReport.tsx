@@ -35,7 +35,11 @@ export default function PrintableReport({
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000,
+        ignoreElements: (el) => el.classList.contains('no-print'),
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -47,7 +51,8 @@ export default function PrintableReport({
       pdf.save(filename ?? 'report.pdf');
     } catch (err) {
       console.error('PDF download failed:', err);
-      alert('Download failed. Please try Print / PDF instead.');
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Download failed: ${msg}\n\nTry the Print button and choose "Save as PDF" instead.`);
     }
   };
 

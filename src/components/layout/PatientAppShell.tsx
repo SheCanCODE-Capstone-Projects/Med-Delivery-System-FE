@@ -51,10 +51,10 @@ function NavItem({
     <Link
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-150 ${
         isActive
-          ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20"
-          : "text-slate-400 hover:text-white hover:bg-white/5"
+          ? "bg-teal-500 text-white shadow-md shadow-teal-500/25 font-semibold"
+          : "text-slate-400 hover:text-white hover:bg-white/5 font-medium"
       }`}
     >
       <Icon size={18} />
@@ -273,7 +273,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-700/50">
+      <div className="p-4 border-t border-white/10 mt-2">
         <div className="px-4 mb-3">
           <p className="text-sm font-semibold text-white leading-tight truncate">
             {userName ?? "Patient"}
@@ -282,7 +282,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
         >
           <LogOut size={18} />
           Logout
@@ -297,7 +297,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden"
           onClick={closeSidebar}
         />
       )}
@@ -317,7 +317,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
+        <header className="h-16 bg-white border-b border-slate-100 shadow-sm flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -350,7 +350,7 @@ export default function PatientAppShell({ children }: Readonly<{ children: React
         </header>
 
         {/* Page Content */}
-        <div className="p-4 sm:p-6 lg:p-8 flex-1 overflow-auto">
+        <div className="p-4 sm:p-6 lg:p-8 flex-1 overflow-auto bg-slate-50">
           {children}
         </div>
       </main>
