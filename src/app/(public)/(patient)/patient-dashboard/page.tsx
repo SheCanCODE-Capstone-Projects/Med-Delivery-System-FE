@@ -62,13 +62,6 @@ export default function PatientDashboard() {
 
   useEffect(() => { setUserId(getUserId()); }, []);
 
-  // Refresh active orders in real-time when status changes
-  useOrderWebSocket(userId, (payload) => {
-    if (payload.type === "ORDER_STATUS_UPDATE" || payload.type === "SUBSTITUTION_REQUEST") {
-      load();
-    }
-  });
-
   const load = () => {
     setLoading(true);
     setError("");
@@ -83,6 +76,13 @@ export default function PatientDashboard() {
     }).catch(() => setError("Could not load dashboard data."))
     .finally(() => setLoading(false));
   };
+
+  // Refresh active orders in real-time when status changes
+  useOrderWebSocket(userId, (payload) => {
+    if (payload.type === "ORDER_STATUS_UPDATE" || payload.type === "SUBSTITUTION_REQUEST") {
+      load();
+    }
+  });
 
   useEffect(() => { load(); }, []);
 

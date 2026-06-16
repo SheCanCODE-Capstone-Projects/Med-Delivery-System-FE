@@ -45,17 +45,6 @@ export default function PharmacistDashboard() {
     getNotifications().then((n) => setRecentActivity(n.slice(0, 4))).catch(() => {});
   }, []);
 
-  // Real-time new order alerts for this pharmacy
-  usePharmacyWebSocket(pharmacyId, (payload) => {
-    if (payload.type === 'NEW_ORDER') {
-      load();
-      const msg = payload.message as string | undefined;
-      setNewOrderAlert(msg ?? 'A new order has been assigned to your pharmacy.');
-      setTimeout(() => setNewOrderAlert(null), 6000);
-      getNotifications().then((n) => setRecentActivity(n.slice(0, 4))).catch(() => {});
-    }
-  });
-
   const load = async () => {
     setLoading(true);
     setError('');
@@ -67,6 +56,17 @@ export default function PharmacistDashboard() {
       setLoading(false);
     }
   };
+
+  // Real-time new order alerts for this pharmacy
+  usePharmacyWebSocket(pharmacyId, (payload) => {
+    if (payload.type === 'NEW_ORDER') {
+      load();
+      const msg = payload.message as string | undefined;
+      setNewOrderAlert(msg ?? 'A new order has been assigned to your pharmacy.');
+      setTimeout(() => setNewOrderAlert(null), 6000);
+      getNotifications().then((n) => setRecentActivity(n.slice(0, 4))).catch(() => {});
+    }
+  });
 
   useEffect(() => { load(); }, []);
 
