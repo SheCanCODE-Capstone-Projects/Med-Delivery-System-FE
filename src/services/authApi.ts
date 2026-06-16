@@ -38,6 +38,7 @@ export async function login(credentials: LoginRequest): Promise<AuthResponse> {
 
   setTokens(accessToken, refreshToken);
   localStorage.setItem('user_role', role);
+  localStorage.setItem('user_id', String(userId));
   if (fullName) localStorage.setItem('user_name', fullName);
   if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
 
@@ -80,6 +81,7 @@ export async function verifyOtp(data: OtpVerifyRequest): Promise<AuthResponse> {
 
   setTokens(accessToken, refreshToken);
   localStorage.setItem('user_role', role);
+  localStorage.setItem('user_id', String(userId));
   if (fullName) localStorage.setItem('user_name', fullName);
   if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
   return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
@@ -101,6 +103,7 @@ export async function setPassword(data: SetPasswordRequest): Promise<AuthRespons
   const userId = (raw.userId ?? 0) as number;
   setTokens(accessToken, refreshToken);
   localStorage.setItem('user_role', role);
+  localStorage.setItem('user_id', String(userId));
   if (fullName) localStorage.setItem('user_name', fullName);
   if (pharmacyId) localStorage.setItem('pharmacy_id', String(pharmacyId));
   return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
@@ -129,6 +132,7 @@ export async function resetPassword(data: ResetPasswordRequest): Promise<AuthRes
   const userId = (raw.userId ?? 0) as number;
   setTokens(accessToken, refreshToken);
   localStorage.setItem('user_role', role);
+  localStorage.setItem('user_id', String(userId));
   if (fullName) localStorage.setItem('user_name', fullName);
   return { accessToken, refreshToken, tokenType: 'Bearer', role, userId, fullName, pharmacyId };
 }
@@ -171,6 +175,12 @@ export function getUserName(): string | null {
 export function getPharmacyId(): number | null {
   if (typeof window === 'undefined') return null;
   const id = localStorage.getItem('pharmacy_id');
+  return id ? Number(id) : null;
+}
+
+export function getUserId(): number | null {
+  if (typeof window === 'undefined') return null;
+  const id = localStorage.getItem('user_id');
   return id ? Number(id) : null;
 }
 

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import PatientAppShell from "@/components/layout/PatientAppShell";
 import { getMyOrders, getMyProfile, getPendingSubstitutions } from "@/services/patientApi";
+import { getUserId } from "@/services/authApi";
+import { useOrderWebSocket } from "@/hooks/useOrderWebSocket";
 import type { OrderResponse, PatientProfileResponse, SubstitutionResponse } from "@/types/api";
 
 const STATUS_TONE: Record<string, string> = {
@@ -56,6 +58,16 @@ export default function PatientDashboard() {
   const [substitutions, setSubstitutions] = useState<SubstitutionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => { setUserId(getUserId()); }, []);
+
+  // Refresh active orders in real-time when status changes
+  useOrderWebSocket(userId, (payload) => {
+    if (payload.type === "ORDER_STATUS_UPDATE" || payload.type === "SUBSTITUTION_REQUEST") {
+      load();
+    }
+  });
 
   const load = () => {
     setLoading(true);

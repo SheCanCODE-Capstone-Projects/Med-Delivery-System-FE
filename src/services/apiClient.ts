@@ -28,6 +28,7 @@ function clearTokens(): void {
   localStorage.removeItem('user_role');
   localStorage.removeItem('user_name');
   localStorage.removeItem('pharmacy_id');
+  localStorage.removeItem('user_id');
   localStorage.removeItem('user_info');
 }
 

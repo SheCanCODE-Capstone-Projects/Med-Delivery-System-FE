@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Check, CheckCheck, Package, ShieldCheck, RefreshCw, X } from "lucide-react";
 import { getNotifications, markRead, markAllRead } from "@/services/notificationApi";
+import { getUserId } from "@/services/authApi";
+import { useOrderWebSocket } from "@/hooks/useOrderWebSocket";
 import type { NotificationItem } from "@/types/api";
 
 function typeIcon(type: string) {
@@ -29,7 +31,10 @@ export default function NotificationBell() {
   const [items, setItems]         = useState<NotificationItem[]>([]);
   const [loading, setLoading]     = useState(false);
   const [unread, setUnread]       = useState(0);
+  const [userId, setUserId]       = useState<number | null>(null);
   const panelRef                  = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setUserId(getUserId()); }, []);
 
   const load = async () => {
     setLoading(true);
@@ -44,7 +49,10 @@ export default function NotificationBell() {
     }
   };
 
-  // Poll every 30 seconds
+  // WebSocket: reload badge immediately when any notification arrives
+  useOrderWebSocket(userId, () => { load(); });
+
+  // Poll every 30 seconds as fallback
   useEffect(() => {
     load();
     const interval = setInterval(load, 30_000);

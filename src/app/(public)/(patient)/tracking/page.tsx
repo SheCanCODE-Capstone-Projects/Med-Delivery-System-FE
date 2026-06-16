@@ -28,6 +28,8 @@ import {
   confirmPayment,
   getPaymentDetails,
 } from "@/services/patientApi";
+import { getUserId } from "@/services/authApi";
+import { useOrderWebSocket } from "@/hooks/useOrderWebSocket";
 import type { OrderResponse, SubstitutionResponse, PaymentResponse } from "@/types/api";
 
 const STATUS_TONE: Record<string, string> = {
@@ -225,6 +227,30 @@ export default function TrackingPage() {
   const [payLoading, setPayLoading] = useState<Record<number, boolean>>({});
   const [payError, setPayError] = useState<Record<number, string>>({});
   const [paymentDetails, setPaymentDetails] = useState<Record<number, PaymentResponse>>({});
+  const [userId, setUserId] = useState<number | null>(null);
+  const [liveAlert, setLiveAlert] = useState<string | null>(null);
+
+  useEffect(() => { setUserId(getUserId()); }, []);
+
+  // Real-time order status updates via WebSocket
+  useOrderWebSocket(userId, (payload) => {
+    if (payload.type === "ORDER_STATUS_UPDATE") {
+      const updated = payload.order as OrderResponse | undefined;
+      if (updated) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o))
+        );
+      }
+      const msg = payload.message as string | undefined;
+      if (msg) {
+        setLiveAlert(msg);
+        setTimeout(() => setLiveAlert(null), 6000);
+      }
+    } else if (payload.type === "SUBSTITUTION_REQUEST") {
+      // Reload substitutions when pharmacist suggests one
+      load();
+    }
+  });
 
   const load = async () => {
     setLoading(true);
@@ -315,6 +341,13 @@ export default function TrackingPage() {
 
   return (
     <PatientAppShell>
+      {liveAlert && (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-800 shadow-sm animate-pulse">
+          <RefreshCw size={15} className="shrink-0 text-teal-600" />
+          <span>{liveAlert}</span>
+        </div>
+      )}
+
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Order Tracking</h1>

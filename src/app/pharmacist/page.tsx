@@ -10,7 +10,8 @@ import {
 import { getAssignedOrders, validatePrescription, confirmStock, dispenseMedicine } from '@/services/pharmacistApi';
 import { getNotifications } from '@/services/notificationApi';
 import type { DispensingOrderResponse, NotificationItem } from '@/types/api';
-import { getUserName } from '@/services/authApi';
+import { getUserName, getPharmacyId } from '@/services/authApi';
+import { usePharmacyWebSocket } from '@/hooks/useOrderWebSocket';
 
 const STATUS_STYLE: Record<string, { pill: string; dot: string; label: string }> = {
   PENDING:    { pill: 'bg-amber-50 text-amber-700 border-amber-200',    dot: 'bg-amber-400',   label: 'Pending' },
@@ -35,11 +36,25 @@ export default function PharmacistDashboard() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [recentActivity, setRecentActivity] = useState<NotificationItem[]>([]);
+  const [pharmacyId, setPharmacyId] = useState<number | null>(null);
+  const [newOrderAlert, setNewOrderAlert] = useState<string | null>(null);
 
   useEffect(() => { setUserName(getUserName()); }, []);
+  useEffect(() => { setPharmacyId(getPharmacyId()); }, []);
   useEffect(() => {
     getNotifications().then((n) => setRecentActivity(n.slice(0, 4))).catch(() => {});
   }, []);
+
+  // Real-time new order alerts for this pharmacy
+  usePharmacyWebSocket(pharmacyId, (payload) => {
+    if (payload.type === 'NEW_ORDER') {
+      load();
+      const msg = payload.message as string | undefined;
+      setNewOrderAlert(msg ?? 'A new order has been assigned to your pharmacy.');
+      setTimeout(() => setNewOrderAlert(null), 6000);
+      getNotifications().then((n) => setRecentActivity(n.slice(0, 4))).catch(() => {});
+    }
+  });
 
   const load = async () => {
     setLoading(true);
@@ -91,6 +106,12 @@ export default function PharmacistDashboard() {
 
   return (
     <div className="space-y-6">
+      {newOrderAlert && (
+        <div className="flex items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-800 shadow-sm">
+          <Bell size={15} className="shrink-0 text-teal-600 animate-bounce" />
+          <span>{newOrderAlert}</span>
+        </div>
+      )}
 
       {/* Workstation Header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-8 flex flex-wrap items-center justify-between gap-4">
