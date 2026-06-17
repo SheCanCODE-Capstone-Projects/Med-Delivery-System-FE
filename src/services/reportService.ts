@@ -16,7 +16,7 @@ export interface ReportAnalytics {
   ordersByStatus?: Record<string, number>;
 }
 
-export interface SuperAdminReport {
+export interface SuperAdminReport extends ReportAnalytics {
   generatedBy: string;
   generatedDate: string;
   reportPeriod?: string;

@@ -3,10 +3,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Building2, Users, Clock, CheckCircle2, XCircle, Eye, Loader2, AlertCircle, ShieldCheck,
+  ClipboardList, Wallet,
 } from 'lucide-react';
 import {
   getAllPharmaciesAdmin, approvePharmacy, getAuditLogs, searchUsers,
 } from '@/services/adminApi';
+import { getSuperAdminReport, type SuperAdminReport } from '@/services/reportService';
+import AnalyticsCharts from '@/components/analytics/AnalyticsCharts';
 import type { PharmacyResponse, AuditLogResponse } from '@/types/api';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -126,6 +129,7 @@ export default function AnalyticsPage() {
   const [allPharmacies, setAllPharmacies] = useState<PharmacyResponse[]>([]);
   const [activeUsers, setActiveUsers] = useState(0);
   const [recentActivity, setRecentActivity] = useState<AuditLogResponse[]>([]);
+  const [report, setReport] = useState<SuperAdminReport | null>(null);
   const [approvingId, setApprovingId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
@@ -139,15 +143,17 @@ export default function AnalyticsPage() {
     setLoading(true);
     setError('');
     try {
-      const [pharmacies, logs, usersRes] = await Promise.all([
+      const [pharmacies, logs, usersRes, reportRes] = await Promise.all([
         getAllPharmaciesAdmin().catch(() => [] as PharmacyResponse[]),
         getAuditLogs().catch(() => [] as AuditLogResponse[]),
         searchUsers({ page: 0, size: 1 }).catch(() => ({ totalElements: 0, content: [] })),
+        getSuperAdminReport('ALL_TIME').catch(() => null),
       ]);
 
       setAllPharmacies(Array.isArray(pharmacies) ? pharmacies : []);
       setActiveUsers(usersRes?.totalElements ?? 0);
       setRecentActivity(Array.isArray(logs) ? logs.slice(0, 4) : []);
+      setReport(reportRes);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
@@ -219,12 +225,16 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard label="Total Pharmacies" value={allPharmacies.length}
           sub={`${activePharmacies.length} active`}
           icon={Building2} iconBg="bg-teal-50" iconColor="text-teal-600" />
         <StatCard label="Active Users" value={activeUsers.toLocaleString()}
           sub="Registered on platform" icon={Users} iconBg="bg-violet-50" iconColor="text-violet-600" />
+        <StatCard label="Total Orders" value={Number(report?.totalOrders ?? 0).toLocaleString()}
+          sub="Platform-wide" icon={ClipboardList} iconBg="bg-sky-50" iconColor="text-sky-600" />
+        <StatCard label="Revenue (RWF)" value={Number(report?.totalRevenue ?? 0).toLocaleString()}
+          sub="Completed orders" icon={Wallet} iconBg="bg-amber-50" iconColor="text-amber-600" />
         <StatCard label="Pending Approvals" value={pendingPharmacies.length}
           sub={pendingPharmacies.length > 0 ? 'Needs review' : 'All clear'}
           subColor={pendingPharmacies.length > 0 ? 'text-amber-600' : 'text-emerald-600'}
@@ -241,6 +251,11 @@ export default function AnalyticsPage() {
           <LineChart labels={months} values={growthValues} />
         </div>
       </div>
+
+      {/* Orders & Revenue Analytics */}
+      {report && (
+        <AnalyticsCharts analytics={report} />
+      )}
 
       {/* Pending Approvals + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
