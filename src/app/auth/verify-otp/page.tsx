@@ -14,16 +14,12 @@ const copyrightYear = new Date().getFullYear();
 function SetPasswordStep({
   username,
   otp,
-  isPharmacist,
   onDone,
 }: {
   username: string;
   otp: string;
-  isPharmacist?: boolean;
   onDone: () => void;
 }) {
-  const [fullName, setFullName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPasswordValue] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
@@ -31,7 +27,6 @@ function SetPasswordStep({
   const [error, setError] = useState("");
 
   const validate = () => {
-    if (isPharmacist && !fullName.trim()) return "Full name is required.";
     if (password.length < 8) return "Password must be at least 8 characters.";
     if (password !== confirm) return "Passwords do not match.";
     return "";
@@ -44,12 +39,7 @@ function SetPasswordStep({
     setLoading(true);
     setError("");
     try {
-      await setPassword({
-        username,
-        otp,
-        password,
-        ...(isPharmacist && { fullName: fullName.trim(), phoneNumber: phoneNumber.trim() || undefined }),
-      });
+      await setPassword({ username, otp, password });
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to set password. Please try again.");
@@ -69,10 +59,7 @@ function SetPasswordStep({
         Create your password
       </h2>
       <p className="mt-1.5 text-sm text-slate-500">
-        {isPharmacist
-          ? "Set a password to activate your pharmacist account and start using the portal."
-          : "Set a password to access your pharmacy portal once the admin approves your application."
-        }
+        Set a password to access your pharmacy portal once the admin approves your application.
       </p>
 
       {error && (
@@ -82,32 +69,6 @@ function SetPasswordStep({
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-        {isPharmacist && (
-          <>
-            <div className="grid gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Full Name</label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => { setFullName(e.target.value); setError(""); }}
-                placeholder="Your full name"
-                autoComplete="name"
-                className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-sm font-semibold text-slate-700">Phone Number <span className="text-slate-400 font-normal">(optional)</span></label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+250 ..."
-                autoComplete="tel"
-                className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15"
-              />
-            </div>
-          </>
-        )}
         <div className="grid gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Password</label>
           <div className="relative">
@@ -151,32 +112,6 @@ function SetPasswordStep({
   );
 }
 
-// ─── Pharmacist Activated Screen ───────────────────────────────────────────────
-
-function PharmacistActivatedScreen({ username, router }: { username: string; router: ReturnType<typeof useRouter> }) {
-  return (
-    <main className="h-[100dvh] flex items-center justify-center bg-[linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)] px-4">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl border border-white/70 shadow-[0_24px_56px_rgba(11,19,39,0.14)] p-10 text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-teal-50">
-          <CheckCircle2 className="h-8 w-8 text-teal-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-slate-900">Account activated!</h2>
-        <p className="mt-3 text-sm text-slate-500 leading-relaxed">
-          Your pharmacist account is ready. Sign in with{" "}
-          <strong className="text-slate-700">{username}</strong> and your new password to access the
-          pharmacist portal.
-        </p>
-        <button
-          onClick={() => router.push("/auth/login")}
-          className="mt-6 w-full h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white shadow-[0_18px_30px_rgba(14,165,160,0.22)] hover:-translate-y-0.5 transition"
-        >
-          Go to sign in
-        </button>
-      </div>
-    </main>
-  );
-}
-
 // ─── Pending Review Screen ─────────────────────────────────────────────────────
 
 function PendingReviewScreen({ username, router }: { username: string; router: ReturnType<typeof useRouter> }) {
@@ -215,7 +150,6 @@ function OtpPageInner() {
   const username = params.get("username") ?? "";
   const after = params.get("after") ?? "";
   const isPharmacy = after === "pharmacy-submitted";
-  const isPharmacist = after === "pharmacist-setup";
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
@@ -271,7 +205,7 @@ function OtpPageInner() {
         });
       }, 1000);
     } else if (username) {
-      // Patient/pharmacist flow: auto-send OTP on mount
+      // Patient flow: auto-send OTP on mount
       handleSendOtp();
     }
     return () => {
@@ -313,8 +247,8 @@ function OtpPageInner() {
     setError("");
     slowTimerRef.current = setTimeout(() => setSlowWarning(true), 10000);
     try {
-      if (isPharmacy || isPharmacist) {
-        // For pharmacy/pharmacist: set-password endpoint handles OTP verification + password in one call.
+      if (isPharmacy) {
+        // For pharmacy: set-password endpoint handles OTP verification + password in one call.
         // Skip verifyOtp so the OTP isn't consumed before set-password uses it.
         setSubmittedOtp(otp);
         setStep("set-password");
@@ -354,10 +288,6 @@ function OtpPageInner() {
     );
   }
 
-  if (step === "done" && isPharmacist) {
-    return <PharmacistActivatedScreen username={username} router={router} />;
-  }
-
   if (step === "done" && isPharmacy) {
     return <PendingReviewScreen username={username} router={router} />;
   }
@@ -394,10 +324,7 @@ function OtpPageInner() {
                 <span className="text-teal-400">set your password.</span>
               </h1>
               <p className="mt-3 text-sm leading-6 text-white/60 max-w-[260px]">
-                {isPharmacist
-                  ? "Your identity is verified. Create a password to activate your pharmacist account."
-                  : "Your identity is verified. Create a password so you can sign in once the admin approves your pharmacy."
-                }
+                Your identity is verified. Create a password so you can sign in once the admin approves your pharmacy.
               </p>
             </div>
           </div>
@@ -407,7 +334,7 @@ function OtpPageInner() {
         </section>
         <section className="flex-1 min-w-0 overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(14,165,160,0.08),transparent_30%),linear-gradient(135deg,#edf5f8_0%,#f7f9fc_50%,#eef6f7_100%)]">
           <div className="flex min-h-full items-center justify-center px-4 py-8 sm:px-6">
-            <SetPasswordStep username={username} otp={submittedOtp} isPharmacist={isPharmacist} onDone={() => setStep("done")} />
+            <SetPasswordStep username={username} otp={submittedOtp} onDone={() => setStep("done")} />
           </div>
         </section>
       </main>
@@ -460,9 +387,6 @@ function OtpPageInner() {
                 : <>We sent a 6-digit code to <strong className="text-slate-700 break-all">{username}</strong>.</>
               }
             </p>
-            {isPharmacist && (
-              <p className="mt-1 text-xs text-slate-400">Check your email — your pharmacy admin added you to the portal.</p>
-            )}
 
             {error && (
               <p role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

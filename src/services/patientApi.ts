@@ -385,8 +385,11 @@ export interface PharmacyPublicInfo {
 }
 
 export async function getActivePharmacies(): Promise<PharmacyPublicInfo[]> {
-  const res = await apiClient<ApiResponse<PharmacyPublicInfo[]>>('/api/pharmacies/active');
-  return res.data ?? [];
+  // The backend returns a raw array for this endpoint, but some deployments wrap it
+  // in ApiResponse. Handle both shapes defensively (mirrors the mobile implementation).
+  const res = await apiClient<PharmacyPublicInfo[] | ApiResponse<PharmacyPublicInfo[]>>('/api/pharmacies/active');
+  if (Array.isArray(res)) return res;
+  return (res as ApiResponse<PharmacyPublicInfo[]>).data ?? [];
 }
 
 // Legacy exports kept for backward compatibility

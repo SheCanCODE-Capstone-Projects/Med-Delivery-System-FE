@@ -12,6 +12,7 @@ import {
   Building2,
   ClipboardList,
   LayoutGrid,
+  LineChart,
   LogOut,
   MapPin,
   Menu,
@@ -25,6 +26,7 @@ import {
 
 const navItems = [
   { icon: LayoutGrid,    label: "Dashboard",        href: "/patient-dashboard" },
+  { icon: LineChart,     label: "Analytics",         href: "/patient-dashboard/analytics" },
   { icon: Pill,          label: "Request Medicine",  href: "/order" },
   { icon: ClipboardList, label: "Track Orders",      href: "/tracking" },
   { icon: MapPin,        label: "Locations",         href: "/locations" },

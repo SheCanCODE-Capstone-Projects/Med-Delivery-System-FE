@@ -7,6 +7,7 @@ import {
   Users,
   Package2,
   BarChart2,
+  LineChart,
   UserRound,
   LogOut,
   Menu,
@@ -78,6 +79,7 @@ export default function BranchManagerLayout({ children }: { children: React.Reac
 
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
         <NavItem href="/branch-manager" icon={LayoutDashboard} label="Dashboard" exact onClick={closeSidebar} />
+        <NavItem href="/branch-manager/analytics" icon={LineChart} label="Analytics" onClick={closeSidebar} />
         <NavItem href="/branch-manager/pharmacists" icon={Users} label="Pharmacists" onClick={closeSidebar} />
         <NavItem href="/branch-manager/inventory" icon={Package2} label="Inventory" onClick={closeSidebar} />
         <NavItem href="/branch-manager/orders" icon={ClipboardList} label="Orders" onClick={closeSidebar} />

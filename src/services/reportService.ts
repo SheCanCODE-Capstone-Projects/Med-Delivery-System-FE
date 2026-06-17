@@ -3,6 +3,19 @@ import type { ApiResponse } from '@/types/api';
 
 // ── Shared report types ───────────────────────────────────────────────────────
 
+/** A single point in a "last 6 months" analytics series. `value` = order count or revenue amount. */
+export interface MonthlyPoint {
+  month: string;   // short label, e.g. "Jan"
+  value: number;
+}
+
+/** Analytics fields shared by every comprehensive report (last 6 months). */
+export interface ReportAnalytics {
+  ordersByMonth?: MonthlyPoint[];
+  revenueByMonth?: MonthlyPoint[];
+  ordersByStatus?: Record<string, number>;
+}
+
 export interface SuperAdminReport {
   generatedBy: string;
   generatedDate: string;
@@ -18,7 +31,7 @@ export interface SuperAdminReport {
   recentAuditActivities: { userEmail: string; action: string; ipAddress: string; timestamp: string }[];
 }
 
-export interface PharmacyAdminReport {
+export interface PharmacyAdminReport extends ReportAnalytics {
   pharmacyName: string;
   reportPeriod: string;
   generatedBy: string;
@@ -34,7 +47,7 @@ export interface PharmacyAdminReport {
   lowStockMedicines: { medicineName: string; currentStock: number; reorderLevel: number; branch: string }[];
 }
 
-export interface BranchManagerReport {
+export interface BranchManagerReport extends ReportAnalytics {
   branchName: string;
   managerName: string;
   reportPeriod: string;
@@ -53,7 +66,7 @@ export interface BranchManagerReport {
   staffActivities: { pharmacistName: string; pharmacistId: string; ordersHandled: number; active: boolean }[];
 }
 
-export interface PharmacistReport {
+export interface PharmacistReport extends ReportAnalytics {
   pharmacistName: string;
   pharmacistId: string;
   branch: string;
@@ -70,7 +83,7 @@ export interface PharmacistReport {
   rejectedPrescriptions: { orderId: number; patientName: string; reason: string; date: string }[];
 }
 
-export interface PatientReport {
+export interface PatientReport extends ReportAnalytics {
   patientName: string;
   patientId: number;
   reportDate: string;

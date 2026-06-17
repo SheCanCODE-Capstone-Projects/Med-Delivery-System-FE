@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   BarChart2,
+  LineChart,
   GitBranch,
   Shield,
 } from 'lucide-react';
@@ -63,6 +64,7 @@ export default function PharmacyAdminLayout({ children }: { children: React.Reac
   const navLinks = (
     <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
       <NavItem href="/Pharmacy-admin" label="Dashboard" icon={LayoutDashboard} exact onClick={closeSidebar} />
+      <NavItem href="/Pharmacy-admin/analytics" label="Analytics" icon={LineChart} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/employees" label="Manage Personnel" icon={Users} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/branches" label="Branches" icon={GitBranch} onClick={closeSidebar} />
       <NavItem href="/Pharmacy-admin/insurance" label="Insurance" icon={Shield} onClick={closeSidebar} />

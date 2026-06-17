@@ -31,6 +31,13 @@ export interface BranchManagerSetupRequest {
   contactInfo?: string;
 }
 
+export interface PharmacistSetupRequest {
+  token: string;
+  fullName: string;
+  password: string;
+  phoneNumber?: string;
+}
+
 export async function validateInvitationToken(token: string): Promise<InvitationValidateResponse> {
   const r = await apiClient<{ data: InvitationValidateResponse }>(
     `/api/invitations/validate?token=${encodeURIComponent(token)}`
@@ -47,6 +54,13 @@ export async function setupPharmacyAdmin(request: PharmacyAdminSetupRequest): Pr
 
 export async function setupBranchManager(request: BranchManagerSetupRequest): Promise<void> {
   await apiClient('/api/invitations/branch-manager-setup', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+export async function setupPharmacist(request: PharmacistSetupRequest): Promise<void> {
+  await apiClient('/api/invitations/pharmacist-setup', {
     method: 'POST',
     body: JSON.stringify(request),
   });
