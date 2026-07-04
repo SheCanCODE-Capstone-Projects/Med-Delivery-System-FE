@@ -17,6 +17,7 @@ import type {
   PaymentResponse,
   InsuranceCardResponse,
 } from '@/types/api';
+import type { BranchResponse } from './branchService';
 
 export async function getDashboardStats(): Promise<DashboardStatsResponse> {
   const res = await apiClient<unknown>('/api/admin/dashboard/stats');
@@ -83,6 +84,11 @@ export async function replacePharmacyManager(
     method: 'PUT',
     body: JSON.stringify(request),
   });
+}
+
+export async function getPharmacyBranches(id: number): Promise<BranchResponse[]> {
+  const res = await apiClient<ApiResponse<BranchResponse[]>>(`/api/admin/pharmacies/${id}/branches`);
+  return Array.isArray(res?.data) ? res.data : [];
 }
 
 export async function getAllInsuranceProviders(): Promise<InsuranceProvider[]> {

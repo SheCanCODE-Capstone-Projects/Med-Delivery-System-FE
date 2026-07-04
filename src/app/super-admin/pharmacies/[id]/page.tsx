@@ -16,10 +16,14 @@ import {
   AlertTriangle,
   Ban,
   UserCog,
+  Store,
+  Users,
+  Package,
 } from 'lucide-react';
 import { getPharmacy } from '@/services/pharmacyApi';
-import { approvePharmacy, suspendPharmacy, reactivatePharmacy, replacePharmacyManager } from '@/services/adminApi';
+import { approvePharmacy, suspendPharmacy, reactivatePharmacy, replacePharmacyManager, getPharmacyBranches } from '@/services/adminApi';
 import type { PharmacyResponse } from '@/types/api';
+import type { BranchResponse } from '@/services/branchService';
 
 const STATUS_STYLE: Record<string, string> = {
   ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-100',
@@ -45,6 +49,8 @@ export default function PharmacyDetailsPage() {
   const [newManagerName, setNewManagerName] = useState('');
   const [replaceManagerLoading, setReplaceManagerLoading] = useState(false);
   const [replaceManagerMsg, setReplaceManagerMsg] = useState('');
+  const [branches, setBranches] = useState<BranchResponse[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
@@ -52,6 +58,14 @@ export default function PharmacyDetailsPage() {
       .then(setPharmacy)
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load pharmacy'))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    getPharmacyBranches(Number(id))
+      .then(setBranches)
+      .catch(() => setBranches([]))
+      .finally(() => setBranchesLoading(false));
   }, [id]);
 
   const handleApprove = async () => {
@@ -286,6 +300,57 @@ export default function PharmacyDetailsPage() {
                   value={pharmacy.createdAt ? new Date(pharmacy.createdAt).toLocaleDateString() : '—'}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Branches */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <Store size={16} className="text-teal-600" />
+              Branches ({branches.length})
+            </div>
+            <div className="p-6">
+              {branchesLoading ? (
+                <div className="flex items-center justify-center gap-3 py-6 text-slate-400">
+                  <Loader2 className="animate-spin" size={18} /> Loading branches…
+                </div>
+              ) : branches.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-6">No branches yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {branches.map((b) => (
+                    <div
+                      key={b.id}
+                      className="flex flex-wrap items-start justify-between gap-3 p-4 rounded-xl border border-slate-100 hover:border-teal-100 hover:bg-slate-50/60 transition"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-slate-800">{b.name}</p>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_STYLE[b.status] ?? 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                            {b.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                          <MapPin size={12} /> {b.address || '—'}
+                        </p>
+                        {b.managerName && (
+                          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                            <User size={12} /> {b.managerName}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 text-xs font-semibold" title="Pharmacists">
+                          <Users size={12} /> {b.pharmacistCount}
+                        </span>
+                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold" title="Inventory items">
+                          <Package size={12} /> {b.inventoryItemCount}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
