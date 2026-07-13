@@ -22,6 +22,7 @@ const navLinks: NavLink[] = [
   { label: 'Home', href: '/' },
   { label: 'Benefits', href: '#features' },
   { label: 'Reviews', href: '#reviews' },
+  { label: 'For Pharmacies', href: '#for-pharmacies' },
 ];
 
 const steps: StepItem[] = [
@@ -136,7 +137,7 @@ const footerColumns: FooterColumn[] = [
     heading: 'Product',
     links: [
       { label: 'How it Works', href: '#how' },
-      { label: 'Pharmacies', href: '/auth/pharmacy-signup' },
+      { label: 'Pharmacies', href: '#for-pharmacies' },
       { label: 'Pricing', href: '#' },
       { label: 'Security', href: '#features' },
     ],
@@ -146,8 +147,8 @@ const footerColumns: FooterColumn[] = [
     links: [
       { label: 'About Us', href: '#' },
       { label: 'Careers', href: '#' },
-      { label: 'Contact', href: '#' },
-      { label: 'Partners', href: '#' },
+      { label: 'Contact', href: '#for-pharmacies' },
+      { label: 'Partners', href: '#for-pharmacies' },
     ],
   },
   {
@@ -327,13 +328,13 @@ function Hero(): React.JSX.Element {
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </Link>
-          <Link
-            href="/auth/pharmacy-signup"
+          <a
+            href="#for-pharmacies"
             className="font-medium no-underline px-7 py-3 rounded-lg transition-all inline-flex items-center border"
             style={{ color: '#0E9384', borderColor: '#0E9384', background: 'transparent', fontSize: '0.95rem' }}
           >
             For Pharmacies
-          </Link>
+          </a>
         </div>
 
         {/* Trust stats */}
@@ -520,13 +521,119 @@ function CTAStrip(): React.JSX.Element {
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </Link>
-          <Link
-            href="/auth/pharmacy-signup"
+          <a
+            href="#for-pharmacies"
             className="font-medium no-underline px-8 py-3 rounded-lg transition-all inline-flex items-center border"
             style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.55)', background: 'transparent', fontSize: '0.95rem' }}
           >
             Register Your Pharmacy
-          </Link>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── For Pharmacies (Partner with us) ───────────────────────────────────── */
+
+// NOTE: replace these placeholders with the real contact details before launch.
+const PARTNER_EMAIL = 'partners@meddelivery.rw';
+const PARTNER_PHONE_DISPLAY = '+250 788 000 000';
+const PARTNER_PHONE_E164 = '+250788000000'; // used for tel: and wa.me links
+const PARTNER_OFFICE = 'Kigali, Rwanda';
+
+const partnerSteps: { step: string; title: string; description: string }[] = [
+  { step: '01', title: 'Get in touch', description: 'Reach out using the details on the right — email, phone, or WhatsApp — and tell us about your pharmacy.' },
+  { step: '02', title: 'Meet & verify', description: 'We meet to confirm your licence, discuss the partnership, and answer your questions.' },
+  { step: '03', title: 'Get invited & go live', description: 'We set up your pharmacy admin account; you complete setup, add your stock, and start receiving orders.' },
+];
+
+function ForPharmacies(): React.JSX.Element {
+  return (
+    <section id="for-pharmacies" className="px-[6%] py-[90px]" style={{ background: '#f8fffe', borderTop: '1px solid #e8f5f3' }}>
+      <div className="text-center mb-12">
+        <p className="text-xs font-bold tracking-[0.16em] uppercase mb-2" style={{ color: '#0E9384' }}>For Pharmacies</p>
+        <h2 className="font-bold mb-3" style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', color: '#0F172A' }}>
+          Bring Your Pharmacy onto MedDelivery
+        </h2>
+        <p className="max-w-xl mx-auto" style={{ color: '#6B7280', fontSize: '1rem' }}>
+          Pharmacies join by invitation after a quick verification. Here&apos;s how the partnership works — and how to reach us to get started.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start max-w-5xl mx-auto">
+        {/* Left — process steps */}
+        <div className="flex flex-col gap-5">
+          {partnerSteps.map((s) => (
+            <div key={s.step} className="flex gap-4 items-start rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #d8f5ef' }}>
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 text-sm font-black" style={{ background: 'rgba(2,195,154,0.12)', color: '#02C39A' }}>
+                {s.step}
+              </div>
+              <div>
+                <h3 className="font-bold text-base mb-1" style={{ color: '#0F172A' }}>{s.title}</h3>
+                <p className="text-sm leading-[1.65]" style={{ color: '#6B7280' }}>{s.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right — contact card */}
+        <div className="rounded-2xl p-7" style={{ background: '#0E9384', boxShadow: '0 20px 60px rgba(14,147,132,0.18)' }}>
+          <h3 className="font-bold text-lg mb-1" style={{ color: '#fff' }}>Get in touch</h3>
+          <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.8)' }}>
+            Our partnerships team will guide you through onboarding.
+          </p>
+
+          <div className="flex flex-col gap-3 mb-7">
+            {/* Email */}
+            <a href={`mailto:${PARTNER_EMAIL}`} className="flex items-center gap-3 rounded-xl px-4 py-3 no-underline transition-all"
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 flex-shrink-0">
+                <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 5L2 7" />
+              </svg>
+              <div>
+                <div className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.6)' }}>Email</div>
+                <div className="text-sm font-semibold" style={{ color: '#fff' }}>{PARTNER_EMAIL}</div>
+              </div>
+            </a>
+
+            {/* Phone / WhatsApp */}
+            <a href={`tel:${PARTNER_PHONE_E164}`} className="flex items-center gap-3 rounded-xl px-4 py-3 no-underline transition-all"
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 flex-shrink-0">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+              <div>
+                <div className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.6)' }}>Phone / WhatsApp</div>
+                <div className="text-sm font-semibold" style={{ color: '#fff' }}>{PARTNER_PHONE_DISPLAY}</div>
+              </div>
+            </a>
+
+            {/* Office / location */}
+            <div className="flex items-center gap-3 rounded-xl px-4 py-3"
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 flex-shrink-0">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+              </svg>
+              <div>
+                <div className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.6)' }}>Office</div>
+                <div className="text-sm font-semibold" style={{ color: '#fff' }}>{PARTNER_OFFICE}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <a href={`mailto:${PARTNER_EMAIL}?subject=Pharmacy%20partnership%20enquiry`}
+              className="font-bold no-underline px-6 py-3 rounded-lg text-center transition-all"
+              style={{ background: '#fff', color: '#0E9384', fontSize: '0.95rem' }}>
+              Contact us
+            </a>
+            <Link href="/auth/pharmacy-signup"
+              className="font-medium no-underline text-center text-sm transition-colors"
+              style={{ color: 'rgba(255,255,255,0.9)' }}>
+              Already spoke with us? Register your pharmacy →
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -590,6 +697,7 @@ export default function LandingPage(): React.JSX.Element {
         <HowItWorks />
         <WhyChoose />
         <Testimonials />
+        <ForPharmacies />
         <CTAStrip />
       </main>
       <Footer />
