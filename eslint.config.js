@@ -39,4 +39,4 @@ export default defineConfig([
       'react-hooks/preserve-caught-error': 'off',
     },
   },
-])
+]);
