@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "fix/build-errors",
+    "landing-page",
+    "main",
+    "origin",
+    "patient-profile-settings",
+    "patient-side-pages",
+    "pharmacy-admin",
+    "super-admin"
+  ],
+  "parent": {
+    "fix/build-errors": "main",
+    "landing-page": "main",
+    "main": null,
+    "origin": "main",
+    "patient-profile-settings": "main",
+    "patient-side-pages": "main",
+    "pharmacy-admin": "main",
+    "super-admin": "main"
+  },
+  "order": [
+    "main",
+    "fix/build-errors",
+    "landing-page",
+    "origin",
+    "patient-profile-settings",
+    "patient-side-pages",
+    "pharmacy-admin",
+    "super-admin"
+  ]
+}
